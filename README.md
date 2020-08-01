@@ -1,4 +1,4 @@
-# takin2
+# Takin 2
 Upcoming Takin version 2 repository.
 
 This will be the future home repository for Takin 2 releases.
