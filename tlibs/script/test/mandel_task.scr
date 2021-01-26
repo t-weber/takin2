@@ -1,0 +1,64 @@
+mandel(c)
+{
+	z = complex(0., 0.);
+
+	for(iter=0; iter<32; iter+=1)
+	{
+		#if(abs(z) > 2.)
+		if(cnorm(z) > 4.)
+			break;
+
+		z = z*z + c;
+	}
+
+	return iter;
+}
+
+
+main()
+{
+	x_size = 512;
+	y_size = 512;
+
+	x_scale = 1./x_size * 2.;
+	y_scale = 1./y_size * 2.;
+	x_offs = -0.5;
+	y_offs = 0.;
+
+	a = vec(y_size);
+	iY = 0;
+
+	zlim = 0;
+	tasks = vec(x_size);
+
+	while(iY less y_size)
+	{
+		a[iY] = vec(x_size);
+
+		for(iX=0; iX<y_size; iX+=1)
+		{
+			c = complex((iX-x_size/2) * x_scale + x_offs,
+					(iY-y_size/2) * y_scale + y_offs);
+			tasks[iX] = task("mandel", c);
+		}
+
+		for(iX=0; iX<y_size; iX+=1)
+		{
+			a[iY][iX] = join(tasks[iX]);
+			zlim = max(zlim, a[iY][iX]);
+		}
+
+		iY = iY+1;
+		output("\rLine " + iY);
+	}
+	output("\n");
+
+	params = map();
+	params["cblimits"] = "0 " + zlim;
+	params["term"] = "x11";
+	params["xlabel"] = "Re z";
+	params["ylabel"] = "Im z";
+	params["title"] = "z -> z^2 + c";
+	
+	plot2d(a, params);
+}

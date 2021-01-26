@@ -1,0 +1,47 @@
+rand_gauss_4d()
+{
+	SIGMA2HWHM = sqrt(2.*log(2.));
+	HWHM2SIGMA = 1./SIGMA2HWHM;
+
+	max_cnt = 10000;
+	do_rotate = 1;
+
+	angle = 25./180.*pi;
+	c = cos(angle);
+	s = sin(angle);
+	rotmat = [[1., 0., 0., 0.],
+		  [0., 1., 0., 0.],
+		  [0., 0.,  c, -s],
+		  [0., 0.,  s,  c]];
+	evts = vec(max_cnt);
+
+	output("Calculating random 4d Gaussian with " + max_cnt + " events ... ");
+
+	mus = [1., 0., 0., 0.];
+	sigs = [0.5, 1.0, 1.5, 2.0]*HWHM2SIGMA;
+
+	cnt = 0;
+	while(cnt < max_cnt)
+	{
+		rnd = rand_norm_nd(mus, sigs);
+
+		if(do_rotate)
+		{
+			rnd -= mus;
+			rnd = prod(rotmat, rnd);
+			rnd += mus;
+		}
+		evts[cnt] = rnd;
+
+		cnt += 1;
+	}
+	#savetxt("/home/tweber/Projekte/mc.dat", trans(evts));
+	savetxt("mc.dat", trans(evts));
+
+	output("done\n");
+}
+
+main()
+{
+	rand_gauss_4d();
+}

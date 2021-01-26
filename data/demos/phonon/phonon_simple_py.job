@@ -1,0 +1,155 @@
+; convofit sample job file
+
+;
+; input files and parameters
+;
+input
+{
+    ; file with the TAS scan
+    scan_file       "./test.dat"
+
+   ; the instrument definition created by
+   ; the Takin resolution parameter dialog
+    instrument_file "./instr.taz"
+
+    ; counter column in the scan file (if not automatically detected)
+;   counts_col ""
+
+    ; monitor column in the scan file (if not automatically detected)
+;   monitor_col ""
+
+    ; normalise detector counts to monitor counts
+    norm_to_monitor 1
+
+    ; temperature column in the scan file (if available)
+    temp_col "TT"
+
+    ; field column in the scan file
+;   field_col        "Bs"
+
+    ; flip the sense of the coordinate system (in case Q definition of the scan is not ki-kf)
+    flip_lhs_rhs 1
+
+    ; specify scan axis (if not automatically detected)
+    scan_axis 4
+
+    ; which S(q,w) model to use?
+    sqw_model py
+
+    ; S(q,w) input file, here, a python script
+    sqw_file "./sqw_phonon.py"
+
+    ; how is the temperature/field variable named
+    ; the S(q,w) model? Here, "g_T" and "g_H" are
+    ; global variables in the given python script.
+    sqw_temp_var    "g_T"
+;   sqw_field_var   "g_H"
+
+    ; default initialisations of variables in the script
+    sqw_set_params "g_G = array([ 4.,  4.,  0.]); g_S0 = 1.0; g_T = 100; g_bose_cut = 0.01; g_freq = 1.5707963267948966; g_inc_amp = 0.6; g_inc_sig = 0.01; g_offs = 0.0; "
+}
+
+
+;
+; output files for results and logs
+;
+output
+{
+    ; logs
+    log_file   "./logphonon_simple_py.txt"
+
+    ; a file describing the fit results
+    model_file "./modphonon_simple_py.dat"
+
+    ; a simplified copy of the original scan file for easier reading
+    ; in an external plot program
+    scan_file  "./scphonon_simple_py.dat"
+
+    ; show a plot at the end of the fit
+    plot 1
+
+    ; show live plots during fitting (very useful for debugging)
+    ; gnuplot has to be installed for this to work
+    ; (see "Set-up" section of the help)
+    plot_intermediate 1
+
+    ; specify an available gnuplot terminal
+    ; list all available terminals using: gnuplot -e "set term"
+    ; typically use: "x11", "qt", or "wxt"
+    ; if no plot window appears, this is set to the wrong value!
+;   plot_term "x11"
+}
+
+
+;
+; which S(q,w) model parameters should be fitted?
+; don't remove "scale", "slope" or "offs"!
+;
+fit_parameters
+{
+    ; variables from the script, which are to be fitted
+    params "scale  slope  offs  g_HWHM  g_amp "
+
+    ; initial values of the three parameters
+    values "70000  0      0     0.4     11.9 "
+
+    ; errors of the three parameters (if 0, no fit will be performed!)
+    errors "7000   0      0     0.05    1 "
+
+    ; which parameters should be fitted? (0 means: non-fixed, i.e. fit parameter)
+    fixed  "1      1      1     0       0 "
+}
+
+
+;
+; settings for the monte-carlo neutrons
+;
+montecarlo
+{
+    ; number of Monte-Carlo neutrons
+    neutrons 1000
+
+    ; keep the same random seed for more stability
+    recycle_neutrons 1
+
+    ; perform a secondary convolution of the sample shape (still beta, keep at 1)
+    sample_positions 1
+}
+
+
+resolution
+{
+    ; which algorithm to use? (either "cn", "pop", "eck", or "viol")
+    algorithm pop
+
+    ; use optimum vertical/horizontal monochromator/analyser focusing?
+    focus_ana_h 0
+    focus_ana_v 0
+    focus_mono_h 0
+    focus_mono_v 0
+}
+
+
+;
+; fitter settings
+;
+fitter
+{
+    ; do a convolution fit or just a plain convolution
+    ; using the initial values?
+    do_fit        1
+
+    ; number of maximum function calls
+    max_funccalls 250
+
+    ; which minimiser to use? (either "simplex" or "migrad")
+    minimiser simplex
+
+    sigma 1.
+
+    ; which Minuit strategy? (0..2)
+    strategy 1
+
+    ; Minuit's targeted "estimated distance to minimum"
+    tolerance 2.500000e+01
+}

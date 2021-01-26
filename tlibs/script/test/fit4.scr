@@ -1,0 +1,15 @@
+main()
+{
+	import("apps/fit.scr");
+
+	x = [1,2,3,4,5,6,7,8,9];
+	y = [2.1, 2.9, 3.9, 4.1, 5., 5.7, 6.2, 7., 8.1, 9.];
+	yerr = y/10.;
+
+	fitparams = fit_line(x, y, yerr);
+	fitpts = fit_points(fitparams, 0., 10.);
+
+	print(fitparams);
+
+	plot([x,y,yerr], [fitpts[0], fitpts[1], ["style":"line"]]);
+}

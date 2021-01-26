@@ -1,0 +1,5 @@
+main()
+{
+	import("test/fak.scr");
+	print(fak(5));
+}

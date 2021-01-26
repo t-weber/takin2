@@ -1,0 +1,9 @@
+main()
+{
+	import("apps/fit.scr");
+
+	x = linspace(0., 1., 128);
+	y = DHO_model(x, 100., 0.5, 0.1, 0.5, 0.);
+
+	plot(x,y, ["style":"line"]);
+}

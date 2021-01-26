@@ -1,0 +1,18 @@
+voigt(x, sigma, gamma)
+{
+	z = complex(x, gamma) / (sigma * sqrt(2.));
+	return real(faddeeva(z)) / (sigma * sqrt(2.*pi));
+}
+
+
+main()
+{
+#	print(erf_cplx(1.23));
+#	print(faddeeva(1.23));
+#	print(voigt(0., 1., 1.));
+
+	x = linspace(-10., 10., 128);
+	y = voigt(x, 0.5, 2.5);
+
+	plot(x,y, ["style":"line"]);
+}

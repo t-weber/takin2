@@ -1,0 +1,19 @@
+# Doxyfile 1.8.11
+
+PROJECT_NAME           = "tlibs"
+PROJECT_BRIEF          = "a math/physics template library"
+OUTPUT_DIRECTORY       = doc
+
+EXTRACT_ALL            = YES
+OPTIMIZE_OUTPUT_FOR_C  = YES
+BUILTIN_STL_SUPPORT    = YES
+EXTRACT_LOCAL_CLASSES  = NO
+
+RECURSIVE              = YES
+EXCLUDE_SYMLINKS       = YES
+
+GENERATE_HTML          = YES
+HTML_DYNAMIC_SECTIONS  = YES
+
+GENERATE_LATEX         = NO
+

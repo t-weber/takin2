@@ -1,0 +1,10 @@
+main()
+{
+	print("1");
+	sleep(1000);
+	print("2");
+	sleep(500.);
+	print("3");
+	sleep(250.);
+	print("4");
+}

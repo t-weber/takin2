@@ -1,0 +1,29 @@
+sq(x)
+{
+	return x^2.;
+}
+
+sq(x)
+{
+	return x;
+}
+
+sqrt(x)
+{
+	return 0;
+}
+
+main(args)
+{
+	print(pi);
+	pi = 3;
+	print(pi);
+
+	if(length(args)<3)
+		return;
+
+	fkt = args[1];
+	d = real(args[2]);
+
+	print(call(fkt, [d]));
+}

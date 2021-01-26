@@ -1,0 +1,12 @@
+main()
+{
+	i=0xff;
+	j=256;
+
+	print(i);
+	print(j);
+
+	print(0xff0000);
+	print(0x00ff00);
+	print(0x0000ff);
+}

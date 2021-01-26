@@ -1,0 +1,12 @@
+#!./hermelin
+
+main(args)
+{
+#	print("Args: " + str(args));
+
+	dat = loadtxt("test/test.dat");
+	print(str(dat));
+
+	savetxt("test/test2.dat", dat);
+	plot(dat[0], dat[1]);
+}

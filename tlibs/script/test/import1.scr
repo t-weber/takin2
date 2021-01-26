@@ -1,0 +1,18 @@
+__init__()
+{
+#	import("test/import0.scr");
+
+	global glob = 1234;
+	print("Loading module import1...");
+#	a[19] = 5;
+}
+
+test()
+{
+	print("In import1.scr");
+}
+
+main()
+{
+	print("In import1 main.");
+}

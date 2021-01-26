@@ -1,0 +1,15 @@
+main()
+{
+	i = [1,2,3];
+	j = [0];
+	k = splice(j, i);
+
+	print(k);
+
+
+	a = ["abc" : 123];
+	b = ["xyz" : 987];
+	c = splice(a, b);
+
+	print(c);
+}

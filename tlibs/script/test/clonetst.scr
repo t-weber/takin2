@@ -1,0 +1,13 @@
+tst(x)
+{
+	print(x);
+}
+
+
+main()
+{
+	tst("xyz");
+
+	for(i=0; i<2; i+=1)
+		tst("123" + "abc");
+}

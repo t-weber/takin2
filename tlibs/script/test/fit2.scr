@@ -1,0 +1,31 @@
+parab_model(x, a, b, c)
+{
+	return a*x^2. + b*x + c;
+}
+
+main()
+{
+	x = linspace(0, 10, 32);
+	y = -2.*x^2. - 0.5*x + 1.5;
+	yerr = y/10.;
+	hints = [1.75, 0.3, 2.];
+	hints_err = [0.25, 0.5, 0.5];
+
+	lower = ["b":-1, "a":-2.];
+	upper = ["b":1, "a":2.];
+
+	params = fit("parab_model", x, y, yerr, ["hints":hints, "hints_errors":hints_err,
+				"lower_limits":lower, "upper_limits":upper,
+				"debug":1]);
+	print("fit parameters: " + str(params));
+
+	params_vals = map_vec_to_val(params);
+	params_errs = map_vec_to_val(params, 1);
+	print("values: " + str(params_vals));
+	print("errors: " + str(params_errs));
+
+	fitx = linspace(min(x), max(x), 128);
+#	fity = line_model(fitx, params["a"][0], params["b"][0]);
+	fity = parab_model(fitx, *params_vals);
+	plot([x,y,yerr], [fitx, fity, ["style":"line", "term":"x11"]]);
+}

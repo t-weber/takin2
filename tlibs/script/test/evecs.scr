@@ -1,0 +1,19 @@
+main()
+{
+	phi = pi/4.;
+
+	c = cos(phi);
+	s = sin(phi);
+
+	m = [[c,-s],[s,c]];
+	[evecs_r, evecs_i, evals_r, evals_i] = eigenvecs(m);
+
+	print("Rotation matrix: " + str(m));
+	print("Angle: " + str(phi));
+
+	print("Eigenvalues (real parts): " + str(evals_r));
+	print("Eigenvalues (imag parts): " + str(evals_i));
+
+	print("Eigenvectors (real parts): " + str(evecs_r));
+	print("Eigenvectors (imag parts): " + str(evecs_i));
+}

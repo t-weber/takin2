@@ -1,0 +1,18 @@
+tst1()
+{
+#	print(pi);
+#	pi = 123;
+#	print(pi);
+
+	global a[1] = 7;
+}
+
+main()
+{
+	global a = vec(2);
+	a[0] = 3;
+
+	tst1();
+#	print("Im main(): " + pi);
+	print(a);
+}

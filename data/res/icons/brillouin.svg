@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.2"
+   width="67.877281"
+   height="70.637314"
+   viewBox="0 0 54.301786 56.509818"
+   id="svg2"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="brillouin.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1242"
+     inkscape:window-height="831"
+     id="namedview20"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="2.95"
+     inkscape:cx="31.067567"
+     inkscape:cy="36.896908"
+     inkscape:window-x="0"
+     inkscape:window-y="28"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title4">Qt Svg Document</title>
+  <desc
+     id="desc6">Created with Takin</desc>
+  <metadata
+     id="metadata2366">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Qt Svg Document</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4135">
+      <stop
+         style="stop-color:#0096fa;stop-opacity:1"
+         offset="0"
+         id="stop4137" />
+      <stop
+         style="stop-color:#003264;stop-opacity:1"
+         offset="1"
+         id="stop4139" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4135"
+       id="radialGradient4145"
+       cx="27.1539"
+       cy="28.248159"
+       fx="27.1539"
+       fy="28.248159"
+       r="27.954236"
+       gradientTransform="matrix(1.9833542,-0.01896745,0.01956559,2.0458986,-27.254591,-29.029671)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <path
+     d="m 14.193523,46.145484 -12.5928621,-8.897419 0.00726,-9.0439 0.00726,-9.043901 12.2451961,-8.633692 C 20.595234,5.7780418 26.411848,1.7882789 26.786183,1.6604329 27.16052,1.5325869 33.08025,5.4293812 39.94114,10.319975 l 12.474346,8.89199 0.136809,9.01805 0.136808,9.01805 L 40.21,45.980108 c -6.863503,4.802623 -12.691613,8.806462 -12.951355,8.897418 -0.259744,0.09096 -6.139049,-3.838461 -13.065122,-8.732042 l 0,0 z"
+     id="path4186"
+     style="fill:url(#radialGradient4145);fill-opacity:1;stroke:#000000;stroke-width:4.79999702;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     inkscape:connector-curvature="0" />
+</svg>

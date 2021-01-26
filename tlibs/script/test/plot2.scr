@@ -1,0 +1,25 @@
+main()
+{
+	x = linspace(0, 4*pi, 128);
+	y1 = sin(x); y2 = cos(x);
+	yerr = vec(128) + 0.1;
+
+	params = map();
+	params["xlabel"] = "x-Achse";
+	params["ylabel"] = "y-Achse";
+	params["title"] = "Titel";
+	params["style"] = "point";
+	params["term"] = "x11";
+
+	params2 = params;
+	params2["style"] = "line";
+
+	params3 = params2;
+	params3["window"] = 1;
+	params3["arrow"] = "6 -1 6 1 0, 7 -1 7 1 0";
+
+	plot([[x,y1, yerr, params], [x,y2, params2]]);
+	#fileplot("tst.pdf", [[x,y1, yerr, params], [x,y2, params2]]);
+
+	plot(x, cos(x), params3);
+}

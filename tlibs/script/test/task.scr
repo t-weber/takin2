@@ -1,0 +1,26 @@
+task1(iTask)
+{
+	print("In task " + iTask + ".");
+	return "abc";
+}
+
+task2()
+{
+	print("In task 2.");
+	return "xyz";
+}
+
+main()
+{
+	t1 = task("task1", 1);
+	t2 = task("task2");
+	t3 = task("task1", 3);
+
+	t1ret = join(t1);
+	t2ret = join(t2);
+	t3ret = join(t3);
+
+	print("task 1 return: " + str(t1ret));
+	print("task 2 return: " + str(t2ret));
+	print("task 3 return: " + str(t3ret));
+}

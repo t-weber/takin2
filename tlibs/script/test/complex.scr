@@ -1,0 +1,53 @@
+print_polar(c)
+{
+	mag = abs(c);
+	phase = carg(c);
+
+	print(str(c) + " = " + mag + " * exp(i*" + phase + ")");
+
+	return [mag, phase];
+}
+
+spin_matrix(num)
+{
+	i = sqrt(-1.);
+
+	if(num==0) return [[0.,1.],[1.,0.]];
+	if(num==1) return [[0.,-i],[i,0.]];
+	if(num==2) return [[1.,0.],[0.,-1.]];
+
+	return 0;
+}
+
+main()
+{
+	a = complex(1,2);
+	b = complex(3,4);
+
+	print("type: " + typeof(a));
+	print("a = " + a);
+	print("2a = " + (2*a));
+	print("real part: " + real(a));
+	print("imag part: " + imag(a));
+
+	[mag, phase] = print_polar(a);
+	print("reconstructed a = " + complex_polar(mag, phase));
+
+	print("b = " + b);
+	print("a+b = " + str(a+b));
+	print("a-b = " + str(a-b));
+	print("a*b = " + str(a*b));
+	print("a/b = " + str(a/b));
+	print("a^b = " + str(a^b));
+	print("a^2 = " + str(a^2));
+	print("a*a = " + str(a*a));
+	print("sin(a) = " + str(sin(a)));
+	print("abs(a) = " + str(abs(a)));
+	print("conj(a) = " + str(conj(a)));
+
+	print(sqrt(-1));
+	#conj(12);
+
+	for(i=0; i<3; i+=1)
+		print("Spin matrix " + i + ": " + str(spin_matrix(i)));
+}

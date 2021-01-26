@@ -1,0 +1,15 @@
+check(num)
+{
+	print("Number: " + num);
+	print("NaN: " + isnan(num));
+	print("Inf: " + isinf(num));
+	print("Finite: " + isfinite(num));
+	print("-"*80);
+}
+
+main()
+{
+	check(0.);
+	check(0./0.);
+	check(1./0.);
+}

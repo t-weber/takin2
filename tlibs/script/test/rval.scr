@@ -1,0 +1,19 @@
+tst(a)
+{
+	print(is_rval(a));
+	print(is_rval(a+1));
+	return a+123;
+}
+
+main()
+{
+	a = 5;
+
+	print(is_rval(0));
+	print(is_rval(a));
+
+	print(is_rval(tst(5)));
+
+	vec = [a,2,3,4];
+	print(is_rval(vec[0]));
+}

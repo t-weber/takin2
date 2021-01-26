@@ -1,0 +1,29 @@
+trafo(M, T)
+{
+	return prod(trans(T), prod(M, T));
+}
+
+main()
+{
+	M = [[1, 2], [3, 4]];
+	v = [3, 4];
+
+	print("M = " + str(M));
+	print("v = " + str(v));
+
+
+	c1 = cos(2.34);
+	s1 = sin(2.34);
+	T = [[c1, s1], [-s1, c1]];
+
+	M1 = trafo(M, T);
+	print("T^t M T = " + str(M1));
+
+
+
+	Mv = prod(M, v);
+	print("M v = " + str(Mv));
+
+	M1v = prod(M1, v);
+	print("T^t M T v = " + str(M1v));
+}

@@ -1,0 +1,55 @@
+<!--
+	Documentation for takin
+	@author Tobias Weber <tweber@ill.fr>
+	@date 2016-2020
+	@license GPLv2
+-->
+
+<html>
+<head>
+    <title>Resolution Convolution</title>
+</head>
+
+<body>
+	<h1>Resolution Convolution</h1>
+
+	<p>In order to plan an experiment or to get an overview before using the more involved
+	convolution fitter, a live Monte-Carlo convolution can be performed by selecting 
+	"Resolution" -> "Convolution..." in the menu bar.</p>
+
+	<p>In the "Convolution" dialog four things have to be defined: (1) a crystal, (2) an instrument,
+	(3) a theoretical model for the dynamical structure factor S(q,E), and (4) a scan direction:</p>
+
+	<p>(1) and (2): The crystal (together with a scattering plane) and the instrument parameter 
+	files are entered in the "Crystal File" and "Resolution File" edit fields, respectively.
+	These files are the ones that are defined <a href="basics.html">in the Takin main window</a>
+	and <a href="reso.html">in the "Resolution Parameters" dialog</a>.
+	Instead of manually defining a crystal and a scan direction, the relevant parameters can be automatically
+	determined from a TAS data file, which can be optionally entered in the "Measurement" edit field.
+	Multiple scan files can be specified by separating them with a semicolon.</p>
+
+	<p>(3): The S(q,E) model is a user-provided theoretical formula or algorithm for the physical
+	system to be measured. It can be either provided as a <a href="reso-sqw-py.html">Python</a>
+	or a <a href="reso-sqw-jl.html">Julia</a> script, or as a <a href="reso-sqw-native.html">native plugin</a>.
+	Several simple S(q,E) models are <a href="reso-sqw.html">included internally</a> for testing.
+	Each model provides variables which can be directly changed in the GUI via the "Parameters..." button next
+	to "Model Source". These variables are the same that are also exposed to the fitter.</p>
+
+	<p>(4): The actual scan path is defined in the "Scan Steps" group at the bottom of the dialog.
+	Here, the Q=(hkl) and E coordinates of the start end end position are entered along with the
+	number of subdivisions between these positions ("Steps").</p>
+
+
+	<h3>Background information</h3>
+	<p>A triple-axis spectrometer does not sample the dynamical structure factor S(q,E) at the nominally set-up
+	reciprocal coordinates (q,E), but instead probes S in a normally-distributed range
+	([q-&sigma;_q, q+&sigma;_q], [E-&sigma;_E, E+&sigma;_E]), where the deviations &sigma;_q and &sigma;_E are given
+	by the resolution ellipsoid. Mathematically, the measured intensity is the convolution integral of the dynamical
+	structure factor and the instrumental resolution function. In Takin, the integral is solved numerically using
+	Monte-Carlo integration.</p>
+
+	<p>More details can be found <a href="http://dx.doi.org/10.1107/S0567739475001088">here</a> or <a href="http://dx.doi.org/10.1016/j.nima.2014.03.019">here</a>.</p>
+
+</body>
+
+</html>

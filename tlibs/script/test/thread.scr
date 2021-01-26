@@ -1,0 +1,43 @@
+thread_func(a)
+{
+	i = 0;
+	while(i less 25)
+	{
+#		begin_critical(mtx);
+#			print("In " + a +  ": " + i);
+#		end_critical(mtx);
+
+		i += 1;
+	}
+
+	begin_critical(mtx);
+		fin_th += 1;
+		print("End of " + a +  ": " + i);
+	end_critical(mtx);
+}
+
+main()
+{
+	global mtx = mutex();
+	global fin_th = 0;
+
+	print("Hardware supports " + thread_hwcount() + " threads.\n");
+
+	nthreads = thread_hwcount();
+	#nthreads *= 100;
+	th = vec(nthreads);
+
+	i = 0;
+	while(i less nthreads)
+	{
+		str = "thread " + (i+1);
+		th[i] = thread("thread_func", str);
+		i = i+1;
+	}
+
+	print("In main thread");
+	join(th);
+
+	print("In main thread -- end");
+	print(fin_th + " threads finished.");
+}

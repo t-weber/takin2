@@ -1,0 +1,14 @@
+main()
+{
+	arr = [12, 34, "Test", 543.21, 12.34, "xyz"];
+
+	for(a : arr)
+	{
+		if(a eq "Test")
+			continue;
+		else if(a eq 12.34)
+			break;
+
+		print(a);
+	}
+}

@@ -1,0 +1,15 @@
+main()
+{
+	a = linspace(0, 2*pi, 32);
+	b = sin(a);
+	print("Original data: " + str(b) + "\n");
+	#print([[1,"test"],2,3][0][1]);
+
+	c = fft(b);
+	print("FFT: " + str(c) + "\n");
+
+	d = ifft(c)/vec_size(c[0]);
+	print("IFFT: " + str(d) + "\n");
+
+	plot(a,d[0]);
+}

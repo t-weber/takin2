@@ -1,0 +1,34 @@
+test(i)
+{
+	if(i==0)
+		return 1;
+	return;
+}
+
+test2(i)
+{
+	if(i==0)
+		return ["1", 2, 3.45];
+	return;
+}
+
+main(args)
+{
+	#print(is_valid(real_vec()));
+	a = read_file("nonexistant.txt");
+	print(is_valid(a));
+
+	a = read_file("test/valid.scr");
+	print(is_valid(a));
+
+	print("*"*80);
+	print(is_valid(test(0)));
+	print(is_valid(test(1)));
+
+	print("*"*80);
+	[x1, x2, x3] = test2(0);
+	[y1, y2, y3] = test2(1);
+	
+	print(is_valid(x1,x2,x3));
+	print(is_valid(y1,y2,y3));
+}

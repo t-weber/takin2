@@ -1,0 +1,34 @@
+/**
+ * implementation of the eckold-sobolev algo
+ *
+ * @author Tobias Weber <tobias.weber@tum.de>
+ * @date feb-2015
+ * @license GPLv2
+ *
+ * @desc for algorithm: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014), doi: 10.1016/j.nima.2014.03.019
+ */
+
+#ifndef __TAKIN_ECK_H__
+#define __TAKIN_ECK_H__
+
+#include "pop.h"
+
+/**
+ * TAS parameters in fwhm
+ */
+struct EckParams : public PopParams
+{
+	tl::t_angle_si<t_real_reso> mono_mosaic_v;
+	tl::t_angle_si<t_real_reso> ana_mosaic_v;
+
+	tl::t_length_si<t_real_reso> pos_x, pos_y, pos_z;
+
+	// vertical scattering in k_f
+	bool bKfVertical = false;
+};
+
+
+extern ResoResults calc_eck(const EckParams& eck);
+
+
+#endif

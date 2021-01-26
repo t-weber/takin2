@@ -1,0 +1,6 @@
+main()
+{
+	a = "123Test789 Test";
+	b = replace(a, "Test", "456");
+	print(b);
+}

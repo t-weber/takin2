@@ -1,0 +1,29 @@
+print_traceback(arg)
+{
+	trace = traceback();
+	
+	begin_critical();
+	for(str : trace)
+	{
+		print(arg + " " + str);
+	}
+	end_critical();
+}
+
+thrd(iTh)
+{
+	print_traceback("T" + iTh);
+}
+
+main(args)
+{
+	NTH = 2;
+
+	ths = vec(NTH);
+	for(iTh=0; iTh<NTH; iTh+=1)
+		ths[iTh] = thread("thrd", iTh);
+
+	print_traceback("M");
+
+	join(ths);
+}

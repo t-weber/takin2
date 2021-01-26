@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+	<key>CFBundleName</key>			<string>Takin</string>
+	<key>CFBundleDisplayName</key>		<string>Takin</string>
+	<key>CFBundleExecutable</key>		<string>takin</string>
+	<key>CFBundleIconFile</key>		<string>takin.icns</string>
+	<key>CFBundleIdentifier</key>		<string>eu.ill.cs.takin</string>
+	<key>CFBundleVersion</key>		<string>2.0.0</string>
+	<key>CFBundleShortVersionString</key>	<string>2.0.0</string>
+	<key>CFBundlePackageType</key>		<string>APPL</string>
+	<key>CFBundleSupportedPlatforms</key>	<array> <string>MacOSX</string> </array>
+
+	<key>LSMinimumSystemVersion</key>	<string>10.13</string>
+
+	<key>NSHighResolutionCapable</key>	<string>True</string>
+	<key>NSPrincipalClass</key>		<string>NSApplication</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>	<string>True</string>
+	<key>NSHumanReadableCopyright</key>	<string>Copyright (C) 2014-2020 by Tobias Weber (TUM, Garching, Germany and ILL, Grenoble, France). Copyleft: GPLv2.</string>
+
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>taz</string>
+				<string>TAZ</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>	<string>takin.icns</string>
+			<key>CFBundleTypeName</key>	<string>Takin File</string>
+			<key>CFBundleTypeRole</key>	<string>Editor</string>
+			<key>LSHandlerRank</key>	<string>Owner</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,1139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ScanViewerDlg</class>
+ <widget class="QDialog" name="ScanViewerDlg">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>893</width>
+    <height>660</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Scan Viewer</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <property name="margin">
+    <number>4</number>
+   </property>
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="layoutWidget">
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item row="0" column="0" colspan="2">
+        <widget class="QListWidget" name="listFiles">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>2</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::ExtendedSelection</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" rowspan="2">
+        <widget class="QComboBox" name="comboPath">
+         <property name="toolTip">
+          <string>Current and recent directories.</string>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="maxVisibleItems">
+          <number>16</number>
+         </property>
+         <property name="insertPolicy">
+          <enum>QComboBox::NoInsert</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" rowspan="2">
+        <widget class="QToolButton" name="btnBrowse">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Browse for data directories...</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_2">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item row="0" column="0" colspan="4">
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tabPlot">
+          <attribute name="title">
+           <string>Plot</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QwtPlot" name="plot">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>4</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QFrame" name="frame">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_11">
+              <property name="margin">
+               <number>2</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="0" column="3">
+               <widget class="QPushButton" name="btnVoigt">
+                <property name="text">
+                 <string>Fit Voigtian</string>
+                </property>
+                <property name="flat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="btnGauss">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fits:&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;y = amp * exp{ -1/2 * [(x-x&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;)/sigma)]&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2 &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;} + offs &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;[ &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;+ (x-x&lt;/span&gt;&lt;span style=&quot; font-style:italic; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;) * slope ]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Fit Gaussian</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QPushButton" name="btnLorentz">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fits:&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;y = amp*hwhm&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; / [ (x-x&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;)&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; + hwhm&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; ] + offs&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;[ + (x-x&lt;/span&gt;&lt;span style=&quot; font-style:italic; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;)*slope ]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Fit Lorentzian</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QPushButton" name="btnParam">
+                <property name="text">
+                 <string>Parameters...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QPushButton" name="btnLine">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fits:&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;y = slope*x + offs&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Fit Line</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkSloped">
+                <property name="toolTip">
+                 <string>Adds a sloping background to the Gaussian, Lorentzian and Voigtian peaks.</string>
+                </property>
+                <property name="text">
+                 <string>Sloped Peaks</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QPushButton" name="btnSine">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fits:&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;y = amp * sin(freq*x + phase) + offs&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;[ + slope*x ]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Fit Sine</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QPushButton" name="btnParabola">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fits:&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;y = amp*(x-x&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;)&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; + offs&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;[ + (x-x&lt;/span&gt;&lt;span style=&quot; font-style:italic; vertical-align:sub;&quot;&gt;mean&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;)*slope ]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Fit Parabola</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabPol">
+          <attribute name="title">
+           <string>Polarisation</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_15">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>(Pseudo-) Device Names for Spherical Polarisation Analysis</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_13">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="editPolCur2">
+                <property name="toolTip">
+                 <string>Final.</string>
+                </property>
+                <property name="text">
+                 <string>i2</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Dipole Currents:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>Polarisation Vectors:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="editPolVec2">
+                <property name="toolTip">
+                 <string>Final.</string>
+                </property>
+                <property name="text">
+                 <string>p2</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editPolVec1">
+                <property name="toolTip">
+                 <string>Initial.</string>
+                </property>
+                <property name="text">
+                 <string>p1</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editPolCur1">
+                <property name="toolTip">
+                 <string>Initial.</string>
+                </property>
+                <property name="text">
+                 <string>i1</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QGroupBox" name="groupBox_5">
+             <property name="title">
+              <string>Polarisation Matrix Elements</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_14">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QTextEdit" name="editPolMat">
+                <property name="tabChangesFocus">
+                 <bool>true</bool>
+                </property>
+                <property name="undoRedoEnabled">
+                 <bool>false</bool>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>(Pseudo-) Device Names for Linear Polarisation Analysis</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_16">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Flippers:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editFlip1">
+                <property name="text">
+                 <string>f1</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="editFlip2">
+                <property name="text">
+                 <string>f2</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Guide Coil:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editXYZ">
+                <property name="text">
+                 <string>hx</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabExp">
+          <attribute name="title">
+           <string>Experiment</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item row="3" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="0">
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Scattering Plane</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_8">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>x:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editPlaneX0">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="editPlaneX1">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLineEdit" name="editPlaneX2">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>y:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editPlaneY0">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="editPlaneY1">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLineEdit" name="editPlaneY2">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Experiment</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_9">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editUser">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Contact:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>User:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="editKfix">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Minimum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>16</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="4">
+               <widget class="QLineEdit" name="editContact">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="labelKfix">
+                <property name="text">
+                 <string>kfix (1/Å):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Title:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Sample:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editTitle">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLineEdit" name="editSample">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QLineEdit" name="editTimestamp">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Date:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBox">
+             <property name="title">
+              <string>Sample</string>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <property name="margin">
+               <number>4</number>
+              </property>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>c (Å):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>b (Å):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="editC">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>a (Å):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="editA">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="4">
+               <widget class="QLineEdit" name="editBeta">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>γ (deg):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>α (deg):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLineEdit" name="editAlpha">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="editB">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>β (deg):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QLineEdit" name="editGamma">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Minimum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>16</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabProp">
+          <attribute name="title">
+           <string>All Properties</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Search:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="editSearch"/>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QTableWidget" name="tableProps">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="sortingEnabled">
+              <bool>true</bool>
+             </property>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>true</bool>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabExport">
+          <attribute name="title">
+           <string>Export</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <property name="margin">
+            <number>2</number>
+           </property>
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Export Data to Language:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="comboExport">
+             <item>
+              <property name="text">
+               <string>Gnuplot</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>C++ / Root</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Python</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Julia</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Hermelin</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QTextEdit" name="textRoot">
+             <property name="undoRedoEnabled">
+              <bool>false</bool>
+             </property>
+             <property name="lineWrapMode">
+              <enum>QTextEdit::NoWrap</enum>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="acceptRichText">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabAbout">
+          <attribute name="title">
+           <string>About</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_12">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelTitle">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;Takin / Scan Viewer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="labelVersion">
+             <property name="text">
+              <string>Version 1</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="labelWritten">
+             <property name="text">
+              <string>Written by Tobias Weber</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="labelCC">
+             <property name="text">
+              <string>Built with cc</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelSubtitle">
+             <property name="text">
+              <string>A minimalistic TAS scan file browser.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>16</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="0">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>16</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="labelYears">
+             <property name="text">
+              <string>2014 - 2020</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="labelLicense">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Takin&lt;/span&gt; is free software: you can redistribute it and/or modify it under the terms of the &lt;a href=&quot;http://www.gnu.org/licenses/old-licenses/gpl-2.0.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;GNU General Public License version 2&lt;/span&gt;&lt;/a&gt; as published by the &lt;a href=&quot;http://www.fsf.org/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Free Software Foundation&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Takin&lt;/span&gt; is distributed in the hope that it will be useful, but &lt;span style=&quot; font-weight:600;&quot;&gt;WITHOUT ANY WARRANTY&lt;/span&gt;; without even the implied warranty of &lt;span style=&quot; font-weight:600;&quot;&gt;MERCHANTABILITY&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;FITNESS FOR A PARTICULAR PURPOSE&lt;/span&gt;. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License along with &lt;span style=&quot; font-style:italic;&quot;&gt;Takin&lt;/span&gt;. If not, see &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://www.gnu.org/licenses/&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="openExternalLinks">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="comboX">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Abscissa (x), scan axis.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QComboBox" name="comboY">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Ordinate (y), e.g. main counter.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QComboBox" name="comboMon">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Monitor counter to normalise to.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="spinStart">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Start index of first data row.</string>
+         </property>
+         <property name="prefix">
+          <string>Start: </string>
+         </property>
+         <property name="maximum">
+          <number>99999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QSpinBox" name="spinStop">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>End index of last data row.</string>
+         </property>
+         <property name="prefix">
+          <string>Stop: </string>
+         </property>
+         <property name="maximum">
+          <number>99999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QSpinBox" name="spinSkip">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Number of rows to skip between data rows.</string>
+         </property>
+         <property name="prefix">
+          <string>Interleave: </string>
+         </property>
+         <property name="maximum">
+          <number>99999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="checkNorm">
+         <property name="toolTip">
+          <string>Normalise main counter to monitor counter.</string>
+         </property>
+         <property name="text">
+          <string>Norm.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Axes:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtPlot</class>
+   <extends>QFrame</extends>
+   <header>qwt_plot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>listFiles</tabstop>
+  <tabstop>comboPath</tabstop>
+  <tabstop>btnBrowse</tabstop>
+  <tabstop>comboX</tabstop>
+  <tabstop>comboY</tabstop>
+  <tabstop>comboMon</tabstop>
+  <tabstop>checkNorm</tabstop>
+  <tabstop>spinStart</tabstop>
+  <tabstop>spinStop</tabstop>
+  <tabstop>spinSkip</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>btnParam</tabstop>
+  <tabstop>checkSloped</tabstop>
+  <tabstop>btnGauss</tabstop>
+  <tabstop>btnLorentz</tabstop>
+  <tabstop>btnVoigt</tabstop>
+  <tabstop>btnLine</tabstop>
+  <tabstop>btnParabola</tabstop>
+  <tabstop>btnSine</tabstop>
+  <tabstop>editPolVec1</tabstop>
+  <tabstop>editPolVec2</tabstop>
+  <tabstop>editPolCur1</tabstop>
+  <tabstop>editPolCur2</tabstop>
+  <tabstop>editPolMat</tabstop>
+  <tabstop>editTitle</tabstop>
+  <tabstop>editUser</tabstop>
+  <tabstop>editKfix</tabstop>
+  <tabstop>editSample</tabstop>
+  <tabstop>editContact</tabstop>
+  <tabstop>editTimestamp</tabstop>
+  <tabstop>editA</tabstop>
+  <tabstop>editB</tabstop>
+  <tabstop>editC</tabstop>
+  <tabstop>editAlpha</tabstop>
+  <tabstop>editBeta</tabstop>
+  <tabstop>editGamma</tabstop>
+  <tabstop>editPlaneX0</tabstop>
+  <tabstop>editPlaneX1</tabstop>
+  <tabstop>editPlaneX2</tabstop>
+  <tabstop>editPlaneY0</tabstop>
+  <tabstop>editPlaneY1</tabstop>
+  <tabstop>editPlaneY2</tabstop>
+  <tabstop>tableProps</tabstop>
+  <tabstop>editSearch</tabstop>
+  <tabstop>comboExport</tabstop>
+  <tabstop>textRoot</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

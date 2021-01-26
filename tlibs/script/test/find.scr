@@ -1,0 +1,9 @@
+main()
+{
+	a = [1, 2., 3.45, "test", "abcdefg"];
+
+	print(find(a, 3.45));
+	print(find(a, "test"));
+	print(find(a, "Test"));
+	print(find(a[4], "def"));
+}

@@ -1,0 +1,77 @@
+norm()
+{
+	mu = 5.;
+	sig = 1.5;
+	CNT = 500;
+
+	ys_rnd = [];
+	for(i=0; i<CNT; i+=1)
+	{
+		x_rnd = int(round(rand_norm(mu, sig)));
+		if(x_rnd < 0) continue;
+		ys_rnd[x_rnd] += 1;
+	}
+
+	xs_rnd = linspace(0, length(ys_rnd), length(ys_rnd)+1);
+	xs = linspace(0.,mu*2.,128);
+	ys = norm_pdf(mu, sig, xs);
+
+	plot([[xs, ys, ["style":"line"]],
+		[xs_rnd, ys_rnd/CNT, ["style":"points"]]],
+		["window":1, "title":"Gaussian"]);
+}
+
+cauchy()
+{
+	mu = 5.;
+	sig = 1.5;
+	CNT = 500;
+
+	ys_rnd = [];
+	for(i=0; i<CNT; i+=1)
+	{
+		x_rnd = int(round(rand_cauchy(mu, sig)));
+		if(x_rnd < 0) continue;
+		ys_rnd[x_rnd] += 1;
+	}
+
+	xs_rnd = linspace(0, length(ys_rnd), length(ys_rnd)+1);
+	xs = linspace(0.,mu*2.,128);
+	ys = cauchy_pdf(mu, sig, xs);
+
+	plot([[xs, ys, ["style":"line"]],
+		[xs_rnd, ys_rnd/CNT, ["style":"points"]]],
+		["xlimits":"0 " + str(2*mu), "window":2,
+		"title":"Lorentzian"]);
+}
+
+gamma()
+{
+	mu = 5.;
+	sig = 1.5;
+	CNT = 500;
+
+	ys_rnd = [];
+	for(i=0; i<CNT; i+=1)
+	{
+		x_rnd = int(round(rand_gamma(mu, sig)));
+		if(x_rnd < 0) continue;
+		ys_rnd[x_rnd] += 1;
+	}
+
+	xs_rnd = linspace(0, length(ys_rnd), length(ys_rnd)+1);
+	xs = linspace(0.,mu*2.,128);
+	ys = gamma_pdf(mu, sig, xs);
+
+	plot([[xs, ys, ["style":"line"]],
+		[xs_rnd, ys_rnd/CNT, ["style":"points"]]],
+		["xlimits":"0 " + str(2*mu), "window":3,
+		"title":"Gamma"]);
+}
+
+main()
+{
+	norm();
+	cauchy();
+	gamma();
+}

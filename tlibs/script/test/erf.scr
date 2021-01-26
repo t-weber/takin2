@@ -1,0 +1,32 @@
+f(x)
+{
+	const_size = 1.5;
+	slope_scale = 1.;
+
+	x0 = 2.;
+	amp = 1.5;
+
+	x -= x0;
+
+	fkt = "erf";
+	#fkt = "tanh";
+
+	if(x<-const_size/2.)
+		return call(fkt, [x*slope_scale + 3. + const_size/2.]) * amp*0.5 + amp*0.5;
+	else if(x>=-const_size/2. and x<=const_size/2.)
+		return amp;
+	else
+		return call(fkt, [-x*slope_scale + 3. + const_size/2.]) * amp*0.5 + amp*0.5;
+}
+
+main()
+{
+	xs = linspace(-7, 7, 128);
+	ys = vec(128);
+	for(x : xs)
+		ys[cur_iter(x)] = f(x);
+
+	opt = ["style":"line", "legend":"f(x)"];
+
+	plot([[xs,ys,opt]], ["term":"x11"]);
+}

@@ -1,0 +1,50 @@
+rand_gauss_2d()
+{
+	BINS = 128;
+	max_cnt = 100000;
+	vals = mat(BINS, BINS);
+
+	do_rotate = 1;
+
+	angle = 25./180.*pi;
+	c = cos(angle);
+	s = sin(angle);
+	rotmat = [[c,-s],[s,c]];
+
+	mus = [BINS/2., BINS/2.];
+	sigs = [BINS/4., BINS/8.];
+
+	print("Calculating rotated random 2d Gaussian with " + max_cnt + " event...");
+
+	cnt = 0;
+	while(cnt < max_cnt)
+	{
+		rnd = rand_norm_nd(mus, sigs);
+
+		if(do_rotate)
+		{
+			rnd -= mus;
+			rnd = prod(rotmat, rnd);
+			rnd += mus;
+		}
+
+		bin_x_rnd = int(rnd[1]);
+		bin_y_rnd = int(rnd[0]);
+
+		if(bin_x_rnd >= 0 and bin_x_rnd < BINS and bin_y_rnd >= 0 and bin_y_rnd < BINS)
+			vals[bin_x_rnd][bin_y_rnd] += 1;
+
+		cnt += 1;
+		if((cnt % (max_cnt/100))==0)
+			output("\rProgress: " + int(real(cnt)/max_cnt*100.) + "% complete.    ");
+	}
+	print();
+
+	#print("random 2d gaussian: " + str(vals));
+	plot2d(vals);
+}
+
+main()
+{
+	rand_gauss_2d();
+}

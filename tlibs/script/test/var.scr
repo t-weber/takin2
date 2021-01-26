@@ -1,0 +1,15 @@
+main()
+{
+	varmap = ["test":123,  "abc":456.7];
+	register_var(varmap);
+
+	register_var("xyz", "Test");
+
+	print(test);
+	print(abc);
+	print(xyz);
+
+
+	register_var("test", "abc456");
+	print(test);
+}

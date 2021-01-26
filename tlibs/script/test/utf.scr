@@ -1,0 +1,10 @@
+main()
+{
+	print("\{lambda} = 12.3 \{AA} \{pm} 0.5 \{AA}");
+	print("Q = 5 \{AA}\{sup-}\{sup1}");
+	print("E = m\{cdot}c\{sup2}");
+	print("E = \{hbar}\{omega}");
+	print("P \{neq} NP");
+	print("\{alpha}\{sub2} = 8\{deg}");
+	print("a \{rightarrow} b");
+}

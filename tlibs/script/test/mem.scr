@@ -1,0 +1,23 @@
+# finding memory leaks in interpreter...
+
+fkt(c0)
+{
+	c = complex(1,2);
+	z = c * c0;
+
+	return z;
+}
+
+main()
+{
+	i = 0;
+	while(1)
+	{
+		a = linspace(0,1,100);
+
+		fkt(complex(1.2, 3.4));
+
+		#print(i);
+		i = i+1;
+	}
+}

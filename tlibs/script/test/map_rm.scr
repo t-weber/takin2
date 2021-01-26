@@ -1,0 +1,9 @@
+main()
+{
+	m = map();
+	m["123"] = 12.3;
+	m["abc"] = "xyz";
+
+	rm_key(m, "abc");
+	print(m);
+}

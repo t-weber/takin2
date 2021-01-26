@@ -1,0 +1,22 @@
+fkt(a,b,c)
+{
+	return [a,[b,c]];
+}
+
+main()
+{
+	a = fkt(1., "x", 5678);
+	[b,c] = fkt(1., "x", 5678);
+	[d,[e,f]] = fkt(1., "x", 5678);
+
+	print(a);
+
+	print();
+	print(b);
+	print(c);
+
+	print();
+	print(d);
+	print(e);
+	print(f);
+}

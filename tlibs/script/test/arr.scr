@@ -1,0 +1,83 @@
+tst(a)
+{
+	a[0] = 123;
+	return a;
+}
+
+main()
+{
+	a = [5, 4, 3, 2, 1, [2,3]];
+	a[-2] = "Test";
+	a[-1] = "xyz";
+
+	print(str(a));
+
+#	print(a[-10]);
+
+#	print(linspace(0,14,15));
+#
+#	yy = [1.,2.,3.];
+#	yy[0] = (tstval="Test");
+#	tstval = "1234567";
+#	print(yy);
+#	print(tstval);
+#
+#	x = [[1,2],[3,4]];
+#	print(x[0,1]);
+#	print(x[0][1]);
+#
+#	print(linspace(1,2,10));
+#	print(logspace(1,2,10));
+#
+#	arr0 = [1,2,3,4,5,6,7,8,9];
+#	arr1 = [2,4,6,8,10];
+#	print(arr0 + arr1);
+#	print(arr0 * 2);
+#
+#	arr2 = ["Ha", 1];
+#	arr3 = ["ll", 2];
+#	arr4 = ["o", 3];
+#	print(arr2+arr3+arr4);
+# 
+#	a = 1;
+#	arr = [a, 2, 3];
+#	print(arr);
+#	a = 2;
+#	print(arr);
+#	arr[0] = 5;
+#	print(a);
+
+#	b = a;
+#	a = 2;
+#	print(a);
+#	print(b);
+	
+#	tst1 = tst(vec(5));
+#	print(tst1);
+
+#	tst = [1,2,3];
+#	tst[2] = ["x", "y", "z"];
+#	tst[2,1] = [1.2, "a", 5];
+#	tst[4] = tst[0]*2 + tst[1]*5;
+#	print(tst);
+
+#	arr = tst[2];
+#	arr[0] = "xxx";
+#	tst[2,0] = 7;
+#	print(arr + "\n" + tst);
+
+
+#	arr0 = [[1,2,3],[4.,5,6]];
+#	print(arr0);
+#	arr0[1,0] = arr0[0,0] + arr0[0,1] + 0.5;
+#	print(arr0);
+#
+#	arr = [1,2,3,4];
+#	arr2 = ["test", 1, 1.5];
+#	arr3 = arr2;
+#	arr3[1] = 123;
+#
+#	print("Array 1: " + arr);
+#	print("Array 2: " + arr2);
+#	print("Array 3: " + arr3);
+}

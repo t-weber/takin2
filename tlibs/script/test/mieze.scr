@@ -1,0 +1,43 @@
+contrast(num_osc, data)
+{
+	len = vec_size(data);
+
+	data_fft = fft(data);
+	real = 2.*data_fft[0][num_osc] / len;
+	imag = 2.*data_fft[1][num_osc] / len;
+
+	amp = sqrt(real^2 + imag^2);
+	offs = data_fft[0][0] / len;
+
+	phase = atan2(imag, real) + pi/2. - 2.*pi/2.*num_osc/len;
+	if(phase less 0.)
+		phase = phase - 2.*pi;
+
+	C = amp / offs;
+
+#	print("Contrast: " + C + ", Phase: " + phase + ", Amplitude: " + amp + ", Offset: " + offs);
+	return [C, phase, amp, offs];
+}
+
+
+
+main()
+{
+	amp = 12.3;
+	offs = 15.5;
+	num_osc = 2;
+
+	x = linspace(0, num_osc*2.*pi, 32);
+	y = amp*sin(x + pi) + offs;
+
+	print("Contrast should be: " + (amp / offs));
+	dat = contrast(num_osc, y);
+
+	fitx = linspace(0, num_osc*2.*pi, 128);
+	fity = dat[2]*sin(fitx+dat[1]) + dat[3];
+
+	params = map();
+	params["style"] = "line";
+	params["title"] = "Contrast: " + dat[0] + ", Phase: " + dat[1];
+	plot([x,y], [fitx, fity, params]);
+}

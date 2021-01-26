@@ -1,0 +1,22 @@
+main()
+{
+	m = [[1.,2.],[2.,3.]];
+	[evecs, evals] = eigenvecs_sym(m);
+
+	for(i=0; i<length(evecs); i+=1)
+	{
+		print("-"*80);
+
+		eval = evals[i];
+		evec = evecs[i];
+
+		print("eval" + i + " = " + eval);
+		print("evec" + i + " = " + str(evec));
+
+		vec1 = prod(m, evec);
+		vec2 = eval * evec;
+
+		print("m*evec = " + str(vec1));
+		print("eval*evec = " + str(vec2));
+	}
+}

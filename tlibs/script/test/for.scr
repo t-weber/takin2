@@ -1,0 +1,36 @@
+main()
+{
+	for(iter=5; iter<=15; iter=iter+1)
+	{
+		print("For loop: " + iter);
+		continue;
+		print("Test");
+	}
+	print("="*80);
+
+	a = [1, 2, 3];
+
+	for(b : a)
+	{
+		print("b = " + b);
+		if(b eq 2)
+			b = "Test";
+	}
+
+	print(a);
+
+
+	x = 12;
+	a = [111, x, 5];
+	print("Before: " + str(a));
+
+	for(b : a)
+	{
+		b = b*2;
+		
+		print((cur_iter(b)+1) + "/" + vec_size(a) + " -- " + b);
+	}
+	print("After: " + str(a));
+
+	print(x);
+}

@@ -1,0 +1,24 @@
+main()
+{
+	vec0 = [2,3,1,4];
+	vec1 = ["zwei", "drei", "eins", "vier"];
+	vec2 = ["two", "three", "one", "four"];
+
+	sorted0 = sort(vec0);
+	print(sorted0);
+
+	sorted = sort(vec0, vec1, vec2);
+	sorted_rev = sort_rev(vec0, vec1, vec2);
+	print("sorted:      " + str(sorted));
+	print("rev. sorted: " + str(sorted_rev));
+
+	print();
+	print(sort(["def", "abc", "123", "ghi"]));
+
+
+	print();
+	vec3 = [vec0, vec1, vec2];
+	print("org:         " + str(vec3));
+	print("sorted:      " + str(sort(*vec3)));
+	print("rev. sorted: " + str(sort_rev(*vec3)));
+}

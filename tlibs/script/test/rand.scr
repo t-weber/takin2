@@ -1,0 +1,28 @@
+rand_gauss()
+{
+	BINS = 32;
+	vals = vec(BINS);
+
+	cnt = 0;
+	while(cnt less 10000)
+	{
+		rnd = rand_norm(BINS/2., BINS/8.);
+		bin_rnd = int(rnd);
+		if(bin_rnd geq 0 and bin_rnd less BINS)
+			vals[bin_rnd] = vals[bin_rnd]+1;
+
+		cnt = cnt + 1;
+	}
+
+	print("random gaussian: " + str(vals));
+	plot(linspace(0.,1.,BINS), vals);
+}
+
+main()
+{
+	print("rand01: " + rand01());
+	print("random int: " + rand_int(0, 123));
+	print("random real: " + rand_real(0, 123.4));
+
+	rand_gauss();
+}

@@ -1,0 +1,14 @@
+shift(a)
+{
+	x = mean(a^2.);
+	y = mean(a)^2.;
+
+	return sqrt(x - y);
+}
+
+main()
+{
+	a = [1., 2., 3., 4., 5.];
+	print("mean = " + mean(a) + ", std dev = ", stddev(a));
+	print("shift = ", shift(a));
+}

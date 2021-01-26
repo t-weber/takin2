@@ -1,0 +1,11 @@
+main()
+{
+	v = [1,2];
+	append(v, 3);
+
+	print(append(v,4));
+	print(v);
+
+	append(v,"test");
+	print(v);
+}

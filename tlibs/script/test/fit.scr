@@ -1,0 +1,33 @@
+line_model(x, a, b)
+{
+	return a*x + b;
+}
+
+main()
+{
+	x = linspace(0., 10., 64);
+	y = vec(64);
+	for(xval : x)
+		y[cur_iter(xval)] = rand_real(0.5, 0.6)*xval + rand01();
+
+	yerr = y/10.;
+	hints = [1., 0.];
+
+	lower = ["b":-1, "a":0];
+	upper = ["b":1, "a":2];
+
+	params = fit("line_model", x, y, yerr, ["hints":hints, 
+				"lower_limits":lower, "upper_limits":upper,
+				"debug":1]);
+	print("fit parameters: " + str(params));
+
+	params_vals = map_vec_to_val(params);
+	params_errs = map_vec_to_val(params, 1);
+	print("values: " + str(params_vals));
+	print("errors: " + str(params_errs));
+
+	fitx = linspace(min(x), max(x), 128);
+#	fity = line_model(fitx, params["a"][0], params["b"][0]);
+	fity = line_model(fitx, *params_vals);
+	plot([x,y,yerr], [fitx, fity, ["style":"line", "term":"x11"]]);
+}

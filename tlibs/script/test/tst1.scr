@@ -1,0 +1,10 @@
+main()
+{
+	a = 2.*pi;
+	b = pi/2.;
+
+	1+1;
+
+	print(a);
+	print(b);
+}

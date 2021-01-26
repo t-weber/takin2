@@ -1,0 +1,141 @@
+#
+# random numbers test
+# @author Tobias Weber <tobias.weber@tum.de>
+# @date 19-feb-19
+# @license GPLv2 or GPLv3
+#
+
+
+function [ Ns, means, sigs ] = estimate_number(N, inc, max, nominal_mean)
+	Ns = [];
+	Ks = [];
+	means = [];
+	sigs = [];
+
+	for n = 0 : N-1
+		k = 0.;
+		x = 0.;
+
+		while true
+			x = x + rand();
+			k = k + inc;
+
+			if x > max
+				break;
+			endif
+		endwhile
+
+		Ns = [ Ns, n ];
+		Ks = [ Ks, k ];
+
+		means = [ means, themean = mean(Ks) ];
+		sigs = [ sigs, (themean - nominal_mean)**2. ];
+	endfor
+endfunction
+
+
+# -----------------------------------------------------------------------------
+
+
+function x = walk(N, p, l1, l2)
+	x = 0.;
+
+	for n = 0 : N-1
+		r01 = rand();
+
+		if r01 < p
+			x = x + l1;
+		else
+			x = x + l2;
+		endif
+	endfor
+endfunction
+
+
+
+function [ Nsteps, sig2 ] = mean_walk(N_iters, N_steps, p, l1, l2)
+	Nsteps = [];
+	sig2 = [];
+
+	for n_step = 0 : N_steps-1
+		xs = [];
+
+		for n_iter = 1 : N_iters
+			x = walk(n_step, p, l1, l2);
+			xs = [ xs, x ];
+		endfor
+
+		# sig^2 = <x^2> - <x>^2 = <x^2>
+		Nsteps = [ Nsteps, n_step ];
+		sig2 = [ sig2, mean(xs .* xs) ];
+	endfor
+endfunction
+
+
+
+function xs_new = solve_linear_approx(xs, ys, order)
+	M = [];
+	for theorder = 0 : order
+		M = [ xs.^theorder; M ];
+	endfor
+
+	[Q, R] = qr(M');
+
+	ys_new = (R' * Q') * ys';
+	xs_new = inv(R'*R) * ys_new;
+endfunction
+
+
+
+
+# -----------------------------------------------------------------------------
+rand_iters = 1000;
+rand_steps = 25;
+printf("Number of iterations: %d.\n", rand_iters);
+printf("Number of steps: %d.\n", rand_steps);
+# -----------------------------------------------------------------------------
+
+
+
+# -----------------------------------------------------------------------------
+[ Ns, means, sigs ] = estimate_number(rand_iters, 1., 1., exp(1.));
+printf("e = %g\n", means(length(means)));
+
+fig = figure();
+xlabel("Iterations");
+ylabel("Value");
+xlim([0., max(Ns)]);
+ylim([2., 3.]);
+hold on
+plot(Ns, means, "o");
+plot([0, max(Ns)], [exp(1.), exp(1.)], "-");
+print(fig, "estimate.pdf");
+
+clf(fig);
+xlabel("Iterations");
+ylabel("sigma");
+xlim([0., max(Ns)]);
+ylim([0., 0.25]);
+hold on
+plot(Ns, sigs, "o");
+print(fig, "estimate_sig.pdf");
+# -----------------------------------------------------------------------------
+
+
+
+# -----------------------------------------------------------------------------
+[ ns, sig2 ] = mean_walk(rand_iters, rand_steps, 0.5, 1., -1.);
+xs_new = solve_linear_approx(ns, sig2, 1);
+printf("line: slope = %g, offset = %g\n", xs_new(1), xs_new(2));
+
+clf(fig);
+#fig = figure(2);
+xlabel("Steps");
+ylabel("sigma^2");
+xlim([0., max(ns)]);
+ylim([0., max(sig2)]);
+hold on
+plot(ns, sig2, "o");
+plot(ns, ns.*xs_new(1) .+ xs_new(2), "-");
+print(fig, "walk.pdf");
+# -----------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+gauss(E, E0, sigma, amp)
+{
+	return amp*exp(-((E-E0)/(sqrt(2.)*sigma))^2);
+}
+
+
+main()
+{
+	x = linspace(-5., 5., 128);
+	y = gauss(x, 0., 1., 1.);
+
+	plot(x,y);
+}

@@ -1,0 +1,17 @@
+func(a,b,c)
+{
+	print("a = " + a);
+	print("b = " + b);
+	print("c = " + c);
+
+	return a+b;
+}
+
+
+main()
+{
+	ret = func(1, 2.5, "test");
+	print("ret = " + ret);
+
+	print("args: " + str(get_argnames("func")));
+}

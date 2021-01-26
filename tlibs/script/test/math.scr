@@ -1,0 +1,15 @@
+main()
+{
+	print("dot: " + str(dot([1,2,3],[1,2,3])));
+	print("cross: " + str(cross([1,0,0],[0,1,0])));
+
+	print(2+(-1+3)*(4+1) +10);
+
+	print("pi = " + pi + ", hbar = " + hbar);
+	print("sin: " + str(sin([pi, pi/2., [1,2,3]])));
+
+	print("asin: " + asin(sin(pi/2)));
+	print("atan: " + atan2(1.,2.));
+	print("abs: " + str(abs([-2,2,3,-4,[-5,10]])) + ", " + abs(2.5) + ", " + abs(-2.3-1));
+	print("mod: " + 5.1%2 + ", " + fmod(5.1,2));
+}

@@ -1,0 +1,53 @@
+gauss_model(x, params)
+{
+	x0 = params[0];
+	sigma = params[1];
+	amp = params[2];
+	offs = params[3];
+
+	return amp * exp(-0.5 * ((x-x0) / sigma)^2.) + offs;
+}
+
+map_to_vec(themap, thekeys)
+{
+	v = vec(length(themap));
+	for(key : thekeys)
+		v[cur_iter(key)] = themap[key];
+
+	return v;
+}
+
+main()
+{
+	x = linspace(0, 10, 32);
+	y = gauss_model(x, [7., 1., 5., 1.234]);
+	for(val : y)
+		val = val + rand_real(-0.5, 0.5);
+	yerr = y/5.;
+
+	hints = [4.5, 1.1, 5.2, 0.];
+	hints_err = [0.4, 0.4, 0.4, 2.];
+
+	param_vec = ["x0", "sigma", "amp", "offs"];
+
+	params = fit("gauss_model", x, y, yerr, 
+			[
+				"use_param_vec" : param_vec,
+				"hints":hints, 
+				"hints_errors":hints_err,
+				"lower_limits":["offs":min(y), "amp":0., "sigma":0.],
+				"upper_limits":["offs":max(y), "amp":max(y)],
+				"steps":["rfff", "rrff", "rrrf", "rrrr"],
+				"debug":1
+			]);
+	print("fit parameters: " + str(params));
+
+	params_vals = map_vec_to_val(params);
+	params_errs = map_vec_to_val(params, 1);
+	print("values: " + str(params_vals));
+	print("errors: " + str(params_errs));
+
+	fitx = linspace(min(x), max(x), 128);
+	fity = gauss_model(fitx, map_to_vec(params_vals, param_vec));
+	plot([x,y,yerr], [fitx, fity, ["style":"lines", "term":"wxt", "size":1.5, "color":0xff0000]]);
+}

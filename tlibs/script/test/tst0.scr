@@ -1,0 +1,14 @@
+tst()
+{
+#	return 1;
+
+	a = 5;
+	return a;
+}
+
+main()
+{
+	print(1./k_B_eVperK);
+
+	print(tst());
+}

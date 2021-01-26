@@ -1,0 +1,53 @@
+#!./hermelin -t
+
+module_init()
+{
+	import("apps/instr.scr");
+
+	global fit_dbg = 1;
+	global theterm = "wxt";
+	global norm_to_mon = 0;
+}
+
+scan_plot()
+{
+	scanfile = "/home/tw/Measurements/ILL2015/data/scn/MgV2O4_0193.scn";
+	[instr, datx, daty, datyerr, xlab, ylab] = load_instr(scanfile, norm_to_mon);
+	title = "\"" + scanfile + "\"";
+
+	maxx = max(datx); minx = min(datx);
+	maxy = max(daty); miny = min(daty);
+	rangex = maxx-minx; rangey = maxy-miny;
+	midx = minx + rangex*0.5;
+
+
+	gauss_pos = [midx];
+	gauss_amp = [rangey*0.5];
+	gauss_sig = [rangex*0.5];
+	bckgrd = miny;
+	fitsteps = ["xxx x"];
+	fitsteps_dho = ["f xxx x"];
+
+	thefit = fit_lorentzian_manual_singlestep(datx, daty, datyerr, gauss_pos, gauss_amp, gauss_sig, bckgrd, fitsteps);
+	thefit_gauss = fit_gauss_manual_singlestep(datx, daty, datyerr, gauss_pos, gauss_amp, gauss_sig, bckgrd, fitsteps);
+	thefit_dho = fit_DHO_manual_singlestep(datx, daty, datyerr, 200., gauss_pos, gauss_amp, gauss_sig, bckgrd, fitsteps_dho);
+	params_vals = map_vec_to_val(thefit);
+	params_vals_gauss = map_vec_to_val(thefit_gauss);
+	params_vals_dho = map_vec_to_val(thefit_dho);
+
+	fitx = linspace(min(datx), max(datx), 128);
+	fity = lorentzian_model(fitx, *params_vals);
+	fity_gauss = gauss_model(fitx, *params_vals_gauss);
+	fity_dho = DHO_model(fitx, *params_vals_dho);
+
+	plot([datx, daty, datyerr], 
+		[fitx, fity, ["style":"lines", "size":1.5, "color":0xff0000]],
+		[fitx, fity_gauss, ["style":"lines", "size":1.5, "color":0x0000ff]],
+		[fitx, fity_dho, ["style":"lines", "size":1.5, "color":0x009900]],
+		["term":theterm]);
+}
+
+main(args)
+{
+	scan_plot();
+}

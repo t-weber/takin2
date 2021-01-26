@@ -1,0 +1,46 @@
+main()
+{
+	amap = ["ABC":123.45, "xYz":987.6];
+	print(amap["xYz"]);
+
+
+	map0 = map();
+	map0[12.3] = 45.6;
+	map0[5] = 789;
+	map0[[1,2,3]] = "abc";
+	map0[[1,2]] = "xyz";
+
+	print(map0);
+	print(map0[5]);
+	print(map0[12.3]);
+	print(map0[[1,2,3]]);
+	print(map0[[1,2]]);
+
+
+	print("-"*80);
+
+
+
+	print(a = ["test" : 4, "abc" : "cde"] + ["test2" : 123]);
+	print(a["test"] + "\n");
+
+	othermap = map();
+	othermap["x"] = "y";
+
+	a = map();
+	a["double value"] = 12.3;
+	a["string value"] = "Test";
+	a["array value"] = [1,2,3,4,5];
+	a["map value"] = othermap;
+
+	print("Has_key: " + has_key(a, "map value"));
+	print("Has_key: " + has_key(a, "map Value"));
+
+	print("Map: " + a);
+	print("Map Element: " + str(a["array value"]));
+	print("Test: " + a["map value"]["x"]);
+
+	b = vec();
+	b[0] = 12.3;
+	print(b);
+}

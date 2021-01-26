@@ -1,0 +1,35 @@
+#
+# test 2d plotting
+#
+
+main()
+{
+	params = map();
+	params["xlabel"] = "x";
+	params["ylabel"] = "y";
+	params["xylimits"] = "0 1 -1 1";
+	params["title"] = "Testing 2D plotting";
+	params["cblimits"] = "-1 1";
+	params["cbcyclic"] = "1";
+	params["term"] = "x11";
+
+	a = vec(64);
+	iY = 0;
+	while(iY less vec_size(a))
+	{
+		a[iY] = vec(64);
+
+		iX = 0;
+		while(iX less vec_size(a[iY]))
+		{
+			a[iY][iX] = sin(sqrt((iY-32)^2 + (iX-32)^2)/5.);
+
+			iX = iX + 1;
+		}
+
+		iY = iY+1;
+	}
+	
+	plot2d(a, params);
+	#fileplot2d("tst.pdf", a, params);
+}

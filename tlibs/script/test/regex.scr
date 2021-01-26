@@ -1,0 +1,35 @@
+main()
+{
+	print(regex_replace("TestA123TestB789abc", "[0-9]+", "<xyz>"));
+
+
+	print("-"*80);
+
+
+	print(regex_match("Test123", "[A-Za-z]*[0-9]*"));
+	print(regex_match("Test123", "[A-Za-z]*"));
+
+
+	print("-"*80);
+
+
+	strIn = "Test12345XYZ456abc789a";
+	res = regex_find(strIn, "[0-9]+");
+	print("Input string: " + strIn);
+	for(single_res : res)
+	{
+		output("String: " + single_res[0] + ", ");
+		output("Index: " + single_res[1] + ", ");
+		print("Length: " + single_res[2]);
+	}
+
+
+	print("-"*80);
+
+
+	str = "xyz@abc.de";
+	str2 = regex_subfind(str, "([A-Za-z]+)@([A-Za-z.]+)", 1);
+	print("Mail: " + str2[0]);
+	print("Name: " + str2[1]);
+	print("Address: " + str2[2]);
+}
