@@ -7,5 +7,4 @@ https://code.ill.fr/scientific-software/takin
 The repository of the previous Takin version 1 can be found here: 
 https://github.com/t-weber/takin
 
-DOI for Takin 2: 10.5281/zenodo.4117437
-DOI for Takin 1: 10.5281/zenodo.3961491
+DOIs for Takin 2 and 1, respectively: 10.5281/zenodo.4117437, 10.5281/zenodo.3961491.
