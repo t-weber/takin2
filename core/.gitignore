@@ -45,9 +45,7 @@ cmake_install.cmake
 Makefile
 tlibs-master.tar.bz2
 tlibs/*
-tlibs
 data/*
-data
 takin-data-master.tar.bz2
 takin-data/*
 takin-data
