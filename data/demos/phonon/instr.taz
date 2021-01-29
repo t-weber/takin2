@@ -3,9 +3,10 @@
 	<meta>
 		<comment/>
 		<info>Created with Takin/Reso.</info>
-		<timestamp>1574407722.900769</timestamp>
+		<module>takin/res</module>
+		<timestamp>1611908564.786928</timestamp>
 		<user>tw</user>
-		<version>1.6.5</version>
+		<version>2.0</version>
 	</meta>
 	<reso>
 		<E>0</E>
@@ -39,13 +40,13 @@
 		<pop_ana_h>2.500000e+01</pop_ana_h>
 		<pop_ana_thick>4.000000e-01</pop_ana_thick>
 		<pop_ana_use_curvh>0</pop_ana_use_curvh>
-		<pop_ana_use_curvv>1</pop_ana_use_curvv>
+		<pop_ana_use_curvv>0</pop_ana_use_curvv>
 		<pop_ana_w>2.500000e+01</pop_ana_w>
-		<pop_det_h>5.000000e+00</pop_det_h>
+		<pop_det_h>1.200000e+01</pop_det_h>
 		<pop_det_rect>1</pop_det_rect>
-		<pop_det_w>1.500000e+00</pop_det_w>
-		<pop_dist_ana_det>6.400000e+01</pop_dist_ana_det>
-		<pop_dist_mono_sample>1.000000e+02</pop_dist_mono_sample>
+		<pop_det_w>2.500000e+00</pop_det_w>
+		<pop_dist_ana_det>1.020000e+02</pop_dist_ana_det>
+		<pop_dist_mono_sample>1.660000e+02</pop_dist_mono_sample>
 		<pop_dist_sample_ana>1.000000e+02</pop_dist_sample_ana>
 		<pop_dist_src_mono>1.000000e+02</pop_dist_src_mono>
 		<pop_guide_divh>1.500000e+01</pop_guide_divh>
@@ -55,7 +56,7 @@
 		<pop_mono_h>2.500000e+01</pop_mono_h>
 		<pop_mono_thick>4.000000e-01</pop_mono_thick>
 		<pop_mono_use_curvh>0</pop_mono_use_curvh>
-		<pop_mono_use_curvv>1</pop_mono_use_curvv>
+		<pop_mono_use_curvv>0</pop_mono_use_curvv>
 		<pop_mono_w>2.500000e+01</pop_mono_w>
 		<pop_sampe_wperpq>1.000000e+00</pop_sampe_wperpq>
 		<pop_sample_cuboid>0</pop_sample_cuboid>
@@ -66,6 +67,12 @@
 		<pop_src_w>3.000000e+00</pop_src_w>
 		<sample_mosaic>5.000000e+00</sample_mosaic>
 		<sample_scatter_sense>1</sample_scatter_sense>
+		<simple_sig_kf>3.000000e-02</simple_sig_kf>
+		<simple_sig_kf_perp>1.000000e-02</simple_sig_kf_perp>
+		<simple_sig_kf_z>0.000000e+00</simple_sig_kf_z>
+		<simple_sig_ki>3.000000e-02</simple_sig_ki>
+		<simple_sig_ki_perp>1.000000e-02</simple_sig_ki_perp>
+		<simple_sig_ki_z>3.000000e-02</simple_sig_ki_z>
 		<use_R0>1</use_R0>
 		<use_general_R0>0</use_general_R0>
 		<use_guide>0</use_guide>
@@ -76,5 +83,22 @@
 		<v_coll_ana>9.999000e+03</v_coll_ana>
 		<v_coll_before_sample>9.999000e+03</v_coll_before_sample>
 		<v_coll_mono>9.999000e+03</v_coll_mono>
+		<viol_angle_ph_f>0.000000e+00</viol_angle_ph_f>
+		<viol_angle_ph_f_sig>2.000000e-01</viol_angle_ph_f_sig>
+		<viol_angle_ph_i>0.000000e+00</viol_angle_ph_i>
+		<viol_angle_ph_i_sig>6.880000e-01</viol_angle_ph_i_sig>
+		<viol_angle_tt_f_sig>1.000000e-01</viol_angle_tt_f_sig>
+		<viol_angle_tt_i>0.000000e+00</viol_angle_tt_i>
+		<viol_angle_tt_i_sig>4.590000e-01</viol_angle_tt_i_sig>
+		<viol_det_sph>0</viol_det_sph>
+		<viol_dist_mono_sample>1.500000e+02</viol_dist_mono_sample>
+		<viol_dist_mono_sample_sig>2.000000e+00</viol_dist_mono_sample_sig>
+		<viol_dist_pulse_mono>1.567000e+03</viol_dist_pulse_mono>
+		<viol_dist_pulse_mono_sig>1.250000e+01</viol_dist_pulse_mono_sig>
+		<viol_dist_sample_det>3.500000e+02</viol_dist_sample_det>
+		<viol_dist_sample_det_sig>7.500000e-01</viol_dist_sample_det_sig>
+		<viol_time_det_sig>1.000000e-01</viol_time_det_sig>
+		<viol_time_mono_sig>1.665000e+01</viol_time_mono_sig>
+		<viol_time_pulse_sig>6.659000e+01</viol_time_pulse_sig>
 	</reso>
 </taz>

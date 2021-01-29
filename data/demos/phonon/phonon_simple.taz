@@ -16,21 +16,25 @@
 		<tolerance>2.500000e+01</tolerance>
 	</convofit>
 	<meta>
-		<info>Created with Takin/Monteconvo.</info>
-		<timestamp>1574407799.015072</timestamp>
+		<info>Created with Takin/Convo.</info>
+		<module>takin/convo</module>
+		<timestamp>1611908639.369879</timestamp>
 		<user>tw</user>
-		<version>1.6.5</version>
+		<version>2.0</version>
 	</meta>
 	<monteconvo>
 		<E_from>-9.804000e-01</E_from>
 		<E_to>8.094300e+00</E_to>
 		<E_to_2>-3.000000e-01</E_to_2>
 		<S_offs>0</S_offs>
-		<S_scale>7e4</S_scale>
+		<S_scale>6e4</S_scale>
 		<S_slope>0</S_slope>
 		<algo>1</algo>
 		<ana_foc>1</ana_foc>
+		<autosave/>
 		<crys/>
+		<filter_col/>
+		<filter_val/>
 		<fixedk>1</fixedk>
 		<h_from>4.200300e+00</h_from>
 		<h_to>4.198700e+00</h_to>
@@ -40,7 +44,7 @@
 		<k_from>3.798700e+00</k_from>
 		<k_to>3.798300e+00</k_to>
 		<k_to_2>1.070000e+00</k_to_2>
-		<kfix>2.662000e+00</kfix>
+		<kfix>2.660780e+00</kfix>
 		<l_from>0.000000e+00</l_from>
 		<l_to>0.000000e+00</l_to>
 		<l_to_2>0.000000e+00</l_to_2>
@@ -54,14 +58,20 @@
 		<sqw_errors>
 			<E_HWHM>0</E_HWHM>
 			<G>0</G>
+			<S0>0</S0>
+			<T>0</T>
 			<amp>0</amp>
+			<freq>0</freq>
 			<inc_amp>0</inc_amp>
 			<inc_sig>0</inc_sig>
 		</sqw_errors>
 		<sqw_fitvar>
 			<E_HWHM>0</E_HWHM>
 			<G>0</G>
+			<S0>0</S0>
+			<T>0</T>
 			<amp>0</amp>
+			<freq>0</freq>
 			<inc_amp>0</inc_amp>
 			<inc_sig>0</inc_sig>
 		</sqw_fitvar>
@@ -75,6 +85,16 @@
 			<inc_amp>0.6</inc_amp>
 			<inc_sig>0.01</inc_sig>
 		</sqw_params>
+		<sqw_ranges>
+			<E_HWHM>open : open</E_HWHM>
+			<G>open : open</G>
+			<S0>open : open</S0>
+			<T>open : open</T>
+			<amp>open : open</amp>
+			<freq>open : open</freq>
+			<inc_amp>open : open</inc_amp>
+			<inc_sig>open : open</inc_sig>
+		</sqw_ranges>
 		<step_count>128</step_count>
 	</monteconvo>
 </taz>

@@ -16,21 +16,25 @@
 		<tolerance>2.500000e+01</tolerance>
 	</convofit>
 	<meta>
-		<info>Created with Takin/Monteconvo.</info>
-		<timestamp>1574410715.067371</timestamp>
+		<info>Created with Takin/Convo.</info>
+		<module>takin/convo</module>
+		<timestamp>1611908605.610163</timestamp>
 		<user>tw</user>
-		<version>1.6.5</version>
+		<version>2.0</version>
 	</meta>
 	<monteconvo>
 		<E_from>-9.804000e-01</E_from>
 		<E_to>8.094300e+00</E_to>
 		<E_to_2>-3.000000e-01</E_to_2>
 		<S_offs>0</S_offs>
-		<S_scale>7e4</S_scale>
+		<S_scale>6e4</S_scale>
 		<S_slope>0</S_slope>
 		<algo>1</algo>
 		<ana_foc>1</ana_foc>
+		<autosave/>
 		<crys/>
+		<filter_col/>
+		<filter_val/>
 		<fixedk>1</fixedk>
 		<h_from>4.200300e+00</h_from>
 		<h_to>4.198700e+00</h_to>
@@ -52,47 +56,61 @@
 		<sqw>py</sqw>
 		<sqw_conf>./sqw_phonon.py</sqw_conf>
 		<sqw_errors>
-			<g_h>0</g_h>
-			<g_k>0</g_k>
-			<g_l>0</g_l>
 			<g_HWHM>0</g_HWHM>
 			<g_S0>0</g_S0>
 			<g_T>0</g_T>
 			<g_amp>0</g_amp>
 			<g_bose_cut>0</g_bose_cut>
 			<g_freq>0</g_freq>
+			<g_h>0</g_h>
 			<g_inc_amp>0</g_inc_amp>
 			<g_inc_sig>0</g_inc_sig>
+			<g_k>0</g_k>
+			<g_l>0</g_l>
 			<g_offs>0</g_offs>
 		</sqw_errors>
 		<sqw_fitvar>
-			<g_h>0</g_h>
-			<g_k>0</g_k>
-			<g_l>0</g_l>
 			<g_HWHM>0</g_HWHM>
 			<g_S0>0</g_S0>
 			<g_T>0</g_T>
 			<g_amp>0</g_amp>
 			<g_bose_cut>0</g_bose_cut>
 			<g_freq>0</g_freq>
+			<g_h>0</g_h>
 			<g_inc_amp>0</g_inc_amp>
 			<g_inc_sig>0</g_inc_sig>
+			<g_k>0</g_k>
+			<g_l>0</g_l>
 			<g_offs>0</g_offs>
 		</sqw_fitvar>
 		<sqw_params>
-			<g_h>4</g_h>
-			<g_k>4</g_k>
-			<g_l>0</g_l>
 			<g_HWHM>0.4</g_HWHM>
 			<g_S0>1.0</g_S0>
 			<g_T>100</g_T>
 			<g_amp>11.9</g_amp>
 			<g_bose_cut>0.01</g_bose_cut>
 			<g_freq>1.5707963267948966</g_freq>
+			<g_h>4</g_h>
 			<g_inc_amp>0.6</g_inc_amp>
 			<g_inc_sig>0.01</g_inc_sig>
+			<g_k>4</g_k>
+			<g_l>0</g_l>
 			<g_offs>0.0</g_offs>
 		</sqw_params>
+		<sqw_ranges>
+			<g_HWHM>open : open</g_HWHM>
+			<g_S0>open : open</g_S0>
+			<g_T>open : open</g_T>
+			<g_amp>open : open</g_amp>
+			<g_bose_cut>open : open</g_bose_cut>
+			<g_freq>open : open</g_freq>
+			<g_h>open : open</g_h>
+			<g_inc_amp>open : open</g_inc_amp>
+			<g_inc_sig>open : open</g_inc_sig>
+			<g_k>open : open</g_k>
+			<g_l>open : open</g_l>
+			<g_offs>open : open</g_offs>
+		</sqw_ranges>
 		<step_count>128</step_count>
 	</monteconvo>
 </taz>
