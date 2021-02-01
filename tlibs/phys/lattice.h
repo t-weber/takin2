@@ -20,7 +20,7 @@ namespace tl {
 
 /**
  * reciprocal matrix to A: B = 2*pi * A^(-T)
- * see e.g.: https://en.wikipedia.org/wiki/Reciprocal_lattice
+ * @see e.g.: https://en.wikipedia.org/wiki/Reciprocal_lattice
  */
 template<typename T=double>
 bool reciprocal(const ublas::matrix<T>& matReal, ublas::matrix<T>& matRecip)
@@ -343,6 +343,7 @@ bool Lattice<T>::IsCubic() const
 
 /**
  * B matrix converts rlu to 1/A
+ * @see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 ublas::matrix<T> get_B(const Lattice<T>& lattice, bool bIsRealLattice=1)
@@ -361,6 +362,7 @@ ublas::matrix<T> get_B(const Lattice<T>& lattice, bool bIsRealLattice=1)
 
 /**
  * U matrix expresses the coordinates in the basis of the scattering plane
+ * @see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 ublas::matrix<T> get_U(const ublas::vector<T>& _vec1, const ublas::vector<T>& _vec2,
@@ -393,7 +395,7 @@ ublas::matrix<T> get_U(const ublas::vector<T>& _vec1, const ublas::vector<T>& _v
 /**
  * UB matrix converts rlu to 1/A and expresses it in the scattering plane coords:
  * Q = U*B*hkl
- * see e.g.: https://doi.org/10.1107/S0021889805004875
+ * @see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 ublas::matrix<T> get_UB(const Lattice<T>& lattice_real,

@@ -179,7 +179,7 @@ public:
 
 /**
  * Tetrahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Tetrahedron : public GeometricPrimitive<t_vec>
@@ -233,7 +233,7 @@ public:
 
 /**
  * Cube
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Cube : public GeometricPrimitive<t_vec>
@@ -291,7 +291,7 @@ public:
 
 /**
  * Octahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Octahedron : public GeometricPrimitive<t_vec>
@@ -347,7 +347,7 @@ public:
 
 /**
  * Icosahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Icosahedron : public GeometricPrimitive<t_vec>
@@ -416,7 +416,7 @@ public:
 
 /**
  * Dodecahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Dodecahedron : public GeometricPrimitive<t_vec>

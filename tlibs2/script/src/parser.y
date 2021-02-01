@@ -4,6 +4,12 @@
  * @date 20-dec-19
  * @license see 'LICENSE' file
  * @desc Forked on 18/July/2020 from my privatly developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ *
+ * References:
+ *   - https://github.com/westes/flex/tree/master/examples/manual
+ *   - http://www.gnu.org/software/bison/manual/html_node/index.html
+ *   - http://git.savannah.gnu.org/cgit/bison.git/tree/examples
+ *   - https://de.wikipedia.org/wiki/LL(k)-Grammatik
  */
 
 // parser options

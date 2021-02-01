@@ -3,6 +3,7 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date oct-2015
  * @license GPLv2
+ * @see https://en.wikipedia.org/wiki/Crystal_system
  */
 
 #include "crystalsys.h"
@@ -19,10 +20,10 @@ const unsigned int* get_crystal_system_start_indices()
 
 const char** get_crystal_system_names(bool bCapital)
 {
-	static const char* pcNames[] = { "triclinic", "monoclinic", "orthorhombic", 
-	"tetragonal", "trigonal", "hexagonal", "cubic" };
-	static const char* pcNamesCap[] = { "Triclinic", "Monoclinic", "Orthorhombic", 
-	"Tetragonal", "Trigonal", "Hexagonal", "Cubic" };
+	static const char* pcNames[] = { "triclinic", "monoclinic", "orthorhombic",
+		"tetragonal", "trigonal", "hexagonal", "cubic" };
+	static const char* pcNamesCap[] = { "Triclinic", "Monoclinic", "Orthorhombic",
+		"Tetragonal", "Trigonal", "Hexagonal", "Cubic" };
 
 	return bCapital ? pcNamesCap : pcNames;
 }
@@ -103,7 +104,7 @@ namespace xtl {
 
 /**
  * allowed lattice definitions for crystal systems
- * see e.g.: https://en.wikipedia.org/wiki/Bravais_lattice
+ * @see e.g.: https://en.wikipedia.org/wiki/Bravais_lattice
  */
 void set_crystal_system_edits(CrystalSystem crystalsys,
 	QLineEdit* editA, QLineEdit* editB, QLineEdit* editC,

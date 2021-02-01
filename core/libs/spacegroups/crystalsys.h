@@ -20,7 +20,7 @@ enum CrystalSystem
 	CRYS_TETRAGONAL,	// a=b, alpha=beta=gamma=90
 	CRYS_TRIGONAL,		// a=b=c, alpha=beta=gamma
 	CRYS_HEXAGONAL,		// a=b, gamma=120, alpha=beta=90
-	CRYS_CUBIC			// a=b=c, alpha=beta=gamma=90
+	CRYS_CUBIC		// a=b=c, alpha=beta=gamma=90
 };
 
 

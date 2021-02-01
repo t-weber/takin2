@@ -29,16 +29,16 @@ namespace tl2 {
 
 
 template<class T=double> constexpr T KSQ2E = T(0.5) * hbar<T>/angstrom<T>/m_n<T> * hbar<T>/angstrom<T>/meV<T>;
-template<class T=double> constexpr T E2KSQ = T(1)/KSQ2E<T>;
+template<class T=double> constexpr T E2KSQ = T(1) / KSQ2E<T>;
 
 
 // --------------------------------------------------------------------------------
 
 
 // --------------------------------------------------------------------------------
-// de Broglie
-// lam = h/p
-
+// de Broglie: lam = h/p
+// @see https://en.wikiversity.org/wiki/De_Broglie_wavelength
+// --------------------------------------------------------------------------------
 template<class Sys, class Y>
 t_momentum<Sys,Y> lam2p(const t_length<Sys,Y>& lam)
 {
@@ -95,6 +95,7 @@ t_wavenumber<Sys,Y> v2k(const t_velocity<Sys,Y>& v)
 
 // --------------------------------------------------------------------------------
 // E = hbar*omega
+// --------------------------------------------------------------------------------
 
 template<class Sys, class Y>
 t_energy<Sys,Y> omega2E(const t_freq<Sys,Y>& omega)
@@ -133,7 +134,7 @@ t_wavenumber<Sys,Y> E2k_direct(const t_energy<Sys,Y>& _E, bool &bImag)
 
 // --------------------------------------------------------------------------------
 // indirect calculations using conversion factors for numerical stability
-
+// --------------------------------------------------------------------------------
 template<class Sys, class Y>
 t_energy<Sys,Y> k2E(const t_wavenumber<Sys,Y>& k)
 {
@@ -161,6 +162,7 @@ t_wavenumber<Sys,Y> E2k(const t_energy<Sys,Y>& _E, bool &bImag)
 /**
  * Bragg equation
  * real: n * lam = 2d * sin(twotheta/2)
+ * @see https://en.wikipedia.org/wiki/Bragg%27s_law
  */
 template<class Sys, class Y>
 t_length<Sys,Y> bragg_real_lam(const t_length<Sys,Y>& d,
@@ -188,7 +190,8 @@ t_angle<Sys,Y> bragg_real_twotheta(const t_length<Sys,Y>& d,
 
 
 /**
- * reciprocal Bragg equation: G * lam = 4pi * sin(twotheta/2)
+ * Bragg equation
+ * reciprocal: G * lam = 4pi * sin(twotheta/2)
  */
 template<class Sys, class Y>
 t_angle<Sys,Y> bragg_recip_twotheta(const t_wavenumber<Sys,Y>& G,
@@ -221,7 +224,8 @@ t_length<Sys,Y> bragg_recip_lam(const t_wavenumber<Sys,Y>& G,
 
 
 /**
- * reciprocal Bragg equation [2]: n * G = 2*k * sin(twotheta/2)
+ * Bragg equation
+ * reciprocal (2): n * G = 2*k * sin(twotheta/2)
  */
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> bragg_recip_G(const t_wavenumber<Sys,Y>& k,
@@ -249,7 +253,10 @@ t_angle<Sys,Y> bragg_recip_twotheta(const t_wavenumber<Sys,Y>& G,
 
 
 
-// G = 2pi / d
+/**
+ * lattice vector
+ * G = 2pi / d
+ */
 template<class Sys, class Y>
 t_length<Sys,Y> G2d(const t_wavenumber<Sys,Y>& G)
 {
@@ -268,7 +275,7 @@ t_wavenumber<Sys,Y> d2G(const t_length<Sys,Y>& d)
 // --------------------------------------------------------------------------------
 /**
  * differentiated Bragg equation:
- * n lam = 2d sin(th)						| diff
+ * n lam = 2d sin(th)				| diff
  * n dlam = 2dd sin(th) + 2d cos(th) dth	| / Bragg equ
  * dlam/lam = dd/d + cos(th)/sin(th) dth
  *
@@ -292,7 +299,7 @@ Y bragg_diff(Y dDoverD, const t_angle<Sys,Y>& theta, Y dTheta)
 
 /**
  * kinematic plane
- * see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
+ * @see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
  *
  * Q_vec = ki_vec - kf_vec
  * Q^2 = ki^2 + kf^2 - 2ki kf cos 2th	| * hbar^2 / (2 mn)
@@ -334,7 +341,7 @@ t_wavenumber<Sys,Y> kinematic_plane(bool bFixedKi,
 
 /**
  * kinematic plane
- * see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
+ * @see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
  *
  * solving the above equation for dE using sage:
  *   Q, Ei, dE, ctt, c = var("Q, Ei, dE, ctt, c")
@@ -371,6 +378,8 @@ t_energy<Sys,Y> kinematic_plane(bool bFixedKi, bool bBranch,
 
 // --------------------------------------------------------------------------------
 // scattering triangle / TAS stuff
+// @see (Shirane 2002), Ch. 1.3
+// --------------------------------------------------------------------------------
 
 /**
  * Q_vec = ki_vec - kf_vec
@@ -462,7 +471,7 @@ t_wavenumber<Sys,Y> get_mono_k(const t_angle<Sys,Y>& _theta,
 /**
  * Q_vec = ki_vec - kf_vec
  * Q^2 = ki^2 + kf^2 - 2ki kf cos 2th
- *cos 2th = (-Q^2 + ki^2 + kf^2) / (2ki kf)
+ * cos 2th = (-Q^2 + ki^2 + kf^2) / (2ki kf)
  */
 template<class Sys, class Y>
 t_angle<Sys,Y> get_sample_twotheta(const t_wavenumber<Sys,Y>& ki,
@@ -497,7 +506,6 @@ get_sample_Q(const t_wavenumber<Sys,Y>& ki,
 	if(Y(Qsq*angstrom<Y>*angstrom<Y>) < Y(0.))
 	{
 		// TODO
-
 		Qsq = -Qsq;
 	}
 
@@ -543,7 +551,8 @@ t_wavenumber<Sys,Y> get_other_k(const t_energy<Sys,Y>& E,
 // --------------------------------------------------------------------------------
 
 /**
- * kf^3 mono/ana reflectivity factor, see e.g. (Shirane 2002) p. 125
+ * kf^3 mono/ana reflectivity factor
+ * @see e.g. (Shirane 2002) p. 125
  */
 template<class Sys, class Y>
 Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
@@ -552,7 +561,8 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
 }
 
 /**
- * kf^3 mono/ana reflectivity factor, see e.g. (Shirane 2002) p. 125
+ * kf^3 mono/ana reflectivity factor,
+ * @see e.g. (Shirane 2002) p. 125
  */
 template<class Sys, class Y>
 Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_length<Sys, Y>& d)
@@ -567,7 +577,8 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_length<Sys, Y>& d)
 
 /**
  * Bose distribution
- * see e.g.: (Shirane 2002), p. 28
+ * @see e.g.: (Shirane 2002), p. 28
+ * @see https://en.wikipedia.org/wiki/Bose%E2%80%93Einstein_statistics
  */
 template<class t_real=double>
 t_real bose(t_real E, t_real T)
@@ -613,7 +624,8 @@ Y bose(const t_energy<Sys,Y>& E, const t_temperature<Sys,Y>& T,
 
 
 /**
- * see: B. Fak, B. Dorner, Physica B 234-236 (1997) pp. 1107-1108
+ * DHO
+ * @see B. Fak, B. Dorner, Physica B 234-236 (1997) pp. 1107-1108, doi: https://doi.org/10.1016/S0921-4526(97)00121-X
  */
 template<class t_real=double>
 t_real DHO_model(t_real E, t_real T, t_real E0, t_real hwhm, t_real amp, t_real offs)
@@ -629,6 +641,7 @@ t_real DHO_model(t_real E, t_real T, t_real E0, t_real hwhm, t_real amp, t_real 
 
 /**
  * Fermi distribution
+ * @see https://en.wikipedia.org/wiki/Fermi%E2%80%93Dirac_statistics
  */
 template<class t_real=double>
 t_real fermi(t_real E, t_real mu, t_real T)
@@ -663,6 +676,7 @@ t_length_inverse<Sys, Y> macro_xsect(const t_area<Sys, Y>& xsect,
 
 /**
  * thin lens equation: 1/f = 1/lenB + 1/lenA
+ * @see https://en.wikipedia.org/wiki/Thin_lens
  */
 template<class Sys, class Y=double>
 t_length<Sys, Y> focal_len(const t_length<Sys, Y>& lenBefore, const t_length<Sys, Y>& lenAfter)
@@ -673,11 +687,10 @@ t_length<Sys, Y> focal_len(const t_length<Sys, Y>& lenBefore, const t_length<Sys
 
 
 /**
- * optimal mono/ana curvature, 
- * see e.g. 
- * 	- (Shirane 2002) p. 66
- * 	- or nicos/nicos-core.git/tree/nicos/devices/tas/mono.py in nicos
- *  - or Monochromator_curved.comp in McStas
+ * optimal mono/ana curvature,
+ * @see e.g. (Shirane 2002) p. 66
+ * @see e.g. nicos/nicos-core.git/tree/nicos/devices/tas/mono.py in nicos
+ * @see e.g. McStas: https://github.com/McStasMcXtrace/McCode/blob/master/mcstas-comps/optics/Monochromator_curved.comp
  */
 template<class Sys, class Y=double>
 t_length<Sys, Y> foc_curv(const t_length<Sys, Y>& lenBefore, const t_length<Sys, Y>& lenAfter,
@@ -697,16 +710,17 @@ t_length<Sys, Y> foc_curv(const t_length<Sys, Y>& lenBefore, const t_length<Sys,
 
 // --------------------------------------------------------------------------------
 /**
- * @brief disc chopper burst time, see: NIMA 492, pp. 97-104 (2002)
+ * @brief disc chopper burst time
  * @param r chopper radius
  * @param L chopper window length
  * @param om chopper frequency
  * @param bCounterRot single disc or two counter-rotating discs?
  * @param bSigma burst time in sigma or fwhm?
  * @return burst time
+ * @see: NIMA 492, pp. 97-104 (2002), doi: https://doi.org/10.1016/S0168-9002(02)01285-8
  */
 template<class Sys, class Y=double>
-t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r, 
+t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r,
 	const t_length<Sys,Y>& L, const t_freq<Sys,Y>& om, bool bCounterRot,
 	bool bSigma=1)
 {
@@ -736,7 +750,7 @@ t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 }
 
 template<class Sys, class Y=double>
-t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r, 
+t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r,
 	const t_length<Sys,Y>& L, const t_time<Sys,Y>& dt, bool bCounterRot,
 	bool bSigma=1)
 {
@@ -756,6 +770,7 @@ t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r,
  * @param w distance between blade
  * @param bSigma calculate sigma or fwhm?
  * @return angular divergence
+ * @see (Shirane 2002), Ch. 3.3
  */
 template<class Sys, class Y=double>
 t_angle<Sys,Y> colli_div(const t_length<Sys,Y>& L, const t_length<Sys,Y>& w, bool bSigma=1)
@@ -825,8 +840,12 @@ t_length<Sys,Y> vsel_lam(const t_angle<Sys,Y>& twist,
 
 //------------------------------------------------------------------------------
 // Larmor precession
+//------------------------------------------------------------------------------
 
-// gamma*B = omega
+/**
+ * gamma*B = omega
+ * @see https://en.wikipedia.org/wiki/Larmor_precession
+ */
 template<class Sys, class Y=double>
 t_freq<Sys,Y> larmor_om(const t_flux<Sys,Y>& B)
 {

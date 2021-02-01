@@ -480,7 +480,7 @@ std::complex<T> faddeeva(const std::complex<T>& z)
 
 /**
 * Voigt profile
-* see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
+* @see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
 */
 template<class T=double>
 T voigt_model(T x, T x0, T sigma, T gamma, T amp, T offs)
@@ -601,7 +601,7 @@ std::tuple<T,T> sph_to_crys(T phi, T theta)
 /**
  * gnomonic projection (similar to perspective projection with fov=90°)
  * @return [x,y]
- * @desc: see http://mathworld.wolfram.com/GnomonicProjection.html
+ * @see http://mathworld.wolfram.com/GnomonicProjection.html
  */
 template<class T = double>
 std::tuple<T,T> gnomonic_proj(T twophi_crys, T twotheta_crys)
@@ -615,7 +615,7 @@ std::tuple<T,T> gnomonic_proj(T twophi_crys, T twotheta_crys)
 /**
  * stereographic projection
  * @return [x,y]
- * @desc: see http://mathworld.wolfram.com/StereographicProjection.html
+ * @see http://mathworld.wolfram.com/StereographicProjection.html
  */
 template<class T = double>
 std::tuple<T,T> stereographic_proj(T twophi_crys, T twotheta_crys, T rad)
@@ -1629,6 +1629,7 @@ matrix_type rotation_matrix_3d_z(typename matrix_type::value_type angle)
 
 /**
  * cross-product in matrix form
+ * @see https://en.wikipedia.org/wiki/Skew-symmetric_matrix
  */
 template<class matrix_type = ublas::matrix<double>,
 	class vector_type = ublas::vector<typename matrix_type::value_type>>
@@ -1843,7 +1844,8 @@ bool is_centering_matrix(const t_mat& mat)
 
 /**
  * Euler-Rodrigues formula
- * see e.g.: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ * @see e.g.: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ * @see (Arens 2015), p. 718 and p. 816
  */
 template<class mat_type = ublas::matrix<double>,
 	class vec_type = ublas::vector<typename mat_type::value_type>,
@@ -1887,8 +1889,8 @@ typename matrix_type::value_type trace(const matrix_type& mat)
 
 /**
  * parallel or perspectivic projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
 	class T = typename t_mat::value_type>
@@ -1921,7 +1923,7 @@ t_mat proj_matrix(T l, T r, T b, T t, T n, T f, bool bParallel)
 
 /**
  * parallel projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
 	class T = typename t_mat::value_type>
@@ -1932,7 +1934,7 @@ t_mat ortho_matrix(T l, T r, T b, T t, T n, T f)
 
 /**
  * perspectivic projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
  * also see: similar gnomonic projection of spherical coordinates onto a plane
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
@@ -2027,7 +2029,7 @@ bool is_nan_or_inf(const T& mat)
 /**
  * calculates the matrix inverse
  *
- * @desc code for inverse based on boost/libs/numeric/ublas/test/test_lu.cpp
+ * @desc code for inverse based on https://github.com/boostorg/ublas/blob/develop/test/test_lu.cpp
  * @desc Boost's test_lu.cpp is (c) 2008 by G. Winkler
  */
 template<class mat_type = ublas::matrix<double>>
@@ -2101,9 +2103,6 @@ mat_type transform_inv(const mat_type& mat, const mat_type& matTrafo, bool bCong
 
 	return TinvMT;
 }
-
-
-
 
 
 
@@ -2274,7 +2273,7 @@ typename t_mat::value_type determinant(const t_mat& mat)
 
 /**
  * minor determinant
- * see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
+ * @see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
  */
 template<class t_mat = ublas::matrix<double>>
 typename t_mat::value_type minor_det(const t_mat& mat, std::size_t iRow, std::size_t iCol)
@@ -2298,7 +2297,7 @@ typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::siz
 
 /**
  * adjugate matrix
- * see e.g.: https://en.wikipedia.org/wiki/Adjugate_matrix
+ * @see e.g.: https://en.wikipedia.org/wiki/Adjugate_matrix
  */
 template<class t_mat = ublas::matrix<double>>
 t_mat adjugate(const t_mat& mat, bool bTranspose=1)
@@ -2342,8 +2341,8 @@ typename matrix_type::value_type get_ellipsoid_volume(const matrix_type& mat)
 
 /**
  * calculate fractional coordinate basis vectors from angles
- * see: http://www.bmsc.washington.edu/CrystaLinks/man/pdb/part_75.html
- * or: https://en.wikipedia.org/wiki/Fractional_coordinates
+ * @see http://www.bmsc.washington.edu/CrystaLinks/man/pdb/part_75.html
+ * @see https://en.wikipedia.org/wiki/Fractional_coordinates
  * for the reciprocal lattice this is equal to the B matrix from Acta Cryst. (1967), 22, 457
  */
 template<class t_vec>
@@ -2565,9 +2564,8 @@ typename T::value_type vec_angle_unsigned(const T& q1, const T& q2)
 
 
 /**
- * - see: K. Shoemake, "Animating rotation with quaternion curves":
- *        http://dx.doi.org/10.1145/325334.325242
- * - see: (Bronstein 2008), formula 4.207
+ * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
+ * @see (Bronstein 2008), formula 4.207
  */
 template<class T>
 T slerp(const T& q1, const T& q2, typename T::value_type t)
@@ -2620,7 +2618,7 @@ t_vec get_gcd_vec(const t_vec& vec)
 
 /**
  * Householder reflection matrix
- * @desc for the algo, see (Scarpino 2011), p. 268
+ * @see (Scarpino 2011), p. 268
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2682,7 +2680,7 @@ template<class t_mat = ublas::matrix<double>,
 
 /**
  * QR decomposition via householder reflections
- * @desc for the algo, see (Scarpino 2011), pp. 269--272
+ * @see (Scarpino 2011), pp. 269--272
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2930,7 +2928,7 @@ get_minmax(const T& t)
 
 /**
  * Calculates the dominant eigenvector/eigenvalue for symmetric matrices
- * see: (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2970,7 +2968,7 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 /**
  * Calculates the least dominant eigenvector/eigenvalue for symmetric matrices
- * see: (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -3156,7 +3154,8 @@ t_vec proj_vec(t_vec vec1, t_vec vec2)
 
 /**
  * Gram-Schmidt orthogonalisation of basis vectors
- * see e.g.: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+ * @see e.g. https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+ * @see e.g. (Arens 2015), p. 744
  */
 template<typename t_vec /*= ublas::vector<double>*/,
 	typename T /*= typename t_vec::value_type*/ >
@@ -3209,7 +3208,7 @@ std::vector<t_vec> get_ortho_rhs(const std::vector<t_vec>& vecs)
 
 /**
  * spin matrices
- * see e.g. (Arfken 2013), p. 110
+ * @see e.g. (Arfken 2013), p. 110
  */
 template<template<class...> class t_mat=ublas::matrix,
 	template<class...> class t_vec=ublas::vector,
@@ -3253,7 +3252,7 @@ t_mat commutator(const t_mat& A, const t_mat& B)
 
 /**
  * spin rotation in SU(2)
- * see e.g. (Arfken 2013), p. 851
+ * @see e.g. (Arfken 2013), p. 851
  */
 template<template<class...> class t_mat = ublas::matrix, class t_real = double>
 t_mat<std::complex<t_real>> rot_spin(int iComp, t_real dAngle)
@@ -3271,7 +3270,7 @@ t_mat<std::complex<t_real>> rot_spin(int iComp, t_real dAngle)
 
 /**
  * CG coefficients
- * formula: see (Arfken 2013), p. 790
+ * @see (Arfken 2013), p. 790
  *
  * e.g. two e- spins: s1 = s2 = 0.5, ms[1,2] = 0.5 (up) or -0.5 (down), S = 0 (sing.) or 1 (trip.)
  */
@@ -3323,7 +3322,7 @@ T CG_coeff(T S, T s1, T s2, T ms1, T ms2)
 
 /**
  * Hund's rules
- * see e.g.: (Khomskii 2014), ch. 2.2
+ * @see e.g.: (Khomskii 2014), ch. 2.2
  * @return [S, L, J]
  */
 template<class t_real = double>
@@ -3437,7 +3436,7 @@ hund(const t_str& strOrbitals)
 
 /**
  * effective g factor
- * see: (Khomskii 2014), equ. (2.13)
+ * @see (Khomskii 2014), equ. (2.13)
  */
 template<class T = double>
 T eff_gJ(T S, T L, T J, T gL=T(1), T gS=T(2))
@@ -3451,7 +3450,7 @@ T eff_gJ(T S, T L, T J, T gL=T(1), T gS=T(2))
 
 /**
  * effective magneton number in units of muB
- * see: (Khomskii 2014), p. 33
+ * @see (Khomskii 2014), p. 33
  */
 template<class T = double>
 T eff_magnetons(T gJ, T J)
@@ -3592,7 +3591,7 @@ t_quat unit_quat()
 
 /**
  * calculates the quaternion inverse
- * @desc see e.g.: (Bronstein 2008), Ch. 4
+ * @see e.g.: (Bronstein 2008), Ch. 4
  */
 template<class t_quat = math::quaternion<double>>
 t_quat quat_inverse(const t_quat& q)
@@ -3603,7 +3602,7 @@ t_quat quat_inverse(const t_quat& q)
 
 /**
  * quaternion product
- * @desc see: (Kuipers 2002), p. 110
+ * @see (Kuipers 2002), p. 110
  */
 template<class t_quat = math::quaternion<double>>
 t_quat quat_prod(const t_quat& q1, const t_quat& q2)
@@ -3633,7 +3632,7 @@ t_quat quat_prod(const t_quat& q1, const t_quat& q2)
 
 /**
  * 3x3 matrix -> quat
- * @desc algo from: http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q55
+ * @see algo from: http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q55
  */
 template<class mat_type = ublas::matrix<double>,
 	class quat_type = math::quaternion<typename mat_type::value_type>>
@@ -3680,7 +3679,7 @@ quat_type rot3_to_quat(const mat_type& rot)
 
 /**
  * quat -> 3x3 matrix
- * @desc see e.g.: (Bronstein 2008), Formulas (4.162a/b)
+ * @see e.g.: (Bronstein 2008), Formulas (4.162a/b)
  */
 template<class mat_type=ublas::matrix<double>,
 	class quat_type=math::quaternion<typename mat_type::value_type>>
@@ -3716,7 +3715,7 @@ mat_type quat_to_rot3(const quat_type& quat)
 
 /**
  * vector -> quat
- * @desc see: (Kuipers 2002), p. 114
+ * @see (Kuipers 2002), p. 114
  */
 template<class t_vec = ublas::vector<double>,
 	class t_quat = math::quaternion<typename t_vec::value_type>>
@@ -3728,7 +3727,7 @@ t_quat vec3_to_quat(const t_vec& vec)
 
 /**
  * quat, vector product
- * @desc see: (Kuipers 2002), p. 127
+ * @see (Kuipers 2002), p. 127
  */
 template<class t_vec = ublas::vector<double>,
 	class t_quat = math::quaternion<typename t_vec::value_type>>
@@ -3749,7 +3748,7 @@ t_vec quat_vec_prod(const t_quat& q, const t_vec& v)
 
 /**
  * quat -> complex 2x2 matrix
- * @desc see e.g. (Scherer 2010), p.173
+ * @see e.g. (Scherer 2010), p.173
  */
 template<template<class...> class t_mat = ublas::matrix,
 	class t_real = double,
@@ -3805,7 +3804,7 @@ std::vector<T> rotation_angle(const ublas::matrix<T, Args...>& rot)
 
 /**
  * rotation angle
- * @desc see: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
+ * @see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
  */
 template<typename T=double>
 T rotation_angle(const math::quaternion<T>& quat)
@@ -3817,7 +3816,7 @@ T rotation_angle(const math::quaternion<T>& quat)
 
 /**
  * quat -> rotation axis
- * @desc see e.g.: (Bronstein 2008), Ch. 4
+ * @see e.g.: (Bronstein 2008), Ch. 4
  */
 template<class t_vec = ublas::vector<double>>
 t_vec rotation_axis(const math::quaternion<typename t_vec::value_type>& quat)
@@ -3838,7 +3837,7 @@ t_vec rotation_axis(const math::quaternion<typename t_vec::value_type>& quat)
 
 /**
  * rotation axis -> quat
- * @desc see e.g.: (Bronstein 2008), formula (4.193)
+ * @see e.g.: (Bronstein 2008), formula (4.193)
  */
 template<class quat_type = math::quaternion<double>,
 	class vec_type = ublas::vector<typename quat_type::value_type>,
@@ -3922,7 +3921,7 @@ quat_type rotation_quat_z(typename quat_type::value_type angle)
 
 /**
  * XYZ euler angles -> quat
- * @desc see: (Kuipers 2002), pp. 166, 167
+ * @see (Kuipers 2002), pp. 166, 167
  */
 template<class t_quat = math::quaternion<double>,
 	typename T = typename t_quat::value_type>
@@ -3937,7 +3936,7 @@ t_quat euler_to_quat_xyz(T phi, T theta, T psi)
 
 /**
  * ZXZ euler angles -> quat
- * @desc see: (Kuipers 2002), pp. 166, 167
+ * @see (Kuipers 2002), pp. 166, 167
  */
 template<class t_quat = math::quaternion<double>,
 	typename T = typename t_quat::value_type>
@@ -3989,7 +3988,7 @@ std::vector<T> quat_to_euler(const quat_type& quat)
 
 
 /**
- * @desc see e.g.: (Bronstein 2008), formula (4.217)
+ * @see e.g.: (Bronstein 2008), formula (4.217)
  */
 template<class quat_type=math::quaternion<double>,
 	typename T = typename quat_type::value_type>
@@ -4031,7 +4030,7 @@ struct vec_angle_unsigned_impl<QUAT, LinalgType::QUATERNION>
 
 /**
  * trapezoid rule
- * see e.g.: https://en.wikipedia.org/wiki/Trapezoidal_rule
+ * @see https://en.wikipedia.org/wiki/Trapezoidal_rule
  */
 template<class R=double, class A=double>
 R numint_trap(const std::function<R(A)>& fkt,
@@ -4057,7 +4056,7 @@ R numint_trapN(const std::function<R(A)>& fkt,
 
 /**
  * rectangle rule
- * see e.g.: https://en.wikipedia.org/wiki/Rectangle_method
+ * @see https://en.wikipedia.org/wiki/Rectangle_method
  */
 template<class R=double, class A=double>
 R numint_rect(const std::function<R(A)>& fkt,
@@ -4076,7 +4075,7 @@ R numint_rect(const std::function<R(A)>& fkt,
 
 /**
  * Simpson's rule
- * see e.g.: https://en.wikipedia.org/wiki/Simpson%27s_rule
+ * @see https://en.wikipedia.org/wiki/Simpson%27s_rule
  */
 template<class R=double, class A=double>
 R numint_simp(const std::function<R(A)>& fkt,
@@ -4120,7 +4119,6 @@ R convolute(const std::function<R(A)>& fkt0, const std::function<R(A)>& fkt1,
 	};
 
 	// ... at fixed arg x
-	//std::function<R(A)> fktbnd = std::bind1st(fkt, x); /*deprecated in C++17*/
 	std::function<R(A)> fktbnd = [&fkt, &x](A t) -> R { return fkt(x, t); };
 
 	return numint_simpN(fktbnd, x0, x1, N);
@@ -4224,7 +4222,7 @@ typename vec_type::value_type mean_value(const vec_type_prob& vecP, const vec_ty
 
 /**
  * standard deviation of mean value, with correction factor
- * see e.g.: https://en.wikipedia.org/wiki/Bessel%27s_correction
+ * @see https://en.wikipedia.org/wiki/Bessel%27s_correction
  */
 template<class vec_type>
 typename vec_type::value_type std_dev(const vec_type& vec, bool bCorr=1)
@@ -4272,7 +4270,7 @@ typename vec_type::value_type std_dev(const vec_type_prob& vecP, const vec_type&
 /**
  * entropy of a discrete distribution
  * S = - < log p_i >
- * see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+ * @see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
  */
 template<class t_real=double, class t_func>
 t_real entropy(const t_func& funcPdf, std::size_t iMax)
@@ -4290,7 +4288,7 @@ t_real entropy(const t_func& funcPdf, std::size_t iMax)
 /**
  * entropy of a continuous distribution
  * S = - < log p(x_i) >
- * see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+ * @see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
  */
 template<class t_real=double, class t_func>
 t_real entropy(const t_func& funcPdf, t_real dXMin, t_real dXMax, std::size_t iSteps=128)
@@ -4313,7 +4311,7 @@ t_real entropy(const t_func& funcPdf, t_real dXMin, t_real dXMax, std::size_t iS
 
 /**
  * Stirling's formula for log(n!)
- * see e.g. https://en.wikipedia.org/wiki/Stirling%27s_approximation
+ * @see e.g.: https://en.wikipedia.org/wiki/Stirling%27s_approximation
  */
 template<class t_real = double>
 t_real log_nfac(t_real n)
@@ -4325,7 +4323,7 @@ t_real log_nfac(t_real n)
 
 /**
  * combinatorics
- * see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
+ * @see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
  */
 template<class t_real = double, class t_uint = unsigned>
 t_real combinatorics(t_uint n, t_uint k, bool bOrdered, bool bRepetition)
@@ -4358,7 +4356,7 @@ t_real combinatorics(t_uint n, t_uint k, bool bOrdered, bool bRepetition)
 
 /**
  * possibilities to distribute particles onto niveaus
- * see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
+ * @see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
  */
 template<class t_real = double, class t_uint = unsigned>
 t_real particles_in_niveaus(t_uint iPart, t_uint iNiv, bool bDistinct, bool bOnePerNiveau)
@@ -4751,8 +4749,8 @@ template<class t_real> using t_hypergeo_dist = Distr<math::hypergeometric_distri
  * calculates the covariance and the correlation matrices
  * covariance: C_ij = cov(X_i, X_j) = < (X_i - <X_i>) * (X_j - <X_j>) >
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
- * see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
- * see also e.g.: (Arfken 2013) p. 1142
+ * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
+ * @see e.g.: (Arfken 2013) p. 1142
  */
 template<typename T=double>
 std::tuple<ublas::matrix<T>, ublas::matrix<T>>
@@ -4825,7 +4823,7 @@ covariance(const std::vector<ublas::vector<T>>& vecVals, const std::vector<T>* p
 /**
  * calculates chi^2 distance of a function model to data points
  * chi^2 = sum( (y_i - f(x_i))^2 / sigma_i^2 )
- * see e.g.: (Arfken 2013), p. 1170
+ * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
 T chi2(const t_func& func, std::size_t N,
@@ -4940,7 +4938,7 @@ T chi2_nd(const t_func& func,
 
 /**
  * Confidence interval of array data mean using t-distribution
- * see e.g.: (Arfken 2013), pp. 1176ff
+ * @see e.g.: (Arfken 2013), pp. 1176ff
  */
 template<class t_real = double, class t_vec = std::vector<t_real>>
 std::tuple<t_real, t_real, t_real>	// [mean, stddev, confidence]
@@ -5087,6 +5085,7 @@ public:
 
 	/**
 	 * "Lotfußpunkt"
+	 * @see https://de.wikipedia.org/wiki/Lot_(Mathematik)
 	 */
 	t_vec GetDroppedPerp(const t_vec& vecP, T *pdDist=0) const
 	{
@@ -5130,7 +5129,7 @@ public:
 
 	/**
 	 * plane-plane intersection
-	 * http://mathworld.wolfram.com/Plane-PlaneIntersection.html
+	 * @see http://mathworld.wolfram.com/Plane-PlaneIntersection.html
 	 */
 	bool intersect(const Plane<T>& plane2, Line<T>& lineRet,
 		T eps = get_epsilon<T>()) const
@@ -5161,7 +5160,7 @@ public:
 
 	/**
 	 * intersection point of three planes
-	 * http://mathworld.wolfram.com/Plane-PlaneIntersection.html
+	 * @see http://mathworld.wolfram.com/Plane-PlaneIntersection.html
 	 */
 	bool intersect(const Plane<T>& plane2, const Plane<T>& plane3, t_vec& ptRet,
 		T eps = get_epsilon<T>()) const
@@ -5329,7 +5328,7 @@ public:
 
 	/**
 	 * line-plane intersection
-	 * http://mathworld.wolfram.com/Line-PlaneIntersection.html
+	 * @see http://mathworld.wolfram.com/Line-PlaneIntersection.html
 	 */
 	bool intersect(const Plane<T>& plane, T& t, T eps = get_epsilon<T>()) const
 	{
@@ -5372,7 +5371,7 @@ public:
 
 	/**
 	 * line-line intersection
-	 * see e.g.: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+	 * @see e.g.: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 	 *
 	 * pos0 + t0*dir0 = pos1 + t1*dir1
 	 * pos0 - pos1 = t1*dir1 - t0*dir0
@@ -5529,9 +5528,6 @@ bool intersect_line_poly(const Line<T>& line,
 	// is intersection point within polygon?
 	const t_vec vecFaceCentre = mean_value(vertPoly);
 
-	//std::ostringstream ostr;
-	//ostr << "intersect: " << vecIntersect << ", face centre: " << vecFaceCentre << "\n";
-
 	for(std::size_t iVert = 0; iVert < vertPoly.size(); ++iVert)
 	{
 		std::size_t iNextVert = iVert < (vertPoly.size()-1) ? iVert+1 : 0;
@@ -5547,12 +5543,8 @@ bool intersect_line_poly(const Line<T>& line,
 
 		if(planeEdge.GetDist(vecIntersect) < -eps)
 			return false;
-
-		//ostr << "Face " << iVert << ": " << vecEdgeCentre << ", " << vecNorm << ", "
-		//	<< planeEdge.GetDist(vecIntersect) << "\n";
 	}
 
-	//std::cout << ostr.str() << std::endl;
 	return true;
 }
 
@@ -5694,7 +5686,7 @@ t_vec get_face_normal(const t_cont<t_vec>& vecVerts, t_vec vecCentre,
 
 /**
  * calculates the convex hull
- * https://github.com/t-weber/misc/blob/master/geo/qhulltst.cpp
+ * @see https://github.com/t-weber/misc/blob/master/geo/qhulltst.cpp
  */
 template<class t_vec = ublas::vector<double>,
 template<class...> class t_cont = std::vector,
@@ -5723,9 +5715,7 @@ t_cont<t_cont<t_vec>> get_convexhull(const t_cont<t_vec>& vecVerts)
 
 
 	orgQhull::Qhull qhull{"tlibs2", dim, int(vecVerts.size()), mem.get(), ""};
-
 	orgQhull::QhullFacetList facets = qhull.facetList();
-	//std::cout << "Convex hull has " << facets.size() << " facets.";
 
 	for(orgQhull::QhullLinkedList<orgQhull::QhullFacet>::iterator iter=facets.begin();
 		iter!=facets.end(); ++iter)
@@ -5852,8 +5842,8 @@ public:
 
 	/**
 	 * get the classification of the quadric
-	 * @see: https://mathworld.wolfram.com/QuadraticSurface.html
-	 * @returns: [rank, rank_ext, signature, signature_ext]
+	 * @see https://mathworld.wolfram.com/QuadraticSurface.html
+	 * @returns [rank, rank_ext, signature, signature_ext]
 	 */
 	std::tuple<int,int, int,int,int, int,int,int> ClassifyQuadric(T eps = get_epsilon<T>()) const
 	{
@@ -5989,15 +5979,6 @@ public:
 		if(pquadPrincipal)
 		{
 			t_mat matEvals = diag_matrix(vecEvals);
-
-			//log_debug("evecs = ", matEvecs);
-			//log_debug("evals = ", matEvals);
-			/*auto vecAngle = rotation_angle(matEvecs);
-			if(vecAngle.size() >= 1)
-			{
-				T dAngle = vecAngle[0];
-				log_debug("angle = ", dAngle);
-			}*/
 
 			pquadPrincipal->SetDim(vecEvals.size());
 			pquadPrincipal->SetQ(matEvals);
@@ -6382,7 +6363,7 @@ public:
 
 /**
  * Tetrahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Tetrahedron : public GeometricPrimitive<t_vec>
@@ -6436,7 +6417,7 @@ public:
 
 /**
  * Cube
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Cube : public GeometricPrimitive<t_vec>
@@ -6494,7 +6475,7 @@ public:
 
 /**
  * Octahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Octahedron : public GeometricPrimitive<t_vec>
@@ -6550,7 +6531,7 @@ public:
 
 /**
  * Icosahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Icosahedron : public GeometricPrimitive<t_vec>
@@ -6619,7 +6600,7 @@ public:
 
 /**
  * Dodecahedron
- * see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
+ * @see e.g.: https://en.wikipedia.org/wiki/Platonic_solid
  */
 template<class t_vec = ublas::vector<double>>
 class Dodecahedron : public GeometricPrimitive<t_vec>
@@ -6818,6 +6799,7 @@ bool qr(const ublas::matrix<T>& M,
 
 /**
  * solve M^T M x = M^T v for x
+ * @see e.g. (Arens 2015), p. 793
  */
 template<typename T = double>
 bool solve_linear_approx(const ublas::matrix<T>& M, const ublas::vector<T>& v, ublas::vector<T>& x)
@@ -7625,7 +7607,7 @@ bool singvec_cplx(const ublas::matrix<std::complex<T>>& mat,
 
 /**
  * pseudoinverse of a real diagonal matrix
- * see: https://de.wikipedia.org/wiki/Pseudoinverse#Berechnung
+ * @see https://de.wikipedia.org/wiki/Pseudoinverse#Berechnung
  */
 template<typename T=double>
 ublas::matrix<T> pseudoinverse_diag(const ublas::matrix<T>& mat)
@@ -7646,7 +7628,7 @@ ublas::matrix<T> pseudoinverse_diag(const ublas::matrix<T>& mat)
  * pseudoinverse M+ of a real matrix
  * M  = U D (V*)^t
  * M+ = V D+ (U*)^t
- * see: https://de.wikipedia.org/wiki/Pseudoinverse#Berechnung
+ * @see https://de.wikipedia.org/wiki/Pseudoinverse#Berechnung
  */
 template<typename T=double>
 bool pseudoinverse(const ublas::matrix<T>& mat, ublas::matrix<T>& matInv)
@@ -7793,6 +7775,7 @@ T epsilon_tensor(const t_mat& matGcov, const t_lst& idx, bool bCov = 1)
 
 /**
  * creates a metric tensor
+ * @see (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>,
@@ -7821,6 +7804,7 @@ t_mat make_metric_cov(const t_lst<t_vec>& lstVecsCov)
 
 /**
  * inner product using metric matGCov
+ * @see e.g.: (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -7834,6 +7818,7 @@ typename t_vec::value_type inner_prod(const t_mat& matGCov,
 
 /**
  * vector length
+ * @see e.g.: (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -7849,6 +7834,7 @@ typename t_vec::value_type vec_len(const t_mat& matGCov,
 
 /**
  * angle between vectors
+ * @see e.g.: (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -7867,7 +7853,7 @@ typename t_vec::value_type vec_angle(const t_mat& matGCov,
 
 /**
  * cross product using metric matGContra
- * see: (Arens 2015), p. 815
+ * @see (Arens 2015), p. 815
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -7907,7 +7893,7 @@ t_vec cross_prod_contra(const t_mat& matGCov,
 
 /**
  * tensor product
- * see e.g.: (Arfken 2013), p. 109
+ * @see e.g.: (Arfken 2013), p. 109
  */
 template<class t_mat = ublas::matrix<double>>
 t_mat tensor_prod(const t_mat& mat1, const t_mat& mat2)

@@ -355,7 +355,7 @@ t_str get_pointgroup(const t_str& str)
 
 /**
  * check allowed Bragg reflections based on centering
- * see e.g.: http://pd.chem.ucl.ac.uk/pdnn/symm4/centred.htm
+ * @see e.g.: http://pd.chem.ucl.ac.uk/pdnn/symm4/centred.htm
  */
 template<class t_int=int>
 bool is_centering_reflection_allowed(const std::string& strSG, t_int h, t_int k, t_int l)
@@ -385,7 +385,8 @@ bool is_centering_reflection_allowed(const std::string& strSG, t_int h, t_int k,
 /**
  * checks for allowed Bragg reflections
  * algorithm based on Clipper's HKL_class
- * constructor in clipper/core/coords.cpp by K. Cowtan
+ * constructor in clipper/core/coords.cpp by K. Cowtan, 2013
+ * @see http://www.ysbl.york.ac.uk/~cowtan/clipper/
  *
  * symmetry operation S on position r: R*r + t
  * F = sum<S>( exp(2*pi*i * (R*r + t)*G) )

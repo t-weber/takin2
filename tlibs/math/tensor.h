@@ -121,6 +121,7 @@ T epsilon_tensor(const t_mat& matGcov, const t_lst& idx, bool bCov = 1)
 
 /**
  * creates a metric tensor
+ * @see e.g. (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>,
@@ -149,6 +150,7 @@ t_mat make_metric_cov(const t_lst<t_vec>& lstVecsCov)
 
 /**
  * inner product using metric matGCov
+ * @see e.g. (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -162,6 +164,7 @@ typename t_vec::value_type inner_prod(const t_mat& matGCov,
 
 /**
  * vector length
+ * @see e.g. (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -177,6 +180,7 @@ typename t_vec::value_type vec_len(const t_mat& matGCov,
 
 /**
  * angle between vectors
+ * @see e.g. (Arens 2015), p. 808
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -195,7 +199,7 @@ typename t_vec::value_type vec_angle(const t_mat& matGCov,
 
 /**
  * cross product using metric matGContra
- * see: (Arens 2015), p. 815
+ * @see (Arens 2015), p. 815
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<double>>
@@ -235,7 +239,7 @@ t_vec cross_prod_contra(const t_mat& matGCov,
 
 /**
  * tensor product
- * see e.g.: (Arfken 2013), p. 109
+ * @see e.g. (Arfken 2013), p. 109
  */
 template<class t_mat = ublas::matrix<double>>
 t_mat tensor_prod(const t_mat& mat1, const t_mat& mat2)

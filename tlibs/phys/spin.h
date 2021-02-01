@@ -16,7 +16,7 @@ namespace tl {
 
 /**
  * spin matrices
- * see e.g. (Arfken 2013), p. 110
+ * @see e.g. (Arfken 2013), p. 110
  */
 template<template<class...> class t_mat=ublas::matrix,
 	template<class...> class t_vec=ublas::vector,
@@ -62,7 +62,7 @@ t_mat commutator(const t_mat& A, const t_mat& B)
 
 /**
  * spin rotation in SU(2)
- * see e.g. (Arfken 2013), p. 851
+ * @see e.g. (Arfken 2013), p. 851
  */
 template<template<class...> class t_mat = ublas::matrix, class t_real = double>
 t_mat<std::complex<t_real>> rot_spin(int iComp, t_real dAngle)
@@ -80,7 +80,7 @@ t_mat<std::complex<t_real>> rot_spin(int iComp, t_real dAngle)
 
 /**
  * CG coefficients
- * formula: see (Arfken 2013), p. 790
+ * @see (Arfken 2013), p. 790 for the formula
  * 
  * e.g. two e- spins: s1 = s2 = 0.5, ms[1,2] = 0.5 (up) or -0.5 (down), S = 0 (sing.) or 1 (trip.)
  */

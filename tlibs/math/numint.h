@@ -19,7 +19,7 @@ namespace tl {
 
 /**
  * trapezoid rule
- * see e.g.: https://en.wikipedia.org/wiki/Trapezoidal_rule
+ * @see e.g.: https://en.wikipedia.org/wiki/Trapezoidal_rule
  */
 template<class R=double, class A=double>
 R numint_trap(const std::function<R(A)>& fkt,
@@ -45,7 +45,7 @@ R numint_trapN(const std::function<R(A)>& fkt,
 
 /**
  * rectangle rule
- * see e.g.: https://en.wikipedia.org/wiki/Rectangle_method
+ * @see e.g.: https://en.wikipedia.org/wiki/Rectangle_method
  */
 template<class R=double, class A=double>
 R numint_rect(const std::function<R(A)>& fkt,
@@ -64,7 +64,7 @@ R numint_rect(const std::function<R(A)>& fkt,
 
 /**
  * Simpson's rule
- * see e.g.: https://en.wikipedia.org/wiki/Simpson%27s_rule
+ * @see e.g.: https://en.wikipedia.org/wiki/Simpson%27s_rule
  */
 template<class R=double, class A=double>
 R numint_simp(const std::function<R(A)>& fkt,
@@ -161,7 +161,6 @@ T newton(const std::function<T(T)>& fkt, const std::function<T(T)>& diff,
 
 	return xnew;
 }
-
 
 
 }

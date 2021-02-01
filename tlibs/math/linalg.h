@@ -989,6 +989,7 @@ matrix_type rotation_matrix_3d_z(typename matrix_type::value_type angle)
 
 /**
  * cross-product in matrix form
+ * @see https://en.wikipedia.org/wiki/Skew-symmetric_matrix
  */
 template<class matrix_type = ublas::matrix<double>,
 	class vector_type = ublas::vector<typename matrix_type::value_type>>
@@ -1206,7 +1207,8 @@ bool is_centering_matrix(const t_mat& mat)
 
 /**
  * Euler-Rodrigues formula
- * see e.g.: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ * @see https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ * @see (Arens 2015), p. 718 and p. 816
  */
 template<class mat_type = ublas::matrix<double>,
 	class vec_type = ublas::vector<typename mat_type::value_type>,
@@ -1250,8 +1252,8 @@ typename matrix_type::value_type trace(const matrix_type& mat)
 
 /**
  * parallel or perspectivic projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
 	class T = typename t_mat::value_type>
@@ -1285,7 +1287,7 @@ t_mat proj_matrix(T l, T r, T b, T t, T n, T f, bool bParallel)
 
 /**
  * parallel projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
 	class T = typename t_mat::value_type>
@@ -1297,7 +1299,7 @@ t_mat ortho_matrix(T l, T r, T b, T t, T n, T f)
 
 /**
  * perspectivic projection matrix
- * see: https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
+ * @see https://www.opengl.org/sdk/docs/man2/xhtml/gluPerspective.xml
  * also see: similar gnomonic projection of spherical coordinates onto a plane
  */
 template<class t_mat = ublas::matrix<double, ublas::row_major, ublas::bounded_array<double,4*4>>,
@@ -1398,7 +1400,7 @@ bool is_nan_or_inf(const T& mat)
 /**
  * calculates the matrix inverse
  *
- * @desc code for inverse based on boost/libs/numeric/ublas/test/test_lu.cpp
+ * @desc code for inverse based on https://github.com/boostorg/ublas/blob/develop/test/test_lu.cpp
  * @desc Boost's test_lu.cpp is (c) 2008 by G. Winkler
  */
 template<class mat_type = ublas::matrix<double>>
@@ -1581,6 +1583,7 @@ bool solve_linear(const ublas::matrix<T>& M,
 
 /**
  * solve M^T M x = M^T v for x
+ * @see e.g. (Arens 2015), p. 793
  */
 template<typename T = double>
 bool solve_linear_approx(const ublas::matrix<T>& M,
@@ -1781,7 +1784,7 @@ typename t_mat::value_type determinant(const t_mat& mat)
 
 /**
  * minor determinant
- * see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
+ * @see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
  */
 template<class t_mat = ublas::matrix<double>>
 typename t_mat::value_type minor_det(const t_mat& mat, std::size_t iRow, std::size_t iCol)
@@ -1807,7 +1810,7 @@ typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::siz
 
 /**
  * adjugate matrix
- * see e.g.: https://en.wikipedia.org/wiki/Adjugate_matrix
+ * @see e.g.: https://en.wikipedia.org/wiki/Adjugate_matrix
  */
 template<class t_mat = ublas::matrix<double>>
 t_mat adjugate(const t_mat& mat, bool bTranspose=1)
@@ -1852,8 +1855,8 @@ typename matrix_type::value_type get_ellipsoid_volume(const matrix_type& mat)
 
 /**
  * calculate fractional coordinate basis vectors from angles
- * see: http://www.bmsc.washington.edu/CrystaLinks/man/pdb/part_75.html
- * or: https://en.wikipedia.org/wiki/Fractional_coordinates
+ * @see http://www.bmsc.washington.edu/CrystaLinks/man/pdb/part_75.html
+ * @see https://en.wikipedia.org/wiki/Fractional_coordinates
  * for the reciprocal lattice this is equal to the B matrix from Acta Cryst. (1967), 22, 457
  */
 template<class t_vec>
@@ -2081,9 +2084,8 @@ typename T::value_type vec_angle_unsigned(const T& q1, const T& q2)
 
 
 /**
- * - see: K. Shoemake, "Animating rotation with quaternion curves":
- *        http://dx.doi.org/10.1145/325334.325242
- * - see: (Bronstein 2008), formula 4.207
+ * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
+ * @see (Bronstein 2008), formula 4.207
  */
 template<class T>
 T slerp(const T& q1, const T& q2, typename T::value_type t)
@@ -2151,7 +2153,7 @@ t_vec get_gcd_vec(const t_vec& vec)
 
 /**
  * Householder reflection matrix
- * @desc for the algo, see (Scarpino 2011), p. 268
+ * @see (Scarpino 2011), p. 268
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2216,7 +2218,7 @@ template<class t_mat = ublas::matrix<double>,
 
 /**
  * QR decomposition via householder reflections
- * @desc for the algo, see (Scarpino 2011), pp. 269--272
+ * @see (Scarpino 2011), pp. 269--272
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2467,7 +2469,7 @@ get_minmax(const T& t)
 
 /**
  * Calculates the dominant eigenvector/eigenvalue for symmetric matrices
- * see: (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2507,7 +2509,7 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 /**
  * Calculates the least dominant eigenvector/eigenvalue for symmetric matrices
- * see: (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2691,7 +2693,8 @@ t_vec proj_vec(t_vec vec1, t_vec vec2)
 
 /**
  * Gram-Schmidt orthogonalisation of basis vectors
- * see e.g.: https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+ * @see e.g. https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+ * @see e.g. (Arens 2015), p. 744
  */
 template<typename t_vec /*= ublas::vector<double>*/,
 	typename T /*= typename t_vec::value_type*/ >

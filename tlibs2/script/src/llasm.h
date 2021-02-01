@@ -4,6 +4,11 @@
  * @date 11-apr-20
  * @license see 'LICENSE' file
  * @desc Forked on 18/July/2020 from my privatly developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ *
+ * References:
+ *   - https://llvm.org/docs/LangRef.html
+ *   - https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html
+ *   - https://llvm.org/docs/GettingStarted.html
  */
 
 #ifndef __LLASM_H__

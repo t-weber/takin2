@@ -6,7 +6,8 @@
  * @desc The present version was forked on 28-Mar-2020 from my privately developed "misc" project (https://github.com/t-weber/misc).
  *
  * References:
- *	- https://de.wikipedia.org/wiki/LL(k)-Grammatik
+ *   - https://de.wikipedia.org/wiki/LL(k)-Grammatik
+ *   - https://www.cs.uaf.edu/~cs331/notes/FirstFollow.pdf
  */
 
 #ifndef __TLIBS2_EXPR_PARSER_H__

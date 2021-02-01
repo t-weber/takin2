@@ -24,7 +24,7 @@ namespace tl
 {
 	/**
 	 * Hund's rules
-	 * see e.g.: (Khomskii 2014), ch. 2.2
+	 * @see e.g.: (Khomskii 2014), ch. 2.2
 	 * @return [S, L, J]
 	 */
 	template<class t_real = double>
@@ -139,7 +139,7 @@ namespace tl
 
 	/**
 	 * effective g factor
-	 * see: (Khomskii 2014), equ. (2.13)
+	 * @see (Khomskii 2014), equ. (2.13)
 	 */
 	template<class T = double>
 	T eff_gJ(T S, T L, T J, T gL=T(1), T gS=T(2))
@@ -153,7 +153,7 @@ namespace tl
 
 	/**
 	 * effective magneton number in units of muB
-	 * see: (Khomskii 2014), p. 33
+	 * @see (Khomskii 2014), p. 33
 	 */
 	template<class T = double>
 	T eff_magnetons(T gJ, T J)

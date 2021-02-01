@@ -20,10 +20,11 @@
 
 namespace tl
 {
+
 /**
  * standard dft
  * dft formulas from here:
- * http://www.fftw.org/fftw3_doc/The-1d-Discrete-Fourier-Transform-_0028DFT_0029.html#The-1d-Discrete-Fourier-Transform-_0028DFT_0029
+ * @see http://www.fftw.org/fftw3_doc/The-1d-Discrete-Fourier-Transform-_0028DFT_0029.html#The-1d-Discrete-Fourier-Transform-_0028DFT_0029
  */
 template<typename T=double>
 std::complex<T> dft_coeff(int k,
@@ -397,6 +398,7 @@ class DFT : public Fourier_base<T>
 
 /**
  * fft with pre-calculated coefficients
+ * @see (Scarpino 2011), ch. 14, for an explanation of the fft algorithms employed here.
  */
 template<class T=double>
 class FFT : public Fourier_base<T>
