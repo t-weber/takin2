@@ -4,8 +4,9 @@
  * @date aug-2014
  * @license GPLv2 or GPLv3
  *
- * @desc based on Boost's example chat client (c) 2003-2015 by C. M. Kohlhoff:
+ * @desc based on Boost's example chat client/server (c) 2003-2015 by C. M. Kohlhoff:
  * @desc http://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/example/cpp11/chat/chat_client.cpp
+ * @desc https://www.boost.org/doc/libs/1_61_0/doc/html/boost_asio/example/cpp11/chat/chat_server.cpp
  */
 
 #ifndef __TL_TCP_IMPL_H__

@@ -393,6 +393,7 @@ ublas::matrix<T> get_U(const ublas::vector<T>& _vec1, const ublas::vector<T>& _v
 /**
  * UB matrix converts rlu to 1/A and expresses it in the scattering plane coords:
  * Q = U*B*hkl
+ * see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 ublas::matrix<T> get_UB(const Lattice<T>& lattice_real,

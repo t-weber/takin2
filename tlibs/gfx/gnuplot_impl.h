@@ -46,7 +46,7 @@ bool GnuPlot<t_real>::Init()
 
 		std::getline(proc.GetIstr(), m_strVersion);
 		trim(m_strVersion);
-	
+
 		if(m_strVersion == "")
 			return false;
 	}

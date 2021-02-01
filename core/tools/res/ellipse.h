@@ -91,38 +91,81 @@ enum class EllipseCoordSys : int
 
 
 /**
- * Integration of the quadratic part of the quadric
+ * project along one axis of the quadratic part of the quadric to remove line and column iIdx
  * this is a 1:1 C++ reimplementation of 'rc_int' from 'mcresplot' and 'rescal5'
  * (see also [eck14], equ. 57)
- * integrate over row/column iIdx
+ * project along row/column iIdx
+ *
+ * quadric M: <x|M|x> = c
+ * projector along |v>: |v><v|, with |v> normalised
+ * remove projected contribution: M - s * |v><v|
+ * choose column/row i as |v> and scale factor s so that they vanish with the projection
+ *
+ * cf. projector orthogonal to |v>: (1 - |v><v|) * M
+ * cf. also householder mirror along |v>: (1 - 2*|v><v|) * M
+ *
+ * e.g. projection along 2nd column:
+ *     ( m00 m01 m02 )        ( m01 )           ( m01 m01  m01 m11  m01 m12 )
+ * M = ( m01 m11 m12 ), |v> = ( m11 ), |v><v| = ( m11 m01  m11 m11  m11 m12 )
+ *     ( m02 m12 m22 )        ( m12 )           ( m12 m01  m12 m11  m12 m12 )
+ *
+ *                           ( m01 m01/m11    m01    m01 m12/m11 )
+ * s * |v><v| = |v><v|/m11 = (         m01    m11            m12 )
+ *                           ( m12 m01/m11    m12    m12 m12/m11 )
  */
 template<class T = t_real_reso>
 ublas::matrix<T> quadric_proj(const ublas::matrix<T>& mat, std::size_t iIdx)
 {
-	ublas::vector<T> b = T(0.5)*(tl::get_column(mat, iIdx) + tl::get_row(mat, iIdx));
-	b = tl::remove_elem(b, iIdx);
+	using t_mat = ublas::matrix<T>;
+	using t_vec = ublas::vector<T>;
 
-	ublas::matrix<T> m = tl::remove_elems(mat, iIdx);
-	m -= ublas::outer_prod(b,b) / mat(iIdx, iIdx);
+	if(tl::float_equal<T>(mat(iIdx, iIdx), T{0}))
+	{
+		tl::log_warn("Cannot project quadric, slicing instead.");
+		return tl::remove_elems(mat, iIdx);
+	}
+
+	// symmetric matrix -> col and row are equal to one another and to this average b
+	t_vec b = T(0.5)*(tl::get_column(mat, iIdx) + tl::get_row(mat, iIdx));
+	//T blen = tl::veclen(b);
+	//b /= blen;
+
+	t_mat m = mat;
+	//T dscale = blen / b[iIdx];	// == blen*blen / mat(iIdx,iIdx)
+	T dscale = 1. / mat(iIdx, iIdx);
+	m -= dscale * tl::outer<t_vec,t_mat>(b,b);
+
+	//tl::log_debug(mat, " -> ", m);
+	m = tl::remove_elems(m, iIdx);
 
 	return m;
 }
 
+
 /**
- * Integration of the linear part of the quadric
+ * project along one axis of the linear part of the quadric
  * (see [eck14], equ. 57)
  */
 template<class T = t_real_reso>
 ublas::vector<T> quadric_proj(const ublas::vector<T>& vec,
 	const ublas::matrix<T>& mat, std::size_t iIdx)
 {
-	ublas::vector<T> b = tl::get_column(mat, iIdx);
-	b = tl::remove_elem(b, iIdx);
+	using t_vec = ublas::vector<T>;
 
-	ublas::vector<T> vecInt = tl::remove_elem(vec, iIdx);
-	vecInt -= b*vec[iIdx] / mat(iIdx, iIdx);
+	if(tl::float_equal<T>(mat(iIdx, iIdx), T{0}))
+	{
+		tl::log_warn("Cannot project vector part of quadric, slicing instead.");
+		return tl::remove_elem(vec, iIdx);
+	}
 
-	return vecInt;
+	t_vec b = T(0.5)*(tl::get_column(mat, iIdx) + tl::get_row(mat, iIdx));
+
+	t_vec vecProj = vec;
+	T dscale = vecProj[iIdx] / mat(iIdx, iIdx);
+	vecProj -= dscale * b;
+
+	vecProj = tl::remove_elem(vecProj, iIdx);
+	return vecProj;
 }
 
 
@@ -217,17 +260,13 @@ void Ellipse2d<t_real>::GetCurvePoints(std::vector<t_real>& x, std::vector<t_rea
 // --------------------------------------------------------------------------------
 
 template<class T = t_real_reso>
-static void quadric_proj(tl::QuadEllipsoid<T>& quad, std::size_t iIdx)
+static void quad_proj(tl::QuadEllipsoid<T>& quad, std::size_t iIdx)
 {
-	//tl::log_debug("before int: ", quad.GetR());
-
 	ublas::vector<T> vecRint = quadric_proj(quad.GetR(), quad.GetQ(), iIdx);
 	ublas::matrix<T> matQint = quadric_proj(quad.GetQ(), iIdx);
 	quad.RemoveElems(iIdx);
 	quad.SetQ(matQint);
 	quad.SetR(vecRint);
-
-	//tl::log_debug("after int: ", quad.GetR());
 }
 
 
@@ -266,9 +305,9 @@ static inline const std::string& ellipse_labels(int iCoord, EllipseCoordSys sys,
  */
 template<class t_real = t_real_reso>
 Ellipse2d<t_real> calc_res_ellipse(
-	const ublas::matrix<t_real>& reso,		// quadratic part of quadric
+	const ublas::matrix<t_real>& reso,	// quadratic part of quadric
 	const ublas::vector<t_real>& reso_vec,	// linear part
-	t_real reso_const,						// const part
+	t_real reso_const,			// const part
 	const ublas::vector<t_real>& Q_avg,
 	int iX, int iY, int iInt, int iRem1, int iRem2)
 {
@@ -310,7 +349,7 @@ Ellipse2d<t_real> calc_res_ellipse(
 
 	if(iInt>-1)
 	{
-		quadric_proj(ell.quad, iInt);
+		quad_proj(ell.quad, iInt);
 		Q_offs = tl::remove_elem(Q_offs, iInt);
 
 		if(iX>=iInt) --iX;
@@ -321,6 +360,7 @@ Ellipse2d<t_real> calc_res_ellipse(
 
 	tl::QuadEllipsoid<t_real> quad(2);
 	ell.quad.GetPrincipalAxes(ell.rot, evals, &quad);
+	//tl::log_debug("old: ", ell.quad.GetR(), ", new: ", quad.GetR());
 
 	ell.phi = tl::rotation_angle(ell.rot)[0];
 
@@ -383,6 +423,7 @@ t_real calc_vanadium_fwhm(
 	const t_real dScalarReso,
 	const ublas::vector<t_real>& vecQAvg)
 {
+	// project all Q axes
 	ublas::matrix<t_real> M = quadric_proj(matReso, 0);
 	M = quadric_proj(M, 0);
 	M = quadric_proj(M, 0);
@@ -429,7 +470,7 @@ Ellipsoid3d<t_real> calc_res_ellipsoid(
 
 	if(iInt>-1)
 	{
-		quadric_proj(ell.quad, iInt);
+		quad_proj(ell.quad, iInt);
 		Q_offs = tl::remove_elem(Q_offs, iInt);
 
 		if(iX>=iInt) --iX;
@@ -441,6 +482,7 @@ Ellipsoid3d<t_real> calc_res_ellipsoid(
 	tl::QuadEllipsoid<t_real> quad(3);
 	ell.quad.GetPrincipalAxes(ell.rot, evals, &quad);
 
+	//tl::log_info("Principal axes: ", quad.GetQ());
 	ell.x_hwhm = tl::get_SIGMA2HWHM<t_real>() * quad.GetRadius(0);
 	ell.y_hwhm = tl::get_SIGMA2HWHM<t_real>() * quad.GetRadius(1);
 	ell.z_hwhm = tl::get_SIGMA2HWHM<t_real>() * quad.GetRadius(2);

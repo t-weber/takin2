@@ -4,7 +4,7 @@
  * @license GPLv2 or GPLv3
  */
 
-// gcc -o units units.cpp -std=c++14 -lstdc++ -lm
+// g++ -o units units.cpp -std=c++14
 
 #include <iostream>
 #include "../phys/units.h"
@@ -57,6 +57,13 @@ int main()
 		(tl::get_one_femtometer<double>())) << " fm" << std::endl;
 	std::cout << "p: " << tl::get_mu_N<double>()*tl::get_muB<double>()*tl::get_gamma_n<double>() *
 		2.*tl::get_m_n<double>()/(tl::get_hbar<double>()*tl::get_hbar<double>()) << std::endl;
+
+
+	tl::t_energy_si<double> Ei = 5.*tl::t_meV<double>;
+	tl::t_energy_si<double> dE = -1.*tl::t_meV<double>;
+	tl::t_angle_si<double> tt = 90.*tl::t_degrees<double>;
+	tl::t_wavenumber_si<double> Q = 2./tl::t_angstrom<double>;
+	std::cout << tl::kinematic_plane(1, Ei, dE, tt) << std::endl;
 
 	return 0;
 }

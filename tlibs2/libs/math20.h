@@ -5024,7 +5024,8 @@ requires is_vec<t_vec>
 
 /**
  * Blume-Maleev equation (see: https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225)
- * calculate indirectly with density matrix
+ * calculate equation indirectly with density matrix
+ *   (proof from a lecture by P. J. Brown, 2006)
  *
  * V   = N*1 + <Mperp|sigma>
  * I   = tr( <V|V> rho )

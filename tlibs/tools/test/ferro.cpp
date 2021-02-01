@@ -6,8 +6,8 @@
 
 // clang -o ferro ferro.cpp ../gfx/gnuplot.cpp ../log/log.cpp -lstdc++ -lm -lboost_iostreams -std=c++11
 
-#include "../math/mag.h"
-#include "../math/neutrons.h"
+#include "../phys/mag.h"
+#include "../phys/neutrons.h"
 #include "../gfx/gnuplot.h"
 
 #include <tuple>

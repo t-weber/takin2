@@ -3,6 +3,7 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date aug-2015
  * @license GPLv2 or GPLv3
+ * @desc see, e.g, (Williams 2012), pp. 273-299
  */
 
 #ifndef __TLIBS_THREAD_H__

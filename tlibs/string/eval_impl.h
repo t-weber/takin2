@@ -179,6 +179,7 @@ namespace tl
 			}
 
 		public:
+			// see, e.g., https://de.wikipedia.org/wiki/LL(k)-Grammatik
 			ExprGrammar() : ExprGrammar::base_type(m_expr, "expr")
 			{
 				// + or -

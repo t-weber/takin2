@@ -85,7 +85,7 @@ void DynPlaneDlg::cursorMoved(const QPointF& pt)
 		std::ostringstream ostr;
 
 		// valid accessible energy ranges?
-		if(!std::isnan(_dQ) && !std::isnan(_dE0) && !std::isnan(_dE1) 
+		if(!std::isnan(_dQ) && !std::isnan(_dE0) && !std::isnan(_dE1)
 			&& !std::isinf(_dQ) && !std::isinf(_dE0) && !std::isinf(_dE1))
 		{
 			if(_dE1 < _dE0)
