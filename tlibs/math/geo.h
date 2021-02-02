@@ -30,6 +30,10 @@ namespace math = boost::math;
 
 template<typename T> class Line;
 
+/**
+ * analytical geometry of a plane
+ * @see (Stoecker 1999), chapter "Analytische Geometrie".
+ */
 template<typename T> class Plane
 {
 public:
@@ -154,7 +158,7 @@ public:
 
 	/**
 	 * "Lotfußpunkt"
-	 * @see https://de.wikipedia.org/wiki/Lot_(Mathematik)
+	 * @see e.g. https://de.wikipedia.org/wiki/Lot_(Mathematik)
 	 */
 	t_vec GetDroppedPerp(const t_vec& vecP, T *pdDist=0) const
 	{
@@ -265,6 +269,10 @@ public:
 
 
 
+/**
+ * analytical geometry of a line
+ * @see (Stoecker 1999), chapter "Analytische Geometrie".
+ */
 template<typename T> class Line
 {
 public:
@@ -362,7 +370,7 @@ public:
 
 	/**
 	 * "Lotfußpunkt"
-	 * @see https://de.wikipedia.org/wiki/Lot_(Mathematik)
+	 * @see e.g. https://de.wikipedia.org/wiki/Lot_(Mathematik)
 	 */
 	t_vec GetDroppedPerp(const t_vec& vecP, T *pdDist=0) const
 	{
@@ -874,6 +882,10 @@ t_cont<t_cont<t_vec>> verts_to_polyhedron(
 //------------------------------------------------------------------------------
 
 
+/**
+ * quadric
+ * see e.g.: (Arens 2015), ch. 21
+ */
 template<class T = double>
 class Quadric
 {
@@ -926,7 +938,7 @@ public:
 	 * @see https://mathworld.wolfram.com/QuadraticSurface.html
 	 * @returns [rank, rank_ext, signature, signature_ext]
 	 */
-	std::tuple<int,int, int,int,int, int,int,int> 
+	std::tuple<int,int, int,int,int, int,int,int>
 	ClassifyQuadric(T eps = tl::get_epsilon<T>()) const
 	{
 		// extended matrix

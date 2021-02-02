@@ -4964,6 +4964,11 @@ bool solve_linear(const ublas::matrix<T>& M, const ublas::vector<T>& v, ublas::v
 
 template<typename T> class Line;
 
+
+/**
+ * analytical geometry of a plane
+ * @see (Stoecker 1999), chapter "Analytische Geometrie".
+ */
 template<typename T> class Plane
 {
 public:
@@ -5085,7 +5090,7 @@ public:
 
 	/**
 	 * "Lotfußpunkt"
-	 * @see https://de.wikipedia.org/wiki/Lot_(Mathematik)
+	 * @see e.g.: https://de.wikipedia.org/wiki/Lot_(Mathematik)
 	 */
 	t_vec GetDroppedPerp(const t_vec& vecP, T *pdDist=0) const
 	{
@@ -5192,6 +5197,10 @@ public:
 //------------------------------------------------------------------------------
 
 
+/**
+ * analytical geometry of a line
+ * @see (Stoecker 1999), chapter "Analytische Geometrie".
+ */
 template<typename T> class Line
 {
 public:
@@ -5282,6 +5291,7 @@ public:
 
 	/**
 	 * "Lotfußpunkt"
+	 * @see e.g.: https://de.wikipedia.org/wiki/Lot_(Mathematik)
 	 */
 	t_vec GetDroppedPerp(const t_vec& vecP, T *pdDist=0) const
 	{
@@ -6798,7 +6808,7 @@ bool qr(const ublas::matrix<T>& M,
 
 
 /**
- * solve M^T M x = M^T v for x
+ * solve normal equation M^T M x = M^T v for x
  * @see e.g. (Arens 2015), p. 793
  */
 template<typename T = double>
