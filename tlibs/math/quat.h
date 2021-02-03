@@ -3,6 +3,7 @@
  * @author: Tobias Weber <tobias.weber@tum.de>
  * @date: 2013-2016
  * @license GPLv2 or GPLv3
+ * @see (Kuipers 2002) for a very good reference on quaternions
  */
 
 #ifndef __TLIBS_QUAT_H__

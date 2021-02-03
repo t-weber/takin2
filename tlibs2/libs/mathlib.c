@@ -177,6 +177,7 @@ void tl2_submat(const double* M, int N, double* M_new, int iremove, int jremove)
 
 /**
  * calculates the determinant
+ * @see e.g.: (Merziger 2006), p. 185
  */
 double tl2_determinant(const double* M, int N)
 {
@@ -231,6 +232,7 @@ double tl2_determinant(const double* M, int N)
 
 /**
  * inverted matrix
+ * @see https://en.wikipedia.org/wiki/Invertible_matrix#In_relation_to_its_adjugate
  */
 int tl2_inverse(const double* M, double* I, int N)
 {
@@ -486,6 +488,9 @@ void tl2_vec_mean(const struct tl2_list* veclist, const struct tl2_list* problis
 
 /**
  * covariance matrix
+ * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
+ * @see e.g.: (Arfken 2013) p. 1142
+ * @see e.g.: (Arens 2015), p. 795
  */
 void tl2_covariance(const struct tl2_list* veclist, const struct tl2_list* problist,
 	double* COV, double* mean, int N)
@@ -550,6 +555,7 @@ void tl2_mat_trafo(const double* M, const double* T, double* RES, int N, int ort
 
 /**
  * resolution matrix
+ * @see e.g.: (Arens 2015), p. 795.
  */
 void tl2_reso(const struct tl2_list* veclist, const struct tl2_list* problist,
 	double* COV, double* RESO)

@@ -1206,8 +1206,9 @@ bool is_centering_matrix(const t_mat& mat)
 
 
 /**
- * Euler-Rodrigues formula
+ * Rodrigues' formula
  * @see https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ * @see (Merziger 1993), p. 208
  * @see (Arens 2015), p. 718 and p. 816
  */
 template<class mat_type = ublas::matrix<double>,
@@ -1436,6 +1437,7 @@ bool inverse(const mat_type& mat, mat_type& inv)
  * R = T^(-1) M T
  * bCongr==1: do a congruence trafo
  * bCongr==0: do a similarity trafo
+ * @see e.g.: (Merziger 1993), p. 202
  */
 template<class mat_type = ublas::matrix<double>>
 mat_type transform(const mat_type& mat, const mat_type& matTrafo, bool bCongr=0)
@@ -1457,6 +1459,7 @@ mat_type transform(const mat_type& mat, const mat_type& matTrafo, bool bCongr=0)
  * R = T M T^(-1)
  * bCongr==1: do a congruence trafo
  * bCongr==0: do a similarity trafo
+ * @see e.g.: (Merziger 1993), p. 202
  */
 template<class mat_type = ublas::matrix<double>>
 mat_type transform_inv(const mat_type& mat, const mat_type& matTrafo, bool bCongr=0)
@@ -1694,6 +1697,7 @@ matrix_type column_matrix(const container_type& vecs)
 
 /**
  * determinant
+ * @see e.g.: (Merziger 1993), p. 185
  * @see e.g.: https://en.wikipedia.org/wiki/Determinant
  */
 template<class t_mat/*=ublas::matrix<double>*/>
@@ -2182,6 +2186,7 @@ template<class t_mat = ublas::matrix<double>,
 
 /**
  * Householder reflection
+ * @see (Scarpino 2011), p. 268
  */
 template<class t_vec = ublas::vector<double>,
 	class t_mat = ublas::matrix<typename t_vec::value_type>,
@@ -2223,7 +2228,7 @@ template<class t_mat = ublas::matrix<double>,
 
 /**
  * QR decomposition via householder reflections
- * @see (Scarpino 2011), pp. 269--272
+ * @see (Scarpino 2011), pp. 269-272
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2252,7 +2257,7 @@ bool qr_decomp(const t_mat& M, t_mat& Q, t_mat& R)
 		t_vec vecE0 = zero_v<t_vec>(vec0.size());
 		vecE0[0] = veclen(vec0);
 
-		t_vec vecReflNorm = vec0-vecE0;
+		t_vec vecReflNorm = vec0 - vecE0;
 		t_mat matRefl = reflection_matrix(vecReflNorm);
 
 		A = prod_mm(matRefl, A);
@@ -2473,7 +2478,7 @@ get_minmax(const T& t)
 
 
 /**
- * Calculates the dominant eigenvector/eigenvalue for symmetric matrices
+ * calculates the dominant eigenvector/eigenvalue for symmetric matrices
  * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
@@ -2513,7 +2518,7 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 
 /**
- * Calculates the least dominant eigenvector/eigenvalue for symmetric matrices
+ * calculates the least dominant eigenvector/eigenvalue for symmetric matrices
  * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
@@ -2536,8 +2541,10 @@ bool eigenvec_least_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 
 /**
- * Calculates the eigenvectors/eigenvalues for symmetric matrices
- * ! for large matrices use eigenvec_sym from linalg2.h !
+ * calculates the eigenvectors/eigenvalues for symmetric matrices
+ * using the qr algorithm
+ * ! for large matrices use eigenvec_sym  !
+ * @see https://en.wikipedia.org/wiki/QR_algorithm
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,

@@ -310,6 +310,7 @@ public:
 
 	/**
 	 * distance to a point
+	 * @see e.g.: (Arens 2015), p. 711
 	 */
 	T GetDist(const t_vec& vecPt) const
 	{
@@ -329,6 +330,7 @@ public:
 
 	/**
 	 * distance to line l1
+	 * @see e.g.: (Arens 2015), p. 711
 	 */
 	T GetDist(const Line<T>& l1) const
 	{
@@ -885,7 +887,8 @@ t_cont<t_cont<t_vec>> verts_to_polyhedron(
 
 /**
  * quadric
- * see e.g.: (Arens 2015), ch. 21
+ * @see e.g.: (Arens 2015), ch. 21
+ * @see e.g.: (Merziger 1993), p. 224
  */
 template<class T = double>
 class Quadric

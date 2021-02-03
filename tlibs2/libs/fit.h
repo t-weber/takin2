@@ -5,6 +5,7 @@
  * @date 2012-2020
  * @license GPLv3, see 'LICENSE' file
  * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ * @see http://seal.cern.ch/documents/minuit/mnusersguide.pdf
  */
 
 #ifndef __TLIBS2_FITTER_H__

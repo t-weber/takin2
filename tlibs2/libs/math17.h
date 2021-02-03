@@ -123,11 +123,13 @@ template<class T, bool bScalar=std::is_scalar<T>::value>
 struct underlying_value_type
 {};
 
+
 template<class T>
 struct underlying_value_type<T, 1>
 {
 	using value_type = T;
 };
+
 
 template<class T>
 struct underlying_value_type<T, 0>
@@ -135,6 +137,7 @@ struct underlying_value_type<T, 0>
 	using value_type = typename underlying_value_type<
 	typename T::value_type>::value_type;
 };
+
 
 template<class T>
 using underlying_value_type_t =
@@ -227,6 +230,7 @@ template<typename T> T cot(T t)
 	return std::tan(T(0.5)*pi<T> - t);
 }
 
+
 template<typename T> T coth(T t)
 {
 	return T(1) / std::tanh(t);
@@ -244,6 +248,7 @@ struct _get_epsilon_impl
 	}
 };
 
+
 template<class T>
 typename _get_epsilon_impl<T>::t_eps get_epsilon()
 {
@@ -260,6 +265,7 @@ struct _float_equal_impl
 		return std::abs<T>(t1-t2) < eps;
 	}
 };
+
 
 template<class T, class t_eps>
 struct _float_equal_impl<T, t_eps, LinalgType::COMPLEX>
@@ -314,6 +320,7 @@ T bilinear_interp(T x0y0, T x1y0, T x0y1, T x1y1, T x, T y)
 }
 
 
+
 template<typename T=double, typename REAL=double,
 	template<class...> class t_vec=std::vector>
 t_vec<T> linspace(const T& tmin, const T& tmax, std::size_t iNum)
@@ -326,6 +333,7 @@ t_vec<T> linspace(const T& tmin, const T& tmax, std::size_t iNum)
 	return vec;
 }
 
+
 template<typename T=double, typename REAL=double,
 	template<class...> class t_vec=std::vector>
 t_vec<T> logspace(const T& tmin, const T& tmax, std::size_t iNum, T tBase=T(10))
@@ -336,6 +344,7 @@ t_vec<T> logspace(const T& tmin, const T& tmax, std::size_t iNum, T tBase=T(10))
 		t = std::pow(tBase, t);
 	return vec;
 }
+
 
 template<typename T>
 T clamp(T t, T min, T max)
@@ -366,6 +375,7 @@ T log(T tbase, T tval)
 	return T(std::log(tval)/std::log(tbase));
 }
 
+
 template<typename T=double>
 T nextpow(T tbase, T tval)
 {
@@ -388,11 +398,13 @@ T gauss_model(T x, T x0, T sigma, T amp, T offs)
 	return amp * norm * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + offs;
 }
 
+
 template<class T=double>
 T gauss_model_amp(T x, T x0, T sigma, T amp, T offs)
 {
 	return amp * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + offs;
 }
+
 
 template<class T=double>
 T lorentz_model_amp(T x, T x0, T hwhm, T amp, T offs)
@@ -400,11 +412,13 @@ T lorentz_model_amp(T x, T x0, T hwhm, T amp, T offs)
 	return amp*hwhm*hwhm / ((x-x0)*(x-x0) + hwhm*hwhm) + offs;
 }
 
+
 template<class T=double>
 T gauss_model_amp_slope(T x, T x0, T sigma, T amp, T offs, T slope)
 {
 	return amp * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + (x-x0)*slope + offs;
 }
+
 
 template<class T=double>
 T lorentz_model_amp_slope(T x, T x0, T hwhm, T amp, T offs, T slope)
@@ -418,6 +432,7 @@ T parabola_model(T x, T x0, T amp, T offs)
 {
 	return amp*(x-x0)*(x-x0) + offs;
 }
+
 
 template<class T=double>
 T parabola_model_slope(T x, T x0, T amp, T offs, T slope)
@@ -434,6 +449,7 @@ struct complex_cast
 	const std::complex<t_real_to>& operator()(const std::complex<t_real_from>& c) const
 	{ return c; }
 };
+
 
 template<class t_real_to, class t_real_from>
 struct complex_cast<t_real_to, t_real_from, 0>
@@ -457,6 +473,7 @@ std::complex<T> erf(const std::complex<T>& z)
 	return inv_cst(::Faddeeva::erf(cst(z)));
 }
 
+
 /**
 * Complex complementary error function
 */
@@ -468,6 +485,7 @@ std::complex<T> erfc(const std::complex<T>& z)
 	return inv_cst(::Faddeeva::erfc(cst(z)));
 }
 
+
 /**
 * Faddeeva function
 */
@@ -477,6 +495,7 @@ std::complex<T> faddeeva(const std::complex<T>& z)
 	std::complex<T> i(0, 1.);
 	return std::exp(-z*z) * erfc(-i*z);
 }
+
 
 /**
 * Voigt profile
@@ -491,12 +510,14 @@ T voigt_model(T x, T x0, T sigma, T gamma, T amp, T offs)
 	return amp*norm * faddeeva<T>(z).real() + offs;
 }
 
+
 template<class T=double>
 T voigt_model_amp(T x, T x0, T sigma, T gamma, T amp, T offs)
 {
 	std::complex<T> z = std::complex<T>(x-x0, gamma) / (sigma * std::sqrt(T(2)));
 	return amp * faddeeva<T>(z).real() + offs;
 }
+
 
 template<class T=double>
 T voigt_model_amp_slope(T x, T x0, T sigma, T gamma, T amp, T offs, T slope)
@@ -522,6 +543,10 @@ std::complex<T> Ylm(int l /*0..i*/, int m /*-l..l*/, T th /*0..pi*/, T ph /*0..2
 // -----------------------------------------------------------------------------
 // coordinate trafos
 
+/**
+ * cartesian -> spherical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cart_to_sph(T x, T y, T z)
 {
@@ -532,6 +557,11 @@ std::tuple<T,T,T> cart_to_sph(T x, T y, T z)
 	return std::make_tuple(rho, phi, theta);
 }
 
+
+/**
+ * spherical -> cartesian
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> sph_to_cart(T rho, T phi, T theta)
 {
@@ -542,6 +572,11 @@ std::tuple<T,T,T> sph_to_cart(T rho, T phi, T theta)
 	return std::make_tuple(x, y, z);
 }
 
+
+/**
+ * cylindrical -> spherical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cyl_to_sph(T rho_cyl, T phi_cyl, T z_cyl)
 {
@@ -551,6 +586,11 @@ std::tuple<T,T,T> cyl_to_sph(T rho_cyl, T phi_cyl, T z_cyl)
 	return std::make_tuple(rho, phi_cyl, theta);
 }
 
+
+/**
+ * spherical -> cylindrical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> sph_to_cyl(T rho_sph, T phi_sph, T theta_sph)
 {
@@ -560,6 +600,11 @@ std::tuple<T,T,T> sph_to_cyl(T rho_sph, T phi_sph, T theta_sph)
 	return std::make_tuple(rho, phi_sph, z);
 }
 
+
+/**
+ * cylindrical -> cartesian
+ * @see https://en.wikipedia.org/wiki/Cylindrical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cyl_to_cart(T rho, T phi, T z)
 {
@@ -569,6 +614,11 @@ std::tuple<T,T,T> cyl_to_cart(T rho, T phi, T z)
 	return std::make_tuple(x, y, z);
 }
 
+
+/**
+ * cartesian -> cylindrical
+ * @see https://en.wikipedia.org/wiki/Cylindrical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cart_to_cyl(T x, T y, T z)
 {
@@ -612,6 +662,7 @@ std::tuple<T,T> gnomonic_proj(T twophi_crys, T twotheta_crys)
 	return std::make_tuple(x, y);
 }
 
+
 /**
  * stereographic projection
  * @return [x,y]
@@ -646,6 +697,7 @@ bool is_in_linear_range(T dStart, T dStop, T dPoint)
 
 	return (dPoint >= dStart) && (dPoint <= dStop);
 }
+
 
 /**
  * angle contained in angular range?
@@ -703,6 +755,7 @@ t_vec make_vec(t_lst<typename t_vec::value_type>&& lst)
 	return vec;
 }
 
+
 /**
  * creates a vector
  */
@@ -721,6 +774,7 @@ t_vec make_vec(const t_lst<typename t_vec::value_type>& lst)
 
 	return vec;
 }
+
 
 /**
  * creates a matrix
@@ -780,6 +834,7 @@ t_mat unit_m(std::size_t N)
 	return mat;
 }
 
+
 /**
  * unit matrix -- ublas wrapper
  */
@@ -805,6 +860,7 @@ t_mat zero_m(std::size_t N, std::size_t M)
 	return mat;
 }
 
+
 /**
  * zero matrix -- ublas wrapper
  */
@@ -814,6 +870,7 @@ t_mat zero_m(std::size_t N, std::size_t M)
 {
 	return ublas::zero_matrix<typename t_mat::value_type>(N, M);
 }
+
 
 /**
  * zero matrix -- synonym
@@ -845,6 +902,7 @@ t_vec zero_v(std::size_t N)
 {
 	return ublas::zero_vector<typename t_vec::value_type>(N);
 }
+
 
 /**
  * zero vector -- synonym
@@ -905,6 +963,7 @@ t_vec<t_to> convert_vec(const t_vec<t_from>& vec)
 	return vecRet;
 }
 
+
 /**
  * converts vector t_vec_from<t_from> to t_vec_to<t_to>
  */
@@ -938,6 +997,7 @@ bool vec_equal(const vec_type& vec0, const vec_type& vec1,
 			return false;
 	return true;
 }
+
 
 template<class mat_type>
 bool mat_equal(const mat_type& mat0, const mat_type& mat1,
@@ -973,6 +1033,7 @@ t_mat transpose(const t_mat& mat)
 
 	return matret;
 }
+
 
 /**
  * transpose -- general version
@@ -1187,6 +1248,7 @@ t_mat prod_mm(const t_mat& mat0, const t_mat& mat1)
 	return mat;
 }
 
+
 /**
  * matrix-matrix product -- ublas wrapper
  */
@@ -1224,6 +1286,7 @@ t_vec prod_mv(const t_mat& mat, const t_vec& vec)
 	return vecret;
 }
 
+
 /**
  * matrix-vector product -- ublas wrapper
  */
@@ -1248,7 +1311,6 @@ t_vec prod_vm(const t_vec& vec, const t_mat& mat)
 }
 
 
-
 /**
  * 2-norm -- general version
  */
@@ -1264,6 +1326,7 @@ typename t_vec::value_type veclen(const t_vec& vec)
 
 	return std::sqrt(len);
 }
+
 
 /**
  * 2-norm -- ublas wrapper
@@ -1311,6 +1374,7 @@ vector_type remove_elem(const vector_type& vec, std::size_t iIdx)
 
 	return vecret;
 }
+
 
 /**
  * create a submatrix removing row iRow and column iCol
@@ -1370,6 +1434,7 @@ matrix_type remove_column(const matrix_type& mat, std::size_t iCol)
 	return matret;
 }
 
+
 template<class matrix_type>
 void submatrix_copy(matrix_type& mat, const matrix_type& sub,
 	std::size_t iRowBegin, std::size_t iColBegin)
@@ -1378,6 +1443,7 @@ void submatrix_copy(matrix_type& mat, const matrix_type& sub,
 		for(std::size_t j=0; j<sub.size2(); ++j)
 			mat(iRowBegin+i, iColBegin+j) = sub(i,j);
 }
+
 
 template<class vec_type>
 void subvector_copy(vec_type& vec, const vec_type& sub, std::size_t iRowBegin)
@@ -1405,6 +1471,7 @@ void set_column(t_mat& M, std::size_t iCol, const t_vec& vec)
 	for(std::size_t i=0; i<s; ++i)
 		M(i, iCol) = vec[i];
 }
+
 
 /**
  * set matrix row
@@ -1435,6 +1502,7 @@ vector_type get_column(const matrix_type& mat, std::size_t iCol)
 	return vecret;
 }
 
+
 /**
  * get matrix column -- ublas wrapper
  */
@@ -1445,6 +1513,7 @@ vector_type get_column(const matrix_type& mat, std::size_t iRow)
 {
 	return vector_type(ublas::column(mat, iRow));
 }
+
 
 /**
  * get matrix row -- general version
@@ -1461,6 +1530,7 @@ vector_type get_row(const matrix_type& mat, std::size_t iRow)
 
 	return vecret;
 }
+
 
 /**
  * get matrix row -- ublas wrapper
@@ -1538,6 +1608,7 @@ t_vec arc(const t_vec& vec1, const t_vec& vec2, underlying_value_type_t<t_vec> p
 	return std::cos(phi)*vec1 + std::sin(phi)*vec2;
 }
 
+
 /**
  * generates points in a spherical shell
  */
@@ -1580,6 +1651,7 @@ matrix_type rotation_matrix_3d_x(typename matrix_type::value_type angle)
 		{0, s,  c} });
 }
 
+
 template<class matrix_type = ublas::matrix<double>>
 matrix_type rotation_matrix_3d_y(typename matrix_type::value_type angle)
 {
@@ -1602,6 +1674,7 @@ matrix_type rotation_matrix_3d_y(typename matrix_type::value_type angle)
 		{0,  1, 0},
 		{-s, 0, c} });
 }
+
 
 template<class matrix_type = ublas::matrix<double>>
 matrix_type rotation_matrix_3d_z(typename matrix_type::value_type angle)
@@ -1663,6 +1736,7 @@ matrix_type diag_matrix(const cont_type& lst)
 	return mat;
 }
 
+
 /**
  * vector of diagonal matrix elements
  */
@@ -1686,6 +1760,7 @@ matrix_type scale_matrix(const cont_type& lst)
 {
 	return diag_matrix<matrix_type, cont_type>(lst);
 }
+
 
 /**
  * translation matrix in homogeneous coords
@@ -1843,9 +1918,10 @@ bool is_centering_matrix(const t_mat& mat)
 
 
 /**
- * Euler-Rodrigues formula
+ * Rodrigues' formula
  * @see e.g.: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  * @see (Arens 2015), p. 718 and p. 816
+ * @see (Merziger 2006), p. 208
  */
 template<class mat_type = ublas::matrix<double>,
 	class vec_type = ublas::vector<typename mat_type::value_type>,
@@ -1921,6 +1997,7 @@ t_mat proj_matrix(T l, T r, T b, T t, T n, T f, bool bParallel)
 	return prod_mm(matScale, matProj);
 }
 
+
 /**
  * parallel projection matrix
  * @see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
@@ -1931,6 +2008,7 @@ t_mat ortho_matrix(T l, T r, T b, T t, T n, T f)
 {
 	return proj_matrix<t_mat, T>(l,r, b,t, n,f, 1);
 }
+
 
 /**
  * perspectivic projection matrix
@@ -1952,6 +2030,7 @@ t_mat perspective_matrix(T yfov, T asp, T n, T f)
 template<typename T, class FKT, const int iDim=get_type_dim<T>::value>
 struct is_nan_or_inf_impl {};
 
+
 template<typename real_type, class FKT>
 struct is_nan_or_inf_impl<real_type, FKT, 0>	// scalar impl.
 {
@@ -1959,6 +2038,7 @@ struct is_nan_or_inf_impl<real_type, FKT, 0>	// scalar impl.
 	is_nan_or_inf_impl(const FKT& fkt) : m_fkt(fkt) {}
 	bool operator()(real_type d) const { return m_fkt(d); }
 };
+
 
 template<typename vec_type, class FKT>
 struct is_nan_or_inf_impl<vec_type, FKT, 1>		// vector impl.
@@ -1974,6 +2054,7 @@ struct is_nan_or_inf_impl<vec_type, FKT, 1>		// vector impl.
 		return false;
 	}
 };
+
 
 template<typename mat_type, class FKT>
 struct is_nan_or_inf_impl<mat_type, FKT, 2>		// matrix impl.
@@ -1991,6 +2072,7 @@ struct is_nan_or_inf_impl<mat_type, FKT, 2>		// matrix impl.
 	}
 };
 
+
 template<class T = ublas::matrix<double>>
 bool isnan(const T& mat)
 {
@@ -2002,6 +2084,7 @@ bool isnan(const T& mat)
 	return _isnan(mat);
 }
 
+
 template<class T = ublas::matrix<double>>
 bool isinf(const T& mat)
 {
@@ -2012,6 +2095,7 @@ bool isinf(const T& mat)
 	is_nan_or_inf_impl<T, fkt> _isinf(stdisinf);
 	return _isinf(mat);
 }
+
 
 template<class T = ublas::matrix<double>>
 bool is_nan_or_inf(const T& mat)
@@ -2083,6 +2167,7 @@ mat_type transform(const mat_type& mat, const mat_type& matTrafo, bool bCongr=0)
 
 	return TinvMT;
 }
+
 
 /**
  * R = T M T^(-1)
@@ -2156,6 +2241,7 @@ inline matrix_type row_col_matrix(const container_type& vecs)
 	return mat;
 }
 
+
 /**
  * vectors form rows of matrix
  */
@@ -2166,6 +2252,7 @@ matrix_type row_matrix(const container_type& vecs)
 {
 	return row_col_matrix<matrix_type, vec_type, container_type, true>(vecs);
 }
+
 
 /**
  * vectors form columns of matrix
@@ -2182,6 +2269,10 @@ matrix_type column_matrix(const container_type& vecs)
 // ----------------------------------------------------------------------------
 
 
+/**
+ * determinant
+ * @see e.g.: (Merziger 2006), p. 185
+ */
 template<class t_mat/*=ublas::matrix<double>*/>
 typename t_mat::value_type determinant(const t_mat& mat)
 {
@@ -2284,6 +2375,7 @@ typename t_mat::value_type minor_det(const t_mat& mat, std::size_t iRow, std::si
 	return determinant<t_mat>(M);
 }
 
+
 template<class t_mat = ublas::matrix<double>>
 typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::size_t iCol)
 {
@@ -2341,6 +2433,7 @@ typename matrix_type::value_type get_ellipsoid_volume(const matrix_type& mat)
 
 /**
  * calculate fractional coordinate basis vectors from angles
+ *
  * @see http://www.bmsc.washington.edu/CrystaLinks/man/pdb/part_75.html
  * @see https://en.wikipedia.org/wiki/Fractional_coordinates
  * for the reciprocal lattice this is equal to the B matrix from Acta Cryst. (1967), 22, 457
@@ -2407,6 +2500,7 @@ typename vec_type::value_type vec_angle(const vec_type& vec)
 template<typename T> void set_eps_0(T& d, underlying_value_type_t<T> eps=-1.);
 template<typename T, LinalgType ty=get_linalg_type<T>::value> struct set_eps_0_impl {};
 
+
 /**
  * set values lower than epsilon to zero
  * scalar version
@@ -2422,6 +2516,7 @@ struct set_eps_0_impl<real_type, LinalgType::REAL>
 			d = real_type(0);
 	}
 };
+
 
 /**
  * set values lower than epsilon to zero
@@ -2440,6 +2535,7 @@ struct set_eps_0_impl<vec_type, LinalgType::VECTOR>
 	}
 };
 
+
 /**
  * set values lower than epsilon to zero
  * matrix version
@@ -2457,6 +2553,7 @@ struct set_eps_0_impl<mat_type, LinalgType::MATRIX>
 				set_eps_0<real_type>(mat(i,j), eps);
 	}
 };
+
 
 template<typename T>
 void set_eps_0(T& d, underlying_value_type_t<T> eps)
@@ -2478,6 +2575,7 @@ bool vec_is_collinear(const t_vec& _vec1, const t_vec& _vec2, T eps = get_epsilo
 	T tdot = std::abs(inner(vec1, vec2));
 	return float_equal<T>(tdot, 1, eps);
 }
+
 
 /**
  * signed angle between two vectors
@@ -2520,6 +2618,7 @@ typename vec_type::value_type vec_angle(const vec_type& vec0,
 template<class T, LinalgType ty=get_linalg_type<T>::value>
 struct vec_angle_unsigned_impl {};
 
+
 /**
  * unsigned angle between two vectors
  */
@@ -2553,6 +2652,7 @@ struct vec_angle_unsigned_impl<T, LinalgType::VECTOR>
 		return std::acos(dot);
 	}
 };
+
 
 template<class T>
 typename T::value_type vec_angle_unsigned(const T& q1, const T& q2)
@@ -2616,6 +2716,7 @@ t_vec get_gcd_vec(const t_vec& vec)
 
 // --------------------------------------------------------------------------------
 
+
 /**
  * Householder reflection matrix
  * @see (Scarpino 2011), p. 268
@@ -2639,8 +2740,10 @@ template<class t_mat = ublas::matrix<double>,
 	return mat;
 }
 
+
 /**
  * Householder reflection
+ * @see (Scarpino 2011), p. 268
  */
 template<class t_vec = ublas::vector<double>,
 	class t_mat = ublas::matrix<typename t_vec::value_type>,
@@ -2650,6 +2753,7 @@ template<class t_vec = ublas::vector<double>,
 	t_mat mat = reflection_matrix<t_mat, t_vec, T>(vecNorm);
 	return prod_mv(mat, vec);
 }
+
 
 /**
  * add a nxn unit matrix to the upper left of a matrix
@@ -2677,6 +2781,7 @@ template<class t_mat = ublas::matrix<double>,
 
 	return M2;
 }
+
 
 /**
  * QR decomposition via householder reflections
@@ -2746,6 +2851,7 @@ bool qr_decomp(const t_mat& M, t_mat& Q, t_mat& R)
 template<typename t_vec = ublas::vector<double>,
 	typename T = typename t_vec::value_type>
 std::vector<t_vec> gram_schmidt(const std::vector<t_vec>& vecs, bool bNorm=true);
+
 
 /**
  * QR decomposition via gram-schmidt orthogonalisation
@@ -2923,6 +3029,7 @@ get_minmax(const T& t)
 	return impl(t);
 }
 
+
 // -----------------------------------------------------------------------------
 
 
@@ -2967,7 +3074,7 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 
 /**
- * Calculates the least dominant eigenvector/eigenvalue for symmetric matrices
+ * calculates the least dominant eigenvector/eigenvalue for symmetric matrices
  * @see (Bronstein 2008), equs. (4.148)-(4.151)
  */
 template<class t_mat = ublas::matrix<double>,
@@ -2990,8 +3097,10 @@ bool eigenvec_least_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 
 /**
- * Calculates the eigenvectors/eigenvalues for symmetric matrices
+ * calculates the eigenvectors/eigenvalues for symmetric matrices
+ * using the qr algorithm
  * ! for large matrices use eigenvec_sym  !
+ * @see https://en.wikipedia.org/wiki/QR_algorithm
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -3030,7 +3139,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 		t_mat Mlast = M;
 		M = prod_mm(R, Q);
 		I = prod_mm(I, Q);
-
 
 		bool bConverged = 1;
 		for(std::size_t iVal=0; iVal<n; ++iVal)
@@ -3589,6 +3697,7 @@ t_quat unit_quat()
 	return t_quat(1, 0,0,0);
 }
 
+
 /**
  * calculates the quaternion inverse
  * @see e.g.: (Bronstein 2008), Ch. 4
@@ -3599,6 +3708,7 @@ t_quat quat_inverse(const t_quat& q)
 	t_quat qc = math::conj(q);
 	return qc / (q*qc);
 }
+
 
 /**
  * quaternion product
@@ -5230,6 +5340,7 @@ public:
 
 	/**
 	 * distance to a point
+	 * @see e.g.: (Arens 2015), p. 711
 	 */
 	T GetDist(const t_vec& vecPt) const
 	{
@@ -5249,6 +5360,7 @@ public:
 
 	/**
 	 * distance to line l1
+	 * @see e.g.: (Arens 2015), p. 711
 	 */
 	T GetDist(const Line<T>& l1) const
 	{
@@ -5765,6 +5877,11 @@ t_cont<t_cont<t_vec>> get_convexhull(const t_cont<t_vec>& vecVerts)
 //------------------------------------------------------------------------------
 
 
+/**
+ * quadric
+ * @see e.g.: (Arens 2015), ch. 21
+ * @see e.g.: (Merziger 2006), p. 224
+ */
 template<class T = double>
 class Quadric
 {
@@ -7634,10 +7751,12 @@ ublas::matrix<T> pseudoinverse_diag(const ublas::matrix<T>& mat)
 	return matRet;
 }
 
+
 /**
  * pseudoinverse M+ of a real matrix
  * M  = U D (V*)^t
  * M+ = V D+ (U*)^t
+ *
  * @see https://de.wikipedia.org/wiki/Pseudoinverse#Berechnung
  */
 template<typename T=double>
