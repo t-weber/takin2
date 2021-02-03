@@ -1692,6 +1692,10 @@ matrix_type column_matrix(const container_type& vecs)
 // ----------------------------------------------------------------------------
 
 
+/**
+ * determinant
+ * @see e.g.: https://en.wikipedia.org/wiki/Determinant
+ */
 template<class t_mat/*=ublas::matrix<double>*/>
 typename t_mat::value_type determinant(const t_mat& mat)
 {
@@ -1920,6 +1924,7 @@ typename vec_type::value_type vec_angle(const vec_type& vec)
  */
 template<typename T> void set_eps_0(T& d, underlying_value_type_t<T> eps=-1.);
 template<typename T, LinalgType ty=get_linalg_type<T>::value> struct set_eps_0_impl {};
+
 
 /**
  * set values lower than epsilon to zero

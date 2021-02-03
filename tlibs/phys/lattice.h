@@ -416,6 +416,7 @@ ublas::matrix<T> get_UB(const Lattice<T>& lattice_real,
 
 /**
  * hklE -> TAS angles
+ * @see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 void get_tas_angles(const Lattice<T>& lattice_real,
@@ -462,6 +463,7 @@ void get_tas_angles(const Lattice<T>& lattice_real,
 
 /**
  * TAS angles -> hklE
+ * @see e.g.: https://doi.org/10.1107/S0021889805004875
  */
 template<typename T = double>
 void get_hkl_from_tas_angles(const Lattice<T>& lattice_real,

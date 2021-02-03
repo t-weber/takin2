@@ -83,7 +83,7 @@ typename vec_type::value_type mean_value(const vec_type_prob& vecP, const vec_ty
 
 /**
  * standard deviation of mean value, with correction factor
- * see e.g.: https://en.wikipedia.org/wiki/Bessel%27s_correction
+ * @see e.g.: https://en.wikipedia.org/wiki/Bessel%27s_correction
  */
 template<class vec_type>
 typename vec_type::value_type std_dev(const vec_type& vec, bool bCorr=1)
@@ -132,7 +132,7 @@ typename vec_type::value_type std_dev(const vec_type_prob& vecP, const vec_type&
 /**
  * entropy of a discrete distribution
  * S = - < log p_i >
- * see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+ * @see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
  */
 template<class t_real=double, class t_func>
 t_real entropy(const t_func& funcPdf, std::size_t iMax)
@@ -151,7 +151,7 @@ t_real entropy(const t_func& funcPdf, std::size_t iMax)
 /**
  * entropy of a continuous distribution
  * S = - < log p(x_i) >
- * see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
+ * @see e.g.: https://en.wikipedia.org/wiki/Entropy_(information_theory)
  */
 template<class t_real=double, class t_func>
 t_real entropy(const t_func& funcPdf, t_real dXMin, t_real dXMax, std::size_t iSteps=128)
@@ -174,7 +174,7 @@ t_real entropy(const t_func& funcPdf, t_real dXMin, t_real dXMax, std::size_t iS
 
 /**
  * Stirling's formula for log(n!)
- * see e.g. https://en.wikipedia.org/wiki/Stirling%27s_approximation
+ * @see e.g. https://en.wikipedia.org/wiki/Stirling%27s_approximation
  */
 template<class t_real = double>
 t_real log_nfac(t_real n)
@@ -186,7 +186,7 @@ t_real log_nfac(t_real n)
 
 /**
  * combinatorics
- * see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
+ * @see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
  */
 template<class t_real = double, class t_uint = unsigned>
 t_real combinatorics(t_uint n, t_uint k, bool bOrdered, bool bRepetition)
@@ -219,7 +219,7 @@ t_real combinatorics(t_uint n, t_uint k, bool bOrdered, bool bRepetition)
 
 /**
  * possibilities to distribute particles onto niveaus
- * see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
+ * @see e.g.: https://de.wikipedia.org/wiki/Abz%C3%A4hlende_Kombinatorik
  */
 template<class t_real = double, class t_uint = unsigned>
 t_real particles_in_niveaus(t_uint iPart, t_uint iNiv, bool bDistinct, bool bOnePerNiveau)
@@ -267,8 +267,8 @@ t_real boltzons_in_niveaus(t_uint iPart, t_uint iNiv)
  * calculates the covariance and the correlation matrices
  * covariance: C_ij = cov(X_i, X_j) = < (X_i - <X_i>) * (X_j - <X_j>) >
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
- * see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
- * see also e.g.: (Arfken 2013) p. 1142
+ * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
+ * @see e.g.: (Arfken 2013) p. 1142
  */
 template<typename T=double>
 std::tuple<ublas::matrix<T>, ublas::matrix<T>>
@@ -341,7 +341,7 @@ covariance(const std::vector<ublas::vector<T>>& vecVals, const std::vector<T>* p
 /**
  * calculates chi^2 distance of a function model to data points
  * chi^2 = sum( (y_i - f(x_i))^2 / sigma_i^2 )
- * see e.g.: (Arfken 2013), p. 1170
+ * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
 T chi2(const t_func& func, std::size_t N,
@@ -425,7 +425,6 @@ T chi2_direct(std::size_t N, const t_iter_dat func_y, const t_iter_dat y, const 
 }
 
 
-
 /**
  * multi-dimensional chi^2 function
  */
@@ -456,7 +455,7 @@ T chi2_nd(const t_func& func,
 
 /**
  * Confidence interval of array data mean using t-distribution
- * see e.g.: (Arfken 2013), pp. 1176ff
+ * @see e.g.: (Arfken 2013), pp. 1176ff
  */
 template<class t_real = double, class t_vec = std::vector<t_real>>
 std::tuple<t_real, t_real, t_real>	// [mean, stddev, confidence]

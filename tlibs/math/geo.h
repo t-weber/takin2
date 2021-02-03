@@ -30,6 +30,7 @@ namespace math = boost::math;
 
 template<typename T> class Line;
 
+
 /**
  * analytical geometry of a plane
  * @see (Stoecker 1999), chapter "Analytische Geometrie".

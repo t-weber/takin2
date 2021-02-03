@@ -611,6 +611,7 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
 		get_one_angstrom<Y>()*get_one_angstrom<Y>()*get_one_angstrom<Y>();
 }
 
+
 /**
  * kf^3 mono/ana reflectivity factor
  * @see e.g. (Shirane 2002) p. 125
@@ -667,6 +668,7 @@ t_energy<Sys,Y> get_inelastic_spurion(bool bConstEi, t_energy<Sys,Y> E,
 	return E_sp;
 }
 
+
 template<class Y=double>
 struct InelasticSpurion
 {
@@ -674,6 +676,7 @@ struct InelasticSpurion
 	unsigned int iOrderMono = 1;
 	unsigned int iOrderAna = 1;
 };
+
 
 template<class Sys, class Y>
 std::vector<InelasticSpurion<Y>> check_inelastic_spurions(bool bConstEi,
@@ -710,6 +713,7 @@ std::vector<InelasticSpurion<Y>> check_inelastic_spurions(bool bConstEi,
 	return vecSpuris;
 }
 
+
 struct ElasticSpurion
 {
 	bool bAType = 0;
@@ -718,6 +722,7 @@ struct ElasticSpurion
 	bool bAKfSmallerKi = 0;
 	bool bMKfSmallerKi = 0;
 };
+
 
 /**
  * accidental elastic (currat-axe) spurions
@@ -887,6 +892,7 @@ t_real fermi(t_real E, t_real mu, t_real T)
 	return n;
 }
 
+
 template<class Sys, class Y>
 Y fermi(const t_energy<Sys,Y>& E, const t_energy<Sys,Y>& mu,
 	const t_temperature<Sys,Y>& T)
@@ -966,6 +972,7 @@ t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r,
 	return L / (r * om * tScale) * tSig;
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> burst_time_L(const t_length<Sys,Y>& r,
 	const t_time<Sys,Y>& dt, const t_freq<Sys,Y>& om, bool bCounterRot,
@@ -976,6 +983,7 @@ t_length<Sys,Y> burst_time_L(const t_length<Sys,Y>& r,
 	return dt * r * om * tScale / tSig;
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 	const t_length<Sys,Y>& L, const t_freq<Sys,Y>& om, bool bCounterRot,
@@ -985,6 +993,7 @@ t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 	Y tScale = bCounterRot ? Y(2) : Y(1);
 	return L / (dt * om * tScale) * tSig;
 }
+
 
 template<class Sys, class Y=double>
 t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r, 
@@ -1047,6 +1056,7 @@ t_freq<Sys, Y> vsel_freq(const t_length<Sys,Y>& lam,
 	return v_n*twist / (len * get_one_radian<Y>());
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> vsel_len(const t_length<Sys,Y>& lam,
 	const t_freq<Sys, Y>& om, const t_angle<Sys,Y>& twist)
@@ -1055,6 +1065,7 @@ t_length<Sys,Y> vsel_len(const t_length<Sys,Y>& lam,
 	return v_n*twist / (om * get_one_radian<Y>());
 }
 
+
 template<class Sys, class Y=double>
 t_angle<Sys,Y> vsel_twist(const t_length<Sys,Y>& lam,
 	const t_freq<Sys, Y>& om, const t_length<Sys,Y>& len)
@@ -1062,6 +1073,7 @@ t_angle<Sys,Y> vsel_twist(const t_length<Sys,Y>& lam,
 	t_velocity<Sys,Y> v_n = k2v<Sys,Y>(lam2k<Sys,Y>(lam));
 	return  (len * om * get_one_radian<Y>()) / v_n;
 }
+
 
 template<class Sys, class Y=double>
 t_length<Sys,Y> vsel_lam(const t_angle<Sys,Y>& twist,
