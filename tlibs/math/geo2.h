@@ -4,7 +4,12 @@
  * @date 25-apr-2020
  * @license GPLv2 or GPLv3
  *
- * @see: https://github.com/t-weber/misc/blob/master/geo/qhulltst.cpp
+ * @see https://github.com/t-weber/misc/blob/master/geo/qhulltst.cpp
+ *
+ * References:
+ *   - http://www.qhull.org/html/qh-code.htm#cpp
+ *   - https://github.com/qhull/qhull/tree/master/src/libqhullcpp
+ *   - https://github.com/qhull/qhull/blob/master/src/qhulltest/Qhull_test.cpp
  */
 
 #ifndef __TLIBS_GEO2_H__

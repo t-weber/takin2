@@ -28,6 +28,7 @@ R numint_trap(const std::function<R(A)>& fkt,
 	return R(0.5)*R(x1-x0) * (fkt(x0) + fkt(x1));
 }
 
+
 template<class R=double, class A=double>
 R numint_trapN(const std::function<R(A)>& fkt,
 	A x0, A x1, std::size_t N)
@@ -73,6 +74,7 @@ R numint_simp(const std::function<R(A)>& fkt,
 	return (fkt(x0) + 4.*fkt(0.5*(x0+x1)) + fkt(x1)) * (x1-x0)/6.;
 }
 
+
 template<class R=double, class A=double>
 R numint_simpN(const std::function<R(A)>& fkt,
 	A x0, A x1, std::size_t N)
@@ -112,7 +114,6 @@ R convolute(const std::function<R(A)>& fkt0, const std::function<R(A)>& fkt1,
 
 	return numint_simpN(fktbnd, x0, x1, N);
 }
-
 
 
 template<class cont_type = std::vector<double>>
@@ -161,7 +162,6 @@ T newton(const std::function<T(T)>& fkt, const std::function<T(T)>& diff,
 
 	return xnew;
 }
-
 
 }
 #endif

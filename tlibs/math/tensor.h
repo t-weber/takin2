@@ -18,7 +18,6 @@
 
 namespace tl {
 
-
 /**
  * count permutations to get from "idx1" to "idx2" (idx2 has to be sorted)
  * WARNING: doesn't work: next_permutation randomly shuffles the permutations!
@@ -104,6 +103,7 @@ T epsilon_tensor(const t_lst& idx)
 
 /**
  * elements of the (non-cartesian) epsilon tensor (indices 0-based)
+ * @see (Arens 2015), p. 815
  */
 template<typename T = double, class t_lst = std::vector<std::size_t>,
 	class t_mat = ublas::matrix<double>>
@@ -236,7 +236,6 @@ t_vec cross_prod_contra(const t_mat& matGCov,
 }
 
 
-
 /**
  * tensor product
  * @see e.g. (Arfken 2013), p. 109
@@ -257,7 +256,6 @@ t_mat tensor_prod(const t_mat& mat1, const t_mat& mat2)
 	}
 	return mat;
 }
-
 
 }
 #endif

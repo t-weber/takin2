@@ -24,8 +24,8 @@ namespace tl
 {
 	/**
 	 * Hund's rules
-	 * @see e.g.: (Khomskii 2014), ch. 2.2
 	 * @return [S, L, J]
+	 * @see e.g.: (Khomskii 2014), ch. 2.2
 	 */
 	template<class t_real = double>
 	std::tuple<t_real, t_real, t_real>

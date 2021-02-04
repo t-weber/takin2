@@ -291,6 +291,7 @@ generate_supercell(const Lattice<t_real>& latt,
  * @param vecB "b" coefficients
  * @param c "c" coefficient
  * @return form factor
+ *
  * @see Waasmaier and Kirfel, Acta Cryst. A51, 416-431 (1995), doi: https://doi.org/10.1107/S0108767394013292
  */
 template<class T=double, template<class...> class t_cont>
@@ -316,7 +317,6 @@ T formfact(T G, const t_cont<T>& vecA, const t_cont<T>& vecB, T c=0)
 }
 
 
-
 /**
  * calculates the structure factor F
  * @param lstAtoms List of atom positions
@@ -325,6 +325,7 @@ T formfact(T G, const t_cont<T>& vecA, const t_cont<T>& vecB, T c=0)
  * @param pF0 optional total form factor.
  * @param dVuc optionally normalise by the unit cell volume
  * @return structure factor
+ *
  * @see (Shirane 2002), p. 25, equ. 2.26
  */
 template<typename T = double, typename t_ff = std::complex<T>,
@@ -369,6 +370,8 @@ std::complex<T> structfact(const t_cont<t_vec>& lstAtoms, const t_vec& vecG,
 /**
  * Lorentz factor
  * @param twotheta Scattering angle in rad
+ * @see (Shirane 2002), pp. 170-172
+ * @see e.g.: https://dictionary.iucr.org/Lorentz%E2%80%93polarization_correction
  */
 template<typename T=double>
 T lorentz_factor(T twotheta)
@@ -381,6 +384,8 @@ T lorentz_factor(T twotheta)
 /**
  * Lorentz polarisation factor (only for x-rays)
  * @param twotheta Scattering angle in rad
+ * @see (Shirane 2002), pp. 170-172
+ * @see e.g.: https://dictionary.iucr.org/Lorentz%E2%80%93polarization_correction
  */
 template<typename T=double>
 T lorentz_pol_factor(T twotheta)

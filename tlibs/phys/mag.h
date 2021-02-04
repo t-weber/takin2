@@ -30,6 +30,7 @@ namespace tl {
  * @param vecq q position
  * @param tS spin
  * @return E(q)
+ *
  * @see e.g. (Squires 2012) p. 161
  */
 template<class t_vec = ublas::vector<double>,
@@ -170,6 +171,7 @@ t_vec get_S_perp_Q(const t_vec& S, const t_vec& Q)
  * @param pF0 optional total form factor.
  * @param dVuc optionally normalise by the unit cell volume
  * @return structure factor
+ *
  * @see (Shirane 2002), p. 40, equ. 2.81
  */
 template<typename T = double, typename t_ff = std::complex<T>,

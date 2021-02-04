@@ -264,7 +264,6 @@ t_angle<Sys,Y> bragg_recip_twotheta(const t_wavenumber<Sys,Y>& G,
 }
 
 
-
 /**
  * lattice vector
  * G = 2pi / d
@@ -960,10 +959,11 @@ t_length<Sys, Y> foc_curv(const t_length<Sys, Y>& lenBefore, const t_length<Sys,
  * @param bCounterRot single disc or two counter-rotating discs?
  * @param bSigma burst time in sigma or fwhm?
  * @return burst time
+ *
  * @see NIMA 492, pp. 97-104 (2002), doi: https://doi.org/10.1016/S0168-9002(02)01285-8
  */
 template<class Sys, class Y=double>
-t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r, 
+t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r,
 	const t_length<Sys,Y>& L, const t_freq<Sys,Y>& om, bool bCounterRot,
 	bool bSigma=1)
 {
@@ -996,7 +996,7 @@ t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 
 
 template<class Sys, class Y=double>
-t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r, 
+t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r,
 	const t_length<Sys,Y>& L, const t_time<Sys,Y>& dt, bool bCounterRot,
 	bool bSigma=1)
 {
@@ -1016,6 +1016,7 @@ t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r,
  * @param w distance between blade
  * @param bSigma calculate sigma or fwhm?
  * @return angular divergence
+ *
  * @see (Shirane 2002), Ch. 3.3
  */
 template<class Sys, class Y=double>
@@ -1084,7 +1085,6 @@ t_length<Sys,Y> vsel_lam(const t_angle<Sys,Y>& twist,
 }
 
 // --------------------------------------------------------------------------------
-
 
 
 

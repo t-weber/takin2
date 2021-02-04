@@ -213,6 +213,7 @@ requires is_quat<t_quat>
 
 
 /**
+ * slerp
  * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
  * @see (Bronstein 2008), formula 4.207
  */
@@ -377,6 +378,8 @@ t_scalar stoval(const t_str& str)
 
 
 // -----------------------------------------------------------------------------
+// peak model functions
+// -----------------------------------------------------------------------------
 /**
  * gaussian
  * @see https://en.wikipedia.org/wiki/Gaussian_function
@@ -455,6 +458,8 @@ struct complex_cast<t_real_to, t_real_from, 0>
 
 
 // -----------------------------------------------------------------------------
+// Faddeeva function
+// -----------------------------------------------------------------------------
 #ifdef USE_FADDEEVA
 
 /**
@@ -523,6 +528,8 @@ T voigt_model_amp_slope(T x, T x0, T sigma, T gamma, T amp, T offs, T slope)
 
 
 // -----------------------------------------------------------------------------
+// physics-related functions
+// -----------------------------------------------------------------------------
 
 /**
  * wrapper for boost's Y function
@@ -585,6 +592,8 @@ T CG_coeff(T S, T s1, T s2, T ms1, T ms2)
 
 	return tCG;
 }
+// -----------------------------------------------------------------------------
+
 
 
 // -----------------------------------------------------------------------------
@@ -1712,6 +1721,7 @@ requires is_basic_mat<t_mat>
 	return mat;
 }
 
+
 /**
  * zero matrix
  */
@@ -2382,6 +2392,10 @@ requires is_basic_vec<t_vec>
 
 
 
+// ----------------------------------------------------------------------------
+// projection operators
+// ----------------------------------------------------------------------------
+
 /**
  * matrix to project onto vector: P = |v><v|
  * from: |x'> = <v|x> * |v> = |v><v|x> = |v><v| * |x>
@@ -2657,6 +2671,7 @@ requires is_vec<t_vec>
 
 	return newsys;
 }
+// ----------------------------------------------------------------------------
 
 
 /**
@@ -2707,7 +2722,6 @@ requires is_basic_vec<t_vec>
 
 	return vec;
 }
-
 
 
 /**
@@ -3738,7 +3752,6 @@ requires is_vec<t_vec>
 }
 
 
-
 /**
  * create a disk
  * @returns [vertices, face vertex indices, face normals, face uvs]
@@ -4458,6 +4471,7 @@ requires is_vec<t_vec>
 /**
  * project a homogeneous vector to screen coordinates
  * @returns [vecPersp, vecScreen]
+ * @see e.g. https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluProject.xml
  */
 template<class t_mat, class t_vec>
 std::tuple<t_vec, t_vec> hom_to_screen_coords(const t_vec& vec4,
@@ -4484,6 +4498,7 @@ requires is_vec<t_vec> && is_mat<t_mat>
 /**
  * calculate world coordinates from screen coordinates
  * (vary zPlane to get the points of the z-line at constant (x,y))
+ * @see e.g.: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluUnProject.xml
  */
 template<class t_mat, class t_vec>
 t_vec hom_from_screen_coords(
@@ -4509,6 +4524,7 @@ requires is_vec<t_vec> && is_mat<t_mat>
 /**
  * calculate line from screen coordinates
  * @returns [pos, dir]
+ * @see e.g.: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluUnProject.xml
  */
 template<class t_mat, class t_vec>
 std::tuple<t_vec, t_vec> hom_line_from_screen_coords(
@@ -4649,10 +4665,10 @@ t_mat hom_scaling(t_real x, t_real y, t_real z)
 requires is_mat<t_mat>
 {
 	return create<t_mat>({
-		x, 		0., 	0., 	0.,
-		0., 	y, 		0., 	0.,
-		0.,		0.,		z, 		0.,
-		0.,		0.,		0.,		1.
+		x, 	0., 	0., 	0.,
+		0., 	y, 	0., 	0.,
+		0.,	0.,	z, 	0.,
+		0.,	0.,	0.,	1.
 	});
 }
 
@@ -5083,7 +5099,6 @@ requires is_vec<t_vec> && is_mat<t_mat>
 // polarisation
 // ----------------------------------------------------------------------------
 
-
 /**
  * conjugate complex vector
  */
@@ -5154,8 +5169,9 @@ requires is_vec<t_vec> && is_mat<t_mat>
 
 /**
  * Blume-Maleev equation
- * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
  * @returns scattering intensity and final polarisation vector
+ *
+ * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
  */
 template<class t_vec, typename t_cplx = typename t_vec::value_type>
 std::tuple<t_cplx, t_vec> blume_maleev(const t_vec& P_i, const t_vec& Mperp, const t_cplx& N)
@@ -5207,9 +5223,9 @@ requires is_vec<t_vec>
 
 /**
  * Blume-Maleev equation
- * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
  * calculate equation indirectly with density matrix
  *   (based on a proof from a lecture by P. J. Brown, 2006)
+ * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
  *
  * V   = N*1 + <Mperp|sigma>
  * I   = tr( <V|V> rho )
@@ -5257,7 +5273,6 @@ requires is_mat<t_mat> && is_vec<t_vec>
 
 
 
-
 // ----------------------------------------------------------------------------
 // lapack wrappers
 // ----------------------------------------------------------------------------
@@ -5281,8 +5296,8 @@ namespace tl2_la {
 
 /**
  * LU decomposition of a matrix, mat = P * L * U, returning raw results
- * @see http://www.math.utah.edu/software/lapack/lapack-d/dgetrf.html
  * @returns [ok, LU, perm]
+ * @see http://www.math.utah.edu/software/lapack/lapack-d/dgetrf.html
  */
 template<class t_mat, template<class...> class t_vec = std::vector>
 std::tuple<bool, t_vec<typename t_mat::value_type>, t_vec<lapack_int>> _lu_raw(const t_mat& mat)
@@ -6805,6 +6820,9 @@ requires is_quat<t_quat>
 }
 
 
+/**
+ * @see e.g.: (Bronstein 2008), formula (4.217)
+ */
 template<class t_quat>
 t_quat stereo_proj_inv(const t_quat& quat)
 requires is_quat<t_quat>
@@ -6826,6 +6844,7 @@ requires is_quat<t_quat>
  * calculates the covariance and the correlation matrices
  * covariance: C_ij = cov(X_i, X_j) = < (X_i - <X_i>) * (X_j - <X_j>) >
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
+ *
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
  * @see e.g.: (Arfken 2013) p. 1142
  * @see e.g.: (Arens 2015), p. 795
@@ -6898,6 +6917,7 @@ requires is_mat<t_mat> && is_vec<t_vec>
 /**
  * calculates chi^2 distance of a function model to data points
  * chi^2 = sum( (y_i - f(x_i))^2 / sigma_i^2 )
+ *
  * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
@@ -6925,6 +6945,7 @@ T chi2(const t_func& func, std::size_t N,
 
 /**
  * chi^2 for vector types
+ *
  * @see e.g.: (Merziger 2006), p. 185
  */
 template<class t_vec, class t_func>

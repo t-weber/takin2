@@ -39,6 +39,7 @@ template<class T=double> constexpr T d2r(T deg) { return deg/T(180)*get_pi<T>();
 template<class T=double> constexpr T r2m(T rad) { return rad/get_pi<T>()*T(180*60); }	// rad -> min
 template<class T=double> constexpr T m2r(T min) { return min/T(180*60)*get_pi<T>(); }	// min -> rad
 
+
 template<typename T>
 T sign(T t)
 {
@@ -46,11 +47,13 @@ T sign(T t)
 	return T(1);
 }
 
+
 template<typename T> T cot(T t)
 {
 	//return T(1) / std::tan(t);
 	return std::tan(T(0.5)*get_pi<T>() - t);
 }
+
 
 template<typename T> T coth(T t)
 {
@@ -81,7 +84,6 @@ template<typename T> T t_abs(const T& t)
 }
 
 
-
 template<class T=double>
 struct _get_epsilon_impl
 {
@@ -92,6 +94,7 @@ struct _get_epsilon_impl
 		return std::numeric_limits<t_eps>::epsilon();
 	}
 };
+
 
 template<class T>
 typename _get_epsilon_impl<T>::t_eps get_epsilon()
@@ -110,6 +113,7 @@ struct _float_equal_impl
 	}
 };
 
+
 template<class T, class t_eps>
 struct _float_equal_impl<T, t_eps, LinalgType::COMPLEX>
 {
@@ -119,6 +123,7 @@ struct _float_equal_impl<T, t_eps, LinalgType::COMPLEX>
 			t_abs<t_eps>(t1.imag()-t2.imag()) < eps;
 	}
 };
+
 
 template<typename T = double>
 bool float_equal(T t1, T t2, typename _get_epsilon_impl<T>::t_eps eps = get_epsilon<T>())
@@ -175,6 +180,7 @@ t_vec<T> linspace(const T& tmin, const T& tmax, std::size_t iNum)
 	return vec;
 }
 
+
 template<typename T=double, typename REAL=double,
 	template<class...> class t_vec=std::vector>
 t_vec<T> logspace(const T& tmin, const T& tmax, std::size_t iNum, T tBase=T(10))
@@ -185,6 +191,7 @@ t_vec<T> logspace(const T& tmin, const T& tmax, std::size_t iNum, T tBase=T(10))
 		t = std::pow(tBase, t);
 	return vec;
 }
+
 
 template<typename T>
 T clamp(T t, T min, T max)
@@ -209,7 +216,9 @@ bool is_in_range(T val, T centre, T pm)
 // -----------------------------------------------------------------------------
 
 
-// solve a*x^2 + b*x + c for x
+/**
+ * solve a*x^2 + b*x + c for x
+ */
 template<class T=double>
 std::vector<T> quadratic_solve(T a, T b, T c)
 {
@@ -248,12 +257,12 @@ std::vector<T> quadratic_solve(T a, T b, T c)
 // -----------------------------------------------------------------------------
 
 
-
 template<typename T=double>
 T log(T tbase, T tval)
 {
 	return T(std::log(tval)/std::log(tbase));
 }
+
 
 template<typename T=double>
 T nextpow(T tbase, T tval)
@@ -268,14 +277,17 @@ template<class T=double> T get_SIGMA2FWHM()
 {
 	return T(2)*std::sqrt(T(2)*std::log(T(2)));
 }
+
 template<class T=double> T get_SIGMA2HWHM()
 {
 	return std::sqrt(T(2)*std::log(T(2)));
 }
+
 template<class T=double> T get_FWHM2SIGMA()
 {
 	return T(1)/get_SIGMA2FWHM<T>();
 }
+
 template<class T=double> T get_HWHM2SIGMA()
 {
 	return T(1)/get_SIGMA2HWHM<T>();
@@ -286,6 +298,11 @@ static const double SIGMA2HWHM = SIGMA2FWHM/2.;
 static const double HWHM2SIGMA = 1./SIGMA2HWHM;
 static const double FWHM2SIGMA = 1./SIGMA2FWHM;
 
+
+/**
+ * gaussian
+ * @see https://en.wikipedia.org/wiki/Gaussian_function
+ */
 template<class T=double>
 T gauss_model(T x, T x0, T sigma, T amp, T offs)
 {
@@ -293,23 +310,31 @@ T gauss_model(T x, T x0, T sigma, T amp, T offs)
 	return amp * norm * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + offs;
 }
 
+
 template<class T=double>
 T gauss_model_amp(T x, T x0, T sigma, T amp, T offs)
 {
 	return amp * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + offs;
 }
 
+
+/**
+ * lorentzian
+ * @see https://en.wikipedia.org/wiki/Cauchy_distribution
+ */
 template<class T=double>
 T lorentz_model_amp(T x, T x0, T hwhm, T amp, T offs)
 {
 	return amp*hwhm*hwhm / ((x-x0)*(x-x0) + hwhm*hwhm) + offs;
 }
 
+
 template<class T=double>
 T gauss_model_amp_slope(T x, T x0, T sigma, T amp, T offs, T slope)
 {
 	return amp * std::exp(-0.5 * ((x-x0)/sigma)*((x-x0)/sigma)) + (x-x0)*slope + offs;
 }
+
 
 template<class T=double>
 T lorentz_model_amp_slope(T x, T x0, T hwhm, T amp, T offs, T slope)
@@ -323,6 +348,7 @@ T parabola_model(T x, T x0, T amp, T offs)
 {
 	return amp*(x-x0)*(x-x0) + offs;
 }
+
 
 template<class T=double>
 T parabola_model_slope(T x, T x0, T amp, T offs, T slope)
@@ -339,6 +365,7 @@ struct complex_cast
 	const std::complex<t_real_to>& operator()(const std::complex<t_real_from>& c) const
 	{ return c; }
 };
+
 
 template<class t_real_to, class t_real_from>
 struct complex_cast<t_real_to, t_real_from, 0>
@@ -358,8 +385,8 @@ using t_real_fadd = double;
 namespace tl{
 
 /**
-* Complex error function
-*/
+ * Complex error function
+ */
 template<class T=double>
 std::complex<T> erf(const std::complex<T>& z)
 {
@@ -368,9 +395,10 @@ std::complex<T> erf(const std::complex<T>& z)
 	return inv_cst(::Faddeeva::erf(cst(z)));
 }
 
+
 /**
-* Complex complementary error function
-*/
+ * Complex complementary error function
+ */
 template<class T=double>
 std::complex<T> erfc(const std::complex<T>& z)
 {
@@ -379,9 +407,11 @@ std::complex<T> erfc(const std::complex<T>& z)
 	return inv_cst(::Faddeeva::erfc(cst(z)));
 }
 
+
 /**
-* Faddeeva function
-*/
+ * Faddeeva function
+ * @see https://en.wikipedia.org/wiki/Faddeeva_function
+ */
 template<class T=double>
 std::complex<T> faddeeva(const std::complex<T>& z)
 {
@@ -389,10 +419,11 @@ std::complex<T> faddeeva(const std::complex<T>& z)
 	return std::exp(-z*z) * erfc(-i*z);
 }
 
+
 /**
-* Voigt profile
-* see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
-*/
+ * Voigt profile
+ * @see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
+ */
 template<class T=double>
 T voigt_model(T x, T x0, T sigma, T gamma, T amp, T offs)
 {
@@ -402,12 +433,14 @@ T voigt_model(T x, T x0, T sigma, T gamma, T amp, T offs)
 	return amp*norm * faddeeva<T>(z).real() + offs;
 }
 
+
 template<class T=double>
 T voigt_model_amp(T x, T x0, T sigma, T gamma, T amp, T offs)
 {
 	std::complex<T> z = std::complex<T>(x-x0, gamma) / (sigma * std::sqrt(T(2)));
 	return amp * faddeeva<T>(z).real() + offs;
 }
+
 
 template<class T=double>
 T voigt_model_amp_slope(T x, T x0, T sigma, T gamma, T amp, T offs, T slope)
@@ -433,6 +466,10 @@ std::complex<T> Ylm(int l /*0..i*/, int m /*-l..l*/, T th /*0..pi*/, T ph /*0..2
 // -----------------------------------------------------------------------------
 // coordinate trafos
 
+/**
+ * cartesian -> spherical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cart_to_sph(T x, T y, T z)
 {
@@ -443,6 +480,11 @@ std::tuple<T,T,T> cart_to_sph(T x, T y, T z)
 	return std::make_tuple(rho, phi, theta);
 }
 
+
+/**
+ * spherical -> cartesian
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> sph_to_cart(T rho, T phi, T theta)
 {
@@ -453,6 +495,11 @@ std::tuple<T,T,T> sph_to_cart(T rho, T phi, T theta)
 	return std::make_tuple(x, y, z);
 }
 
+
+/**
+ * cylindrical -> spherical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cyl_to_sph(T rho_cyl, T phi_cyl, T z_cyl)
 {
@@ -462,6 +509,11 @@ std::tuple<T,T,T> cyl_to_sph(T rho_cyl, T phi_cyl, T z_cyl)
 	return std::make_tuple(rho, phi_cyl, theta);
 }
 
+
+/**
+ * spherical -> cylindrical
+ * @see https://en.wikipedia.org/wiki/Spherical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> sph_to_cyl(T rho_sph, T phi_sph, T theta_sph)
 {
@@ -471,6 +523,11 @@ std::tuple<T,T,T> sph_to_cyl(T rho_sph, T phi_sph, T theta_sph)
 	return std::make_tuple(rho, phi_sph, z);
 }
 
+
+/**
+ * cylindrical -> cartesian
+ * @see https://en.wikipedia.org/wiki/Cylindrical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cyl_to_cart(T rho, T phi, T z)
 {
@@ -480,6 +537,11 @@ std::tuple<T,T,T> cyl_to_cart(T rho, T phi, T z)
 	return std::make_tuple(x, y, z);
 }
 
+
+/**
+ * cartesian -> cylindrical
+ * @see https://en.wikipedia.org/wiki/Cylindrical_coordinate_system
+ */
 template<class T = double>
 std::tuple<T,T,T> cart_to_cyl(T x, T y, T z)
 {
@@ -502,6 +564,7 @@ std::tuple<T,T> crys_to_sph(T twophi_crys, T twotheta_crys)
 	return std::make_tuple(phi_sph, theta_sph);
 }
 
+
 template<class T = double>
 std::tuple<T,T> sph_to_crys(T phi, T theta)
 {
@@ -512,7 +575,7 @@ std::tuple<T,T> sph_to_crys(T phi, T theta)
 /**
  * gnomonic projection (similar to perspective projection with fov=90°)
  * @return [x,y]
- * @desc: see http://mathworld.wolfram.com/GnomonicProjection.html
+ * @see http://mathworld.wolfram.com/GnomonicProjection.html
  */
 template<class T = double>
 std::tuple<T,T> gnomonic_proj(T twophi_crys, T twotheta_crys)
@@ -523,10 +586,11 @@ std::tuple<T,T> gnomonic_proj(T twophi_crys, T twotheta_crys)
 	return std::make_tuple(x, y);
 }
 
+
 /**
  * stereographic projection
  * @return [x,y]
- * @desc: see http://mathworld.wolfram.com/StereographicProjection.html
+ * @see http://mathworld.wolfram.com/StereographicProjection.html
  */
 template<class T = double>
 std::tuple<T,T> stereographic_proj(T twophi_crys, T twotheta_crys, T rad)
@@ -558,6 +622,7 @@ bool is_in_linear_range(T dStart, T dStop, T dPoint)
 	return (dPoint >= dStart) && (dPoint <= dStop);
 }
 
+
 /**
  * angle contained in angular range?
  */
@@ -580,7 +645,7 @@ bool is_in_angular_range(T dStart, T dRange, T dAngle)
 	}
 	else // else end point wraps around
 	{
-		return is_in_linear_range<T>(dStart, T(2)*get_pi<T>(), dAngle) || 
+		return is_in_linear_range<T>(dStart, T(2)*get_pi<T>(), dAngle) ||
 			is_in_linear_range<T>(T(0), dRange-(T(2)*get_pi<T>()-dStart), dAngle);
 	}
 }

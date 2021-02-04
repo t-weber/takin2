@@ -12,6 +12,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/../
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(FLEX 2 REQUIRED)
 find_package(BISON 3 REQUIRED)
@@ -77,4 +78,7 @@ add_library(mcalc_rt SHARED
 	src/runtime.cpp
 )
 
+set(TARGET mcalc_rt PROPTERTY CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(mcalc_rt ${Lapacke_LIBRARIES})
+

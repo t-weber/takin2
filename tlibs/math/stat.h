@@ -267,6 +267,7 @@ t_real boltzons_in_niveaus(t_uint iPart, t_uint iNiv)
  * calculates the covariance and the correlation matrices
  * covariance: C_ij = cov(X_i, X_j) = < (X_i - <X_i>) * (X_j - <X_j>) >
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
+ *
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
  * @see e.g.: (Arfken 2013) p. 1142
  */
@@ -341,6 +342,7 @@ covariance(const std::vector<ublas::vector<T>>& vecVals, const std::vector<T>* p
 /**
  * calculates chi^2 distance of a function model to data points
  * chi^2 = sum( (y_i - f(x_i))^2 / sigma_i^2 )
+ *
  * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
@@ -364,6 +366,7 @@ T chi2(const t_func& func, std::size_t N,
 
 	return tchi2;
 }
+
 
 template<class t_vec, class t_func>
 typename t_vec::value_type chi2(const t_func& func,
@@ -454,7 +457,7 @@ T chi2_nd(const t_func& func,
 
 
 /**
- * Confidence interval of array data mean using t-distribution
+ * confidence interval of array data mean using t-distribution
  * @see e.g.: (Arfken 2013), pp. 1176ff
  */
 template<class t_real = double, class t_vec = std::vector<t_real>>

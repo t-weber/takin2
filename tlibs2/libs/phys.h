@@ -36,7 +36,7 @@ template<class T=double> constexpr T E2KSQ = T(1) / KSQ2E<T>;
 
 
 // --------------------------------------------------------------------------------
-// de Broglie: lam = h/p
+// de Broglie: lam = h/p = 2pi/k
 // @see https://en.wikiversity.org/wiki/De_Broglie_wavelength
 // --------------------------------------------------------------------------------
 template<class Sys, class Y>
@@ -45,6 +45,7 @@ t_momentum<Sys,Y> lam2p(const t_length<Sys,Y>& lam)
 	return h<Y> / lam;
 }
 
+
 template<class Sys, class Y>
 t_length<Sys,Y> p2lam(const t_momentum<Sys,Y>& p)
 {
@@ -52,12 +53,12 @@ t_length<Sys,Y> p2lam(const t_momentum<Sys,Y>& p)
 }
 
 
-// lam = 2pi/k
 template<class Sys, class Y>
 t_length<Sys,Y> k2lam(const t_wavenumber<Sys,Y>& k)
 {
 	return Y(2.)*pi<Y> / k;
 }
+
 
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> lam2k(const t_length<Sys,Y>& lam)
@@ -65,11 +66,13 @@ t_wavenumber<Sys,Y> lam2k(const t_length<Sys,Y>& lam)
 	return Y(2.)*pi<Y> / lam;
 }
 
+
 template<class Sys, class Y>
 t_momentum<Sys,Y> k2p(const t_wavenumber<Sys,Y>& k)
 {
 	return hbar<Y>*k;
 }
+
 
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> p2k(const t_momentum<Sys,Y>& p)
@@ -77,11 +80,13 @@ t_wavenumber<Sys,Y> p2k(const t_momentum<Sys,Y>& p)
 	return p/hbar<Y>;
 }
 
+
 template<class Sys, class Y>
 t_velocity<Sys,Y> k2v(const t_wavenumber<Sys,Y>& k)
 {
 	return k2p(k) / m_n<Y>;
 }
+
 
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> v2k(const t_velocity<Sys,Y>& v)
@@ -89,7 +94,6 @@ t_wavenumber<Sys,Y> v2k(const t_velocity<Sys,Y>& v)
 	return m_n<Y>*v/hbar<Y>;
 }
 // --------------------------------------------------------------------------------
-
 
 
 
@@ -132,6 +136,7 @@ t_wavenumber<Sys,Y> E2k_direct(const t_energy<Sys,Y>& _E, bool &bImag)
 // --------------------------------------------------------------------------------
 
 
+
 // --------------------------------------------------------------------------------
 // indirect calculations using conversion factors for numerical stability
 // --------------------------------------------------------------------------------
@@ -157,7 +162,6 @@ t_wavenumber<Sys,Y> E2k(const t_energy<Sys,Y>& _E, bool &bImag)
 
 
 
-
 // --------------------------------------------------------------------------------
 /**
  * Bragg equation
@@ -171,12 +175,14 @@ t_length<Sys,Y> bragg_real_lam(const t_length<Sys,Y>& d,
 	return Y(2.)*d/n * units::sin(twotheta/Y(2.));
 }
 
+
 template<class Sys, class Y>
 t_length<Sys,Y> bragg_real_d(const t_length<Sys,Y>& lam,
 	const t_angle<Sys,Y>& twotheta, Y n = Y(1))
 {
 	return n * lam / (Y(2.)*units::sin(twotheta/Y(2.)));
 }
+
 
 template<class Sys, class Y>
 t_angle<Sys,Y> bragg_real_twotheta(const t_length<Sys,Y>& d,
@@ -203,12 +209,14 @@ t_angle<Sys,Y> bragg_recip_twotheta(const t_wavenumber<Sys,Y>& G,
 	return units::asin(dS) * Y(2);
 }
 
+
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> bragg_recip_G(const t_length<Sys,Y>& lam,
 	const t_angle<Sys,Y>& twotheta, Y n = Y(1))
 {
 	return Y(4)*pi<Y> / (n*lam) * units::sin(twotheta/Y(2));
 }
+
 
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> bragg_recip_Q(const t_length<Sys,Y>& lam,
@@ -234,12 +242,14 @@ t_wavenumber<Sys,Y> bragg_recip_G(const t_wavenumber<Sys,Y>& k,
 	return Y(2)*k / n * units::sin(twotheta/Y(2));
 }
 
+
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> bragg_recip_k(const t_wavenumber<Sys,Y>& G,
 	const t_angle<Sys,Y>& twotheta, Y n = Y(1))
 {
 	return n*G / (Y(2) * units::sin(twotheta/Y(2)));
 }
+
 
 template<class Sys, class Y>
 t_angle<Sys,Y> bragg_recip_twotheta(const t_wavenumber<Sys,Y>& G,
@@ -263,6 +273,7 @@ t_length<Sys,Y> G2d(const t_wavenumber<Sys,Y>& G)
 	return Y(2.)*pi<Y> / G;
 }
 
+
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> d2G(const t_length<Sys,Y>& d)
 {
@@ -270,6 +281,7 @@ t_wavenumber<Sys,Y> d2G(const t_length<Sys,Y>& d)
 }
 
 // --------------------------------------------------------------------------------
+
 
 
 // --------------------------------------------------------------------------------
@@ -291,7 +303,6 @@ Y bragg_diff(Y dDoverD, const t_angle<Sys,Y>& theta, Y dTheta)
 }
 
 // --------------------------------------------------------------------------------
-
 
 
 
@@ -412,6 +423,7 @@ t_angle<Sys,Y> get_angle_ki_Q(const t_wavenumber<Sys,Y>& ki,
 	return angle;
 }
 
+
 /**
  * Q_vec = ki_vec - kf_vec
  * ki_vec = Q_vec + kf_vec
@@ -454,6 +466,7 @@ t_angle<Sys,Y> get_mono_twotheta(const t_wavenumber<Sys,Y>& k,
 		tt = -tt;
 	return tt;
 }
+
 
 template<class Sys, class Y>
 t_wavenumber<Sys,Y> get_mono_k(const t_angle<Sys,Y>& _theta,
@@ -515,7 +528,6 @@ get_sample_Q(const t_wavenumber<Sys,Y>& ki,
 }
 
 
-
 template<class Sys, class Y>
 t_energy<Sys,Y> get_energy_transfer(const t_wavenumber<Sys,Y>& ki,
 	const t_wavenumber<Sys,Y>& kf)
@@ -559,6 +571,7 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
 {
 	return kf*kf*kf / units::tan(theta) * angstrom<Y>*angstrom<Y>*angstrom<Y>;
 }
+
 
 /**
  * kf^3 mono/ana reflectivity factor,
@@ -651,6 +664,7 @@ t_real fermi(t_real E, t_real mu, t_real T)
 	return n;
 }
 
+
 template<class Sys, class Y>
 Y fermi(const t_energy<Sys,Y>& E, const t_energy<Sys,Y>& mu, const t_temperature<Sys,Y>& T)
 {
@@ -729,6 +743,7 @@ t_time<Sys,Y> burst_time(const t_length<Sys,Y>& r,
 	return L / (r * om * tScale) * tSig;
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> burst_time_L(const t_length<Sys,Y>& r,
 	const t_time<Sys,Y>& dt, const t_freq<Sys,Y>& om, bool bCounterRot,
@@ -739,6 +754,7 @@ t_length<Sys,Y> burst_time_L(const t_length<Sys,Y>& r,
 	return dt * r * om * tScale / tSig;
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 	const t_length<Sys,Y>& L, const t_freq<Sys,Y>& om, bool bCounterRot,
@@ -748,6 +764,7 @@ t_length<Sys,Y> burst_time_r(const t_time<Sys,Y>& dt,
 	Y tScale = bCounterRot ? Y(2) : Y(1);
 	return L / (dt * om * tScale) * tSig;
 }
+
 
 template<class Sys, class Y=double>
 t_freq<Sys,Y> burst_time_om(const t_length<Sys,Y>& r,
@@ -779,12 +796,14 @@ t_angle<Sys,Y> colli_div(const t_length<Sys,Y>& L, const t_length<Sys,Y>& w, boo
 	return units::atan(w/L) * tSig;
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> colli_div_L(const t_angle<Sys,Y>& ang, const t_length<Sys,Y>& w, bool bSigma=1)
 {
 	const Y tSig = bSigma ? FWHM2SIGMA<Y> : Y(1);
 	return w/units::tan(ang/tSig);
 }
+
 
 template<class Sys, class Y=double>
 t_length<Sys,Y> colli_div_w(const t_length<Sys,Y>& L, const t_angle<Sys,Y>& ang, bool bSigma=1)
@@ -810,6 +829,7 @@ t_freq<Sys, Y> vsel_freq(const t_length<Sys,Y>& lam,
 	return v_n*twist / (len * radian<Y>);
 }
 
+
 template<class Sys, class Y=double>
 t_length<Sys,Y> vsel_len(const t_length<Sys,Y>& lam,
 	const t_freq<Sys, Y>& om, const t_angle<Sys,Y>& twist)
@@ -818,6 +838,7 @@ t_length<Sys,Y> vsel_len(const t_length<Sys,Y>& lam,
 	return v_n*twist / (om * radian<Y>);
 }
 
+
 template<class Sys, class Y=double>
 t_angle<Sys,Y> vsel_twist(const t_length<Sys,Y>& lam,
 	const t_freq<Sys, Y>& om, const t_length<Sys,Y>& len)
@@ -825,6 +846,7 @@ t_angle<Sys,Y> vsel_twist(const t_length<Sys,Y>& lam,
 	t_velocity<Sys,Y> v_n = k2v<Sys,Y>(lam2k<Sys,Y>(lam));
 	return  (len * om * radian<Y>) / v_n;
 }
+
 
 template<class Sys, class Y=double>
 t_length<Sys,Y> vsel_lam(const t_angle<Sys,Y>& twist,
@@ -878,7 +900,6 @@ t_flux<Sys,Y> larmor_field(const t_length<Sys,Y>& lam,
 
 
 //------------------------------------------------------------------------------
-
 
 
 }

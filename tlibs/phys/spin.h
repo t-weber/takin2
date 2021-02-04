@@ -34,6 +34,10 @@ t_vec<t_mat<std::complex<t_real>>> get_spin_matrices()
 }
 
 
+/**
+ * SU(2) ladders
+ * @see https://en.wikipedia.org/wiki/Ladder_operator
+ */
 template<template<class...> class t_mat=ublas::matrix,
 	template<class...> class t_vec=ublas::vector,
 	class t_real = double>
@@ -81,7 +85,7 @@ t_mat<std::complex<t_real>> rot_spin(int iComp, t_real dAngle)
 /**
  * CG coefficients
  * @see (Arfken 2013), p. 790 for the formula
- * 
+ *
  * e.g. two e- spins: s1 = s2 = 0.5, ms[1,2] = 0.5 (up) or -0.5 (down), S = 0 (sing.) or 1 (trip.)
  */
 template<class T = double>

@@ -391,6 +391,10 @@ template<class T=double> static constexpr T FWHM2SIGMA = T(1)/SIGMA2FWHM<T>;
 template<class T=double> static constexpr T HWHM2SIGMA = T(1)/SIGMA2HWHM<T>;
 
 
+/**
+ * gaussian
+ * @see https://en.wikipedia.org/wiki/Gaussian_function
+ */
 template<class T=double>
 T gauss_model(T x, T x0, T sigma, T amp, T offs)
 {
@@ -406,6 +410,10 @@ T gauss_model_amp(T x, T x0, T sigma, T amp, T offs)
 }
 
 
+/**
+ * lorentzian
+ * @see https://en.wikipedia.org/wiki/Cauchy_distribution
+ */
 template<class T=double>
 T lorentz_model_amp(T x, T x0, T hwhm, T amp, T offs)
 {
@@ -463,8 +471,8 @@ struct complex_cast<t_real_to, t_real_from, 0>
 #ifdef USE_FADDEEVA
 
 /**
-* Complex error function
-*/
+ * Complex error function
+ */
 template<class T=double>
 std::complex<T> erf(const std::complex<T>& z)
 {
@@ -475,8 +483,8 @@ std::complex<T> erf(const std::complex<T>& z)
 
 
 /**
-* Complex complementary error function
-*/
+ * Complex complementary error function
+ */
 template<class T=double>
 std::complex<T> erfc(const std::complex<T>& z)
 {
@@ -487,8 +495,9 @@ std::complex<T> erfc(const std::complex<T>& z)
 
 
 /**
-* Faddeeva function
-*/
+ * Faddeeva function
+ * @see https://en.wikipedia.org/wiki/Faddeeva_function
+ */
 template<class T=double>
 std::complex<T> faddeeva(const std::complex<T>& z)
 {
@@ -498,9 +507,9 @@ std::complex<T> faddeeva(const std::complex<T>& z)
 
 
 /**
-* Voigt profile
-* @see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
-*/
+ * Voigt profile
+ * @see e.g.: https://en.wikipedia.org/wiki/Voigt_profile
+ */
 template<class T=double>
 T voigt_model(T x, T x0, T sigma, T gamma, T amp, T offs)
 {
@@ -2339,7 +2348,6 @@ typename t_mat::value_type determinant(const t_mat& mat)
 		ublas::permutation_matrix<typename t_mat::size_type> perm(N);
 
 		ublas::lu_factorize(lu, perm);
-
 		t_mat L = ublas::triangular_adaptor<t_mat, ublas::unit_lower>(lu);
 		t_mat U = ublas::triangular_adaptor<t_mat, ublas::upper>(lu);
 
@@ -2376,6 +2384,10 @@ typename t_mat::value_type minor_det(const t_mat& mat, std::size_t iRow, std::si
 }
 
 
+/**
+ * cofactor
+ * @see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
+ */
 template<class t_mat = ublas::matrix<double>>
 typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::size_t iCol)
 {
@@ -2386,6 +2398,7 @@ typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::siz
 
 	return m*s;
 }
+
 
 /**
  * adjugate matrix
@@ -2815,14 +2828,12 @@ bool qr_decomp(const t_mat& M, t_mat& Q, t_mat& R)
 		vecE0[0] = veclen(vec0);
 
 		t_vec vecReflNorm = vec0-vecE0;
-		//std::cout << "refl norm: " << vecReflNorm << std::endl;
 		t_mat matRefl = reflection_matrix(vecReflNorm);
 
 		A = prod_mm(matRefl, A);
 		A = submatrix(A,0,0);
 
 		t_mat matReflM = insert_unity(matRefl, m-matRefl.size1());
-		//std::cout << "refl: " << matReflM << std::endl;
 		vecRefls.push_back(matReflM);
 	}
 
@@ -2835,11 +2846,6 @@ bool qr_decomp(const t_mat& M, t_mat& Q, t_mat& R)
 		t_mat matReflT = transpose(matRefl);
 		Q = prod_mm(Q, matReflT);
 	}
-
-	/*R = vecRefls[vecRefls.size()-1];
-	for(int i=vecRefls.size()-2; i>=0; --i)
-		R = prod_mv(R, vecRefls[i]);
-	R = prod_mm(R, M);*/
 
 	t_mat QT = transpose(Q);
 	R = prod_mm(QT, M);
@@ -2886,6 +2892,7 @@ t_mat norm_col_vecs(const t_mat& M)
 
 	return N;
 }
+
 
 template<class t_mat=ublas::matrix<double>, class t_real=underlying_value_type_t<t_mat>>
 bool is_symmetric(const t_mat& mat, t_real eps = get_epsilon<t_real>())
@@ -3133,8 +3140,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 			log_err("QR decomposition failed for matrix ", M);
 			return false;
 		}
-		//std::cout << "Q=" << Q << ", R=" << R << std::endl;
-		//Q = norm_col_vecs(Q);
 
 		t_mat Mlast = M;
 		M = prod_mm(R, Q);
@@ -3154,10 +3159,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 			break;
 	}
 
-	/*bool bFlipVec = 0;
-	if(determinant<t_mat>(I) < T(0))
-		bFlipVec = 1;*/
-
 	evals.resize(n);
 	evecs.resize(n);
 
@@ -3167,7 +3168,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 		evecs[iVal] = get_column(I, iVal);
 	}
 
-	//if(bFlipVec) evecs[0] = -evecs[0];
 	return true;
 }
 
@@ -3430,8 +3430,8 @@ T CG_coeff(T S, T s1, T s2, T ms1, T ms2)
 
 /**
  * Hund's rules
- * @see e.g.: (Khomskii 2014), ch. 2.2
  * @return [S, L, J]
+ * @see e.g.: (Khomskii 2014), ch. 2.2
  */
 template<class t_real = double>
 std::tuple<t_real, t_real, t_real>
@@ -3542,6 +3542,7 @@ hund(const t_str& strOrbitals)
 	return tupTerm;
 }
 
+
 /**
  * effective g factor
  * @see (Khomskii 2014), equ. (2.13)
@@ -3566,7 +3567,6 @@ T eff_magnetons(T gJ, T J)
 	return gJ * std::sqrt(J * (J+T(1)));
 }
 // ------------------------------------------------------------------------------------------------
-
 
 
 
@@ -3835,6 +3835,7 @@ t_quat vec3_to_quat(const t_vec& vec)
 	return t_quat(T(0), vec[0], vec[1], vec[2]);
 }
 
+
 /**
  * quat, vector product
  * @see (Kuipers 2002), p. 127
@@ -4008,12 +4009,14 @@ quat_type rotation_quat_x(typename quat_type::value_type angle)
 		std::sin(T(0.5)*angle), T(0), T(0));
 }
 
+
 template<class quat_type=math::quaternion<double>, typename T = typename quat_type::value_type>
 quat_type rotation_quat_y(typename quat_type::value_type angle)
 {
 	return quat_type(std::cos(T(0.5)*angle),
 		T(0), std::sin(T(0.5)*angle), T(0));
 }
+
 
 template<class quat_type=math::quaternion<double>, typename T = typename quat_type::value_type>
 quat_type rotation_quat_z(typename quat_type::value_type angle)
@@ -4044,6 +4047,7 @@ t_quat euler_to_quat_xyz(T phi, T theta, T psi)
 	return q3 * q2 * q1;
 }
 
+
 /**
  * ZXZ euler angles -> quat
  * @see (Kuipers 2002), pp. 166, 167
@@ -4062,6 +4066,7 @@ t_quat euler_to_quat_zxz(T phi, T theta, T psi)
 
 /**
  * quat -> XYZ euler angles
+ * @see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
  */
 template<class quat_type, typename T>
 std::vector<T> quat_to_euler_xyz(const quat_type& quat)
@@ -4087,6 +4092,7 @@ t_quat euler_to_quat(T phi, T theta, T psi)
 	return euler_to_quat_xyz<t_quat, T>(phi, theta, psi);
 }
 
+
 template<class quat_type, typename T>
 std::vector<T> quat_to_euler(const quat_type& quat)
 {
@@ -4107,6 +4113,10 @@ quat_type stereo_proj(const quat_type& quat)
 	return (T(1)+quat) / (T(1)-quat);
 }
 
+
+/**
+ * @see e.g.: (Bronstein 2008), formula (4.217)
+ */
 template<class quat_type=math::quaternion<double>,
 	typename T = typename quat_type::value_type>
 quat_type stereo_proj_inv(const quat_type& quat)
@@ -4233,7 +4243,6 @@ R convolute(const std::function<R(A)>& fkt0, const std::function<R(A)>& fkt1,
 
 	return numint_simpN(fktbnd, x0, x1, N);
 }
-
 
 
 template<class cont_type = std::vector<double>>
@@ -4395,6 +4404,7 @@ t_real entropy(const t_func& funcPdf, std::size_t iMax)
 	return -dS;
 }
 
+
 /**
  * entropy of a continuous distribution
  * S = - < log p(x_i) >
@@ -4491,13 +4501,16 @@ t_real particles_in_niveaus(t_uint iPart, t_uint iNiv, bool bDistinct, bool bOne
 	return tCnt;
 }
 
+
 template<class t_real = double, class t_uint = unsigned>
 t_real bosons_in_niveaus(t_uint iPart, t_uint iNiv)
 { return particles_in_niveaus<t_real, t_uint>(iPart, iNiv, 0, 0); }
 
+
 template<class t_real = double, class t_uint = unsigned>
 t_real fermions_in_niveaus(t_uint iPart, t_uint iNiv)
 { return particles_in_niveaus<t_real, t_uint>(iPart, iNiv, 0, 1); }
+
 
 template<class t_real = double, class t_uint = unsigned>
 t_real boltzons_in_niveaus(t_uint iPart, t_uint iNiv)
@@ -4526,6 +4539,7 @@ enum class DistrType
  */
 template<class t_real, class t_distr, class=void> struct distr_traits {};
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::normal_distribution<t_real>>::value>::type>
 {
@@ -4537,6 +4551,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam1 = "mu";
 	static constexpr const char* pcParam2 = "sigma";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::lognormal_distribution<t_real>>::value>::type>
@@ -4550,6 +4565,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam2 = "sigma";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::cauchy_distribution<t_real>>::value>::type>
 {
@@ -4562,6 +4578,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam2 = "sigma";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::poisson_distribution<t_real>>::value>::type>
 {
@@ -4572,6 +4589,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcName = "Poisson";
 	static constexpr const char* pcParam1 = "lambda";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::binomial_distribution<t_real>>::value>::type>
@@ -4584,6 +4602,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam1 = "n";
 	static constexpr const char* pcParam2 = "p";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::hypergeometric_distribution<t_real>>::value>::type>
@@ -4598,6 +4617,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam3 = "N";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::chi_squared_distribution<t_real>>::value>::type>
 {
@@ -4609,6 +4629,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam1 = "dof";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::students_t_distribution<t_real>>::value>::type>
 {
@@ -4619,6 +4640,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcName = "Student";
 	static constexpr const char* pcParam1 = "dof";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::fisher_f_distribution<t_real>>::value>::type>
@@ -4632,6 +4654,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam2 = "dof2";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::exponential_distribution<t_real>>::value>::type>
 {
@@ -4642,6 +4665,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcName = "Exponential";
 	static constexpr const char* pcParam1 = "lambda";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::beta_distribution<t_real>>::value>::type>
@@ -4655,6 +4679,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam2 = "beta";
 };
 
+
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::gamma_distribution<t_real>>::value>::type>
 {
@@ -4666,6 +4691,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
 	static constexpr const char* pcParam1 = "mu";
 	static constexpr const char* pcParam2 = "sigma";
 };
+
 
 template<class t_real, class t_distr>
 struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_distr, math::logistic_distribution<t_real>>::value>::type>
@@ -4688,6 +4714,7 @@ struct distr_traits<t_real, t_distr, typename std::enable_if<std::is_same<t_dist
  */
 template<class t_distr_traits, class=void> struct _distr_params {};
 
+
 template<class t_distr_traits>
 struct _distr_params<t_distr_traits,
 	typename std::enable_if<t_distr_traits::iNumArgs==1>::type>
@@ -4705,6 +4732,7 @@ struct _distr_params<t_distr_traits,
 	}
 };
 
+
 template<class t_distr_traits>
 struct _distr_params<t_distr_traits,
 	typename std::enable_if<t_distr_traits::iNumArgs==2>::type>
@@ -4721,6 +4749,7 @@ struct _distr_params<t_distr_traits,
 		return t_vec<const char*>({ t_distr_traits::pcParam1, t_distr_traits::pcParam2 });
 	}
 };
+
 
 template<class t_distr_traits>
 struct _distr_params<t_distr_traits,
@@ -4854,11 +4883,11 @@ template<class t_real> using t_hypergeo_dist = Distr<math::hypergeometric_distri
 
 
 
-
 /**
  * calculates the covariance and the correlation matrices
  * covariance: C_ij = cov(X_i, X_j) = < (X_i - <X_i>) * (X_j - <X_j>) >
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
+ *
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
  * @see e.g.: (Arfken 2013) p. 1142
  */
@@ -4933,6 +4962,7 @@ covariance(const std::vector<ublas::vector<T>>& vecVals, const std::vector<T>* p
 /**
  * calculates chi^2 distance of a function model to data points
  * chi^2 = sum( (y_i - f(x_i))^2 / sigma_i^2 )
+ *
  * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
@@ -4957,6 +4987,7 @@ T chi2(const t_func& func, std::size_t N,
 	return tchi2;
 }
 
+
 template<class t_vec, class t_func>
 typename t_vec::value_type chi2(const t_func& func,
 	const t_vec& x, const t_vec& y, const t_vec& dy)
@@ -4969,6 +5000,7 @@ typename t_vec::value_type chi2(const t_func& func,
 
 /**
  * chi^2 which doesn't use an x value, but an index instead: y[idx] - func(idx)
+ * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_func, class t_iter_dat=T*>
 T chi2_idx(const t_func& func, std::size_t N, const t_iter_dat y, const t_iter_dat dy)
@@ -4994,6 +5026,7 @@ T chi2_idx(const t_func& func, std::size_t N, const t_iter_dat y, const t_iter_d
 
 /**
  * direct chi^2 calculation with a model array instead of a model function
+ * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class t_iter_dat=T*>
 T chi2_direct(std::size_t N, const t_iter_dat func_y, const t_iter_dat y, const t_iter_dat dy)
@@ -5017,9 +5050,9 @@ T chi2_direct(std::size_t N, const t_iter_dat func_y, const t_iter_dat y, const 
 }
 
 
-
 /**
  * multi-dimensional chi^2 function
+ * @see e.g.: (Arfken 2013), p. 1170
  */
 template<class T, class T_dat, class t_func, template<class...> class t_vec=std::vector>
 T chi2_nd(const t_func& func,
@@ -5138,6 +5171,7 @@ public:
 		m_bValid = 1;
 	}
 
+
 	/**
 	 * plane from a point and two directions on the plane
 	 */
@@ -5227,6 +5261,7 @@ public:
 		return dDist < T(0);
 	}
 
+
 	/**
 	 * determine if a point is on the plane
 	 */
@@ -5235,6 +5270,7 @@ public:
 		T dDist = GetDist(vecPt);
 		return float_equal(dDist, T(0), eps);
 	}
+
 
 	bool IsParallel(const Plane<T>& plane, T eps = get_epsilon<T>()) const
 	{
@@ -5566,6 +5602,7 @@ public:
 		return true;
 	}
 
+
 	/**
 	 * middle perpendicular plane (in 3d)
 	 */
@@ -5593,13 +5630,13 @@ std::ostream& operator<<(std::ostream& ostr, const Plane<T>& plane)
 	return ostr;
 }
 
+
 template<typename T>
 std::ostream& operator<<(std::ostream& ostr, const Line<T>& line)
 {
 	ostr << line.GetX0() << " + t*" << line.GetDir();
 	return ostr;
 }
-
 
 
 /**
@@ -5669,7 +5706,6 @@ bool intersect_line_poly(const Line<T>& line,
 
 	return true;
 }
-
 
 
 /**
@@ -5757,7 +5793,6 @@ void sort_poly_verts(t_cont<t_vec>& vecPoly)
 }
 
 
-
 /**
  * get the polygon's face normal vector
  */
@@ -5801,7 +5836,6 @@ t_vec get_face_normal(const t_cont<t_vec>& vecVerts, t_vec vecCentre,
 	//log_debug("vec = ", vecCentreToFace, ",\tnorm = ", vecNorm);
 	return vecNorm;
 }
-
 
 
 #ifdef USE_QHULL
@@ -5871,7 +5905,6 @@ t_cont<t_cont<t_vec>> get_convexhull(const t_cont<t_vec>& vecVerts)
 }
 
 #endif
-
 
 
 //------------------------------------------------------------------------------
@@ -6191,10 +6224,12 @@ public:
 		this->m_s = T(-1);
 	}
 
+
 	QuadSphere(std::size_t iDim) : Quadric<T>(iDim)
 	{
 		this->m_s = T(-1);
 	}
+
 
 	QuadSphere(T r) : Quadric<T>(3)
 	{
@@ -6205,6 +6240,7 @@ public:
 		this->m_s = T(-1.);
 	}
 
+
 	QuadSphere(std::size_t iDim, T r) : Quadric<T>(iDim)
 	{
 		for(std::size_t i=0; i<iDim; ++i)
@@ -6212,6 +6248,7 @@ public:
 
 		this->m_s = T(-1.);
 	}
+
 
 	/**
 	 * only valid in principal axis system
@@ -6222,11 +6259,13 @@ public:
 			std::sqrt(std::abs(this->m_Q(0,0)));
 	}
 
+
 	T GetVolume() const
 	{
 		return get_ellipsoid_volume(this->m_Q) /
 			std::abs(this->m_s);
 	}
+
 
 	~QuadSphere() {}
 };
@@ -6243,10 +6282,12 @@ public:
 		this->m_s = T(-1);
 	}
 
+
 	QuadEllipsoid(std::size_t iDim) : Quadric<T>(iDim)
 	{
 		this->m_s = T(-1);
 	}
+
 
 	QuadEllipsoid(T a, T b) : Quadric<T>(2)
 	{
@@ -6256,6 +6297,7 @@ public:
 		this->m_s = T(-1);
 	}
 
+
 	QuadEllipsoid(T a, T b, T c) : Quadric<T>(3)
 	{
 		this->m_Q(0,0) = T(1)/(a*a);
@@ -6264,6 +6306,7 @@ public:
 
 		this->m_s = T(-1);
 	}
+
 
 	QuadEllipsoid(T a, T b, T c, T d) : Quadric<T>(4)
 	{
@@ -6275,7 +6318,9 @@ public:
 		this->m_s = T(-1);
 	}
 
+
 	~QuadEllipsoid() {}
+
 
 	/**
 	 * only valid in principal axis system
@@ -6285,6 +6330,7 @@ public:
 		return std::abs(this->m_s) /
 			std::sqrt(std::abs(this->m_Q(i,i)));
 	}
+
 
 	T GetVolume() const
 	{
@@ -6330,7 +6376,6 @@ std::vector<std::size_t> find_zeroes(std::size_t N, const T* pIn)
 }
 
 
-
 template<class t_vec = ublas::vector<double>>
 class GeometricPrimitive
 {
@@ -6350,6 +6395,7 @@ public:
 	virtual const t_vec& GetVertex(std::size_t iVert) const = 0;
 	virtual const t_polyindex& GetPolyIndex(std::size_t iPoly) const = 0;
 
+
 	/**
 	 * polygons comprising the solid
 	 */
@@ -6362,6 +6408,7 @@ public:
 
 		return vecPoly;
 	}
+
 
 	/**
 	 * normal vectors to polygon faces
@@ -7174,7 +7221,6 @@ bool eigenvec(const ublas::matrix<T>& mat,
 }
 
 
-
 /**
  * calculates only the eigenvalues of a general matrix
  */
@@ -7214,7 +7260,6 @@ bool eigenval(const ublas::matrix<T>& mat, std::vector<T>& evals_real, std::vect
 
 	return bOk;
 }
-
 
 
 /**
@@ -7279,7 +7324,6 @@ bool eigenvec_cplx(const ublas::matrix<std::complex<T>>& mat,
 }
 
 
-
 /**
  * calculates only the eigenvalues of a general complex matrix
  */
@@ -7328,9 +7372,7 @@ bool eigenval_cplx(const ublas::matrix<std::complex<T>>& mat, std::vector<std::c
 }
 
 
-
 // ----------------------------------------------------------------------------
-
 
 
 /**
@@ -7385,11 +7427,8 @@ bool eigenvec_sym(const ublas::matrix<T>& mat,
 			evecs[i] /= veclen(evecs[i]);
 	}
 
-	//if(determinant<ublas::matrix<T>>(column_matrix(evecs)) < 0.)
-	//	evecs[0] = -evecs[0];
 	return bOk;
 }
-
 
 
 /**
@@ -7431,8 +7470,6 @@ bool eigenval_sym(const ublas::matrix<T>& mat, std::vector<T>& evals)
 
 	return bOk;
 }
-
-
 
 
 /**
@@ -7491,7 +7528,6 @@ bool eigenvec_herm(const ublas::matrix<std::complex<T>>& mat,
 }
 
 
-
 /**
  * calculates only the eigenvalues of a hermitian matrix
  */
@@ -7533,7 +7569,6 @@ bool eigenval_herm(const ublas::matrix<std::complex<T>>& mat, std::vector<T>& ev
 
 	return bOk;
 }
-
 
 
 /**
@@ -7616,9 +7651,7 @@ bool eigenvecsel_herm(const ublas::matrix<std::complex<T>>& mat,
 }
 
 
-
 // ----------------------------------------------------------------------------
-
 
 
 /**
@@ -7670,7 +7703,6 @@ bool singvec(const ublas::matrix<T>& mat,
 
 	return bOk;
 }
-
 
 
 /**
@@ -7727,9 +7759,7 @@ bool singvec_cplx(const ublas::matrix<std::complex<T>>& mat,
 }
 
 
-
 // ----------------------------------------------------------------------------
-
 
 
 /**
@@ -7798,8 +7828,6 @@ bool eigenvec_approxsym(const ublas::matrix<T>& mat,
 
 
 #endif
-
-
 
 
 /**
@@ -8017,7 +8045,6 @@ t_vec cross_prod_contra(const t_mat& matGCov,
 		vecCrossContra /= vec_len<t_mat, t_vec>(matGCov, vecCrossContra);
 	return vecCrossContra;
 }
-
 
 
 /**

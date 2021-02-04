@@ -158,7 +158,7 @@ mat_type quat_to_rot3(const quat_type& quat)
 
 /**
  * vector -> quat
- * @see: (Kuipers 2002), p. 114
+ * @see (Kuipers 2002), p. 114
  */
 template<class t_vec = ublas::vector<double>,
 	class t_quat = math::quaternion<typename t_vec::value_type>>
@@ -171,7 +171,7 @@ t_quat vec3_to_quat(const t_vec& vec)
 
 /**
  * quat, vector product
- * @see: (Kuipers 2002), p. 127
+ * @see (Kuipers 2002), p. 127
  */
 template<class t_vec = ublas::vector<double>,
 	class t_quat = math::quaternion<typename t_vec::value_type>>
@@ -217,6 +217,7 @@ t_mat<std::complex<t_real>> quat_to_cmat(const t_quat& quat)
 template<class quat_type = math::quaternion<double>,
 	typename T = typename quat_type::value_type>
 std::vector<T> quat_to_euler(const quat_type& quat);
+
 
 template<typename T=double, class... Args>
 std::vector<T> rotation_angle(const ublas::matrix<T, Args...>& rot)

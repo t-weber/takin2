@@ -1804,6 +1804,10 @@ typename t_mat::value_type minor_det(const t_mat& mat, std::size_t iRow, std::si
 }
 
 
+/**
+ * cofactor
+ * @see e.g.: https://en.wikipedia.org/wiki/Minor_(linear_algebra)
+ */
 template<class t_mat = ublas::matrix<double>>
 typename t_mat::value_type cofactor(const t_mat& mat, std::size_t iRow, std::size_t iCol)
 {
@@ -2597,10 +2601,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 			break;
 	}
 
-	/*bool bFlipVec = 0;
-	if(determinant<t_mat>(I) < T(0))
-		bFlipVec = 1;*/
-
 	evals.resize(n);
 	evecs.resize(n);
 
@@ -2610,7 +2610,6 @@ bool eigenvec_sym_simple(const t_mat& mat, std::vector<t_vec>& evecs, std::vecto
 		evecs[iVal] = get_column(I, iVal);
 	}
 
-	//if(bFlipVec) evecs[0] = -evecs[0];
 	return true;
 }
 
