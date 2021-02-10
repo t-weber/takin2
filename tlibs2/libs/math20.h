@@ -5149,6 +5149,7 @@ requires is_basic_mat<t_mat>
 
 /**
  * polarisation density matrix
+ *   (based on a proof from a lecture by P. J. Brown, 2006)
  *
  * eigenvector expansion of a state: |psi> = a_i |xi_i>
  * mean value of operator with mixed states:
@@ -5158,6 +5159,7 @@ requires is_basic_mat<t_mat>
  * polarisation density matrix: rho = 0.5 * (1 + <P|sigma>)
  *
  * @see https://doi.org/10.1016/B978-044451050-1/50006-9
+ * @see (Bronstein 2008), Ch. 21 (Zusatzkapitel.pdf), pp. 11-12
  */
 template<class t_vec, class t_mat>
 t_mat pol_density_mat(const t_vec& P, typename t_vec::value_type c=0.5)
@@ -5171,7 +5173,7 @@ requires is_vec<t_vec> && is_mat<t_mat>
  * Blume-Maleev equation
  * @returns scattering intensity and final polarisation vector
  *
- * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
+ * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225-226
  */
 template<class t_vec, typename t_cplx = typename t_vec::value_type>
 std::tuple<t_cplx, t_vec> blume_maleev(const t_vec& P_i, const t_vec& Mperp, const t_cplx& N)
@@ -5225,13 +5227,14 @@ requires is_vec<t_vec>
  * Blume-Maleev equation
  * calculate equation indirectly with density matrix
  *   (based on a proof from a lecture by P. J. Brown, 2006)
- * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225
  *
  * V   = N*1 + <Mperp|sigma>
  * I   = tr( <V|V> rho )
  * P_f = tr( <V|sigma|V> rho ) / I
  *
  * @returns scattering intensity and final polarisation vector
+ *
+ * @see https://doi.org/10.1016/B978-044451050-1/50006-9 - p. 225-226
  */
 template<class t_mat, class t_vec, typename t_cplx = typename t_vec::value_type>
 std::tuple<t_cplx, t_vec> blume_maleev_indir(const t_vec& P_i, const t_vec& Mperp, const t_cplx& N)

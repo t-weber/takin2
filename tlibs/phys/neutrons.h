@@ -1048,6 +1048,7 @@ t_length<Sys,Y> colli_div_w(const t_length<Sys,Y>& L, const t_angle<Sys,Y>& ang,
 /**
  * @brief velocity selector
  * @return selector angular frequency
+ * @see https://doi.org/10.1016/0921-4526(95)00336-8
  */
 template<class Sys, class Y=double>
 t_freq<Sys, Y> vsel_freq(const t_length<Sys,Y>& lam,
