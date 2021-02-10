@@ -4947,8 +4947,9 @@ requires is_mat<t_mat> && is_vec<t_vec>
  * Q: scattering vector G for nuclear scattering or G+k for magnetic scattering with propagation vector k
  * fs: optional magnetic form factors
  *
- * @see (Shirane 2002), p. 40, equ. 2.81 for magnetic structure factor
  * @see (Shirane 2002), p. 25, equ. 2.26 for nuclear structure factor
+ * @see (Shirane 2002), p. 40, equ. 2.81 for magnetic structure factor
+ * @see https://doi.org/10.1016/B978-044451050-1/50002-1
  */
 template<class t_vec, class T = t_vec, template<class...> class t_cont = std::vector,
 	class t_cplx = std::complex<double>>
