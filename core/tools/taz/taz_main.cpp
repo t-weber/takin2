@@ -376,7 +376,7 @@ int main(int argc, char** argv)
 		// ------------------------------------------------------------
 		// GUI stuff
 
-		QSettings settings("tobis_stuff", "takin");
+		QSettings settings("takin", "core");
 
 
 		// set user-selected GUI style

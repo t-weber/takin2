@@ -2,9 +2,10 @@
  * tlibs2
  * physics library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2012-2020
+ * @date 2012-2021
  * @license GPLv3, see 'LICENSE' file
  * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ * @desc for the references, see the 'LITERATURE' file
  */
 
 #ifndef __TLIBS2_PHYS__
@@ -310,7 +311,7 @@ Y bragg_diff(Y dDoverD, const t_angle<Sys,Y>& theta, Y dTheta)
 
 /**
  * kinematic plane
- * @see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
+ * @see (ILL Neutron Data Booklet), sec. 2.6-2
  *
  * Q_vec = ki_vec - kf_vec
  * Q^2 = ki^2 + kf^2 - 2ki kf cos 2th	| * hbar^2 / (2 mn)
@@ -352,7 +353,7 @@ t_wavenumber<Sys,Y> kinematic_plane(bool bFixedKi,
 
 /**
  * kinematic plane
- * @see e.g. (ILL Neutron Data Booklet), sec. 2.6-2
+ * @see (ILL Neutron Data Booklet), sec. 2.6-2
  *
  * solving the above equation for dE using sage:
  *   Q, Ei, dE, ctt, c = var("Q, Ei, dE, ctt, c")
@@ -564,7 +565,7 @@ t_wavenumber<Sys,Y> get_other_k(const t_energy<Sys,Y>& E,
 
 /**
  * kf^3 mono/ana reflectivity factor
- * @see e.g. (Shirane 2002) p. 125
+ * @see (Shirane 2002) p. 125
  */
 template<class Sys, class Y>
 Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
@@ -575,7 +576,7 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_angle<Sys, Y>& theta)
 
 /**
  * kf^3 mono/ana reflectivity factor,
- * @see e.g. (Shirane 2002) p. 125
+ * @see (Shirane 2002) p. 125
  */
 template<class Sys, class Y>
 Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_length<Sys, Y>& d)
@@ -590,7 +591,7 @@ Y ana_effic_factor(const t_wavenumber<Sys, Y>& kf, const t_length<Sys, Y>& d)
 
 /**
  * Bose distribution
- * @see e.g.: (Shirane 2002), p. 28
+ * @see (Shirane 2002), p. 28
  * @see https://en.wikipedia.org/wiki/Bose%E2%80%93Einstein_statistics
  */
 template<class t_real=double>
@@ -702,9 +703,9 @@ t_length<Sys, Y> focal_len(const t_length<Sys, Y>& lenBefore, const t_length<Sys
 
 /**
  * optimal mono/ana curvature,
- * @see e.g. (Shirane 2002) p. 66
- * @see e.g. nicos/nicos-core.git/tree/nicos/devices/tas/mono.py in nicos
- * @see e.g. McStas: https://github.com/McStasMcXtrace/McCode/blob/master/mcstas-comps/optics/Monochromator_curved.comp
+ * @see (Shirane 2002) p. 66
+ * @see NICOS: https://forge.frm2.tum.de/cgit/cgit.cgi/frm2/nicos/nicos-core.git/plain/nicos/devices/tas/mono.py
+ * @see McStas: https://github.com/McStasMcXtrace/McCode/blob/master/mcstas-comps/optics/Monochromator_curved.comp
  */
 template<class Sys, class Y=double>
 t_length<Sys, Y> foc_curv(const t_length<Sys, Y>& lenBefore, const t_length<Sys, Y>& lenAfter,

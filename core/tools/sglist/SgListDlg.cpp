@@ -18,7 +18,7 @@ namespace ublas = tl::ublas;
 
 SgListDlg::SgListDlg(QWidget *pParent)
 	: QDialog(pParent, Qt::WindowTitleHint|Qt::WindowCloseButtonHint|Qt::WindowMinMaxButtonsHint),
-		m_settings("tobis_stuff", "sglist")
+		m_settings("takin", "sglist")
 {
 	setupUi(this);
 	QFont font;

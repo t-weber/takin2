@@ -2,9 +2,10 @@
  * tlibs2
  * old math library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2013-2020
+ * @date 2013-2021
  * @license GPLv3, see 'LICENSE' file
  * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ * @desc for the references, see the 'LITERATURE' file
  */
 
 #ifndef __TLIBS2_MATH_H__
@@ -4889,7 +4890,7 @@ template<class t_real> using t_hypergeo_dist = Distr<math::hypergeometric_distri
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
  *
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
- * @see e.g.: (Arfken 2013) p. 1142
+ * @see e.g.: (Arfken 2013) p. 1142-1144
  */
 template<typename T=double>
 std::tuple<ublas::matrix<T>, ublas::matrix<T>>

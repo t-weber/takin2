@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	std::locale::global(std::locale::classic());
 	QLocale::setDefault(QLocale::English);
 
-	QSettings m_settings("tobis_stuff", "takin");
+	QSettings m_settings("takin", "core");
 	ConvoDlg dlg(nullptr, &m_settings);
 	dlg.setWindowFlags(Qt::Window);
 

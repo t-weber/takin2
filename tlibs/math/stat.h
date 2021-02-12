@@ -269,7 +269,8 @@ t_real boltzons_in_niveaus(t_uint iPart, t_uint iNiv)
  * correlation: K_ij = C_ij / (sigma_i sigma_j)
  *
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
- * @see e.g.: (Arfken 2013) p. 1142
+ * @see e.g.: (Arfken 2013) pp. 1142-1144
+ * @see e.g.: (Arens 2015), p. 795 and p. 1372
  */
 template<typename T=double>
 std::tuple<ublas::matrix<T>, ublas::matrix<T>>

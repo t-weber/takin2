@@ -3,8 +3,11 @@
 # @author Tobias Weber <tobias.weber@tum.de>
 # @date 6-apr-2017
 # @license GPLv2
-# @desc see e.g.: (Arens 2015) p. 795
+# @desc see (Arens 2015) p. 795 and p. 1372
 #
+
+using Statistics
+using LinearAlgebra
 
 
 # measurement points
@@ -13,7 +16,7 @@ A_meas = [0 1; 1 1; 2 0.5; 3 4; 4 4.5; 5 5; 6 5.5]
 
 
 function vec2_angle(vec)
-	return atan2(vec[2], vec[1])
+	return atan(vec[2], vec[1])
 end
 
 
@@ -24,8 +27,10 @@ function ellipse(angle, xrad, yrad, xoffs, yoffs)
 	s = sin(angle)
 
 	for t in 0.:0.01:1.
-		pt = [ xrad * cos(2.*pi*t),
-				yrad * sin(2.*pi*t) ]
+		pt = [ 
+			xrad * cos(2*pi*t),
+			yrad * sin(2*pi*t)
+		]
 
 		pt = [c -s; s c] * pt + [xoffs, yoffs]
 		push!(pts, pt)
@@ -73,29 +78,31 @@ println("Concentration matrix: ", R)
 
 
 # test alternate calculation
-C2 = zeros(size(A)[2], size(A)[2])
-for iPt = 1:size(A)[1]
-	pt = A[iPt,:]
-	C2 += pt*pt'
-end
-println("Covariance matrix (alternate calc): ", C2)
+#C2 = zeros(size(A)[2], size(A)[2])
+#for iPt = 1:size(A)[1]
+#	pt = A[iPt,:]
+#	C2 += pt*pt'
+#end
+#println("Covariance matrix (alternate calc): ", C2)
 
 
 # test pseudo-inverse, R*A' is only valid for full row-rank of A (here: 2)
 U,S,V = svd(A)
-D = diagm(S)
+D = diagm(0 => S)
 println("\nPseudo-inverse:", V*pinv(D)*U')
 println("Pseudo-inverse (alternate calc): ", pinv(A), "\n", R*A')
 
 
-evals, evecs = eig(R)
+#evals, evecs = eig(R)
+evals = eigvals(R)
+evecs = eigvecs(R)
 println("Eigenvectors: ", evecs)
 println("Eigenvalues: ", evals)
 println()
 
 
 # ellipsoid axes and lengths
-lens = sqrt(1./evals[:])
+lens = sqrt.(1/evals[:])
 for iAx = 1 : size(evecs)[2]
 	println("Ellipsoid axis ", iAx, ": ", evecs[:, iAx],
 		" with length ", lens[iAx])
@@ -108,7 +115,7 @@ end
 coeff = correl(C)
 println("Correlation coefficient: ", coeff, ", angle: ", acos(coeff)/pi*180.)
 
-angle = vec2_angle(evecs[:, 1])
+angle = vec2_angle(evecs[:, 2])
 println("Ellipse angle: ", angle/pi*180., " deg")
 
 m, b = fit_line(C, offs)
@@ -116,7 +123,7 @@ println("Regression line: slope = ", m, ", y0 = ", b)
 
 
 # plot
-open(`gnuplot -p`, "w", DevNull) do gpl
+open(`gnuplot -p`, "w", devnull) do gpl
 	ell = ellipse(angle, lens[1], lens[2], offs[1], offs[2])
 
 	println(gpl, "m = ", m, "\nb = ", b)
@@ -139,3 +146,4 @@ open(`gnuplot -p`, "w", DevNull) do gpl
 	end
 	println(gpl, "e")	
 end
+

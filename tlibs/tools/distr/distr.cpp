@@ -17,7 +17,7 @@ static const unsigned NUM_PTS = 512;
 
 
 DistrDlg::DistrDlg(QWidget* pParent)
-	: QDialog(pParent), m_settings("tobis_stuff", "distr_tool")
+	: QDialog(pParent), m_settings("takin", "distr_tool")
 {
 	setupUi(this);
 	if(m_settings.contains("distr_dlg/geo"))

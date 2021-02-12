@@ -50,7 +50,7 @@ namespace fs = boost::filesystem;
 
 ScanViewerDlg::ScanViewerDlg(QWidget* pParent)
 	: QDialog(pParent, Qt::WindowTitleHint|Qt::WindowCloseButtonHint|Qt::WindowMinMaxButtonsHint),
-		m_settings("tobis_stuff", "scanviewer"),
+		m_settings("takin", "scanviewer"),
 		m_vecExts({	".dat", ".DAT", ".scn", ".SCN", ".ng0", ".NG0", ".log", ".LOG", "" }),
 		m_pFitParamDlg(new FitParamDlg(this, &m_settings))
 {

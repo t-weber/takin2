@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 		ft = FileType::RESOLUTION_MATRIX;
 	else if(bCovar)
 		ft = FileType::COVARIANCE_MATRIX;
-	
+
 
 	Resolution res;
 

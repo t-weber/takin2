@@ -53,7 +53,7 @@ const t_real_glob TazDlg::s_dPlaneDistTolerance = std::cbrt(tl::get_epsilon<t_re
 
 
 TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
-	: QMainWindow(pParent), m_settings("tobis_stuff", "takin"),
+	: QMainWindow(pParent), m_settings("takin", "core"),
 		m_pSettingsDlg(new SettingsDlg(this, &m_settings)),
 		m_strLogFile(strLogFile),
 		m_pStatusMsg(new QLabel(this)),

@@ -3,8 +3,10 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date nov-2020
  * @license GPLv2 or GPLv3, see 'LICENSE' file
+ *
  * @desc forked on 20-nov-2020 from the runtime library of my private "matrix_calc" project:
  *	https://github.com/t-weber/matrix_calc/blob/master/src/runtime.c
+ * @desc for the references, see the 'LITERATURE' file
  */
 
 #include "mathlib.h"
@@ -490,7 +492,7 @@ void tl2_vec_mean(const struct tl2_list* veclist, const struct tl2_list* problis
  * covariance matrix
  * @see e.g.: http://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm
  * @see e.g.: (Arfken 2013) p. 1142
- * @see e.g.: (Arens 2015), p. 795
+ * @see e.g.: (Arens 2015), p. 795 and p. 1372
  */
 void tl2_covariance(const struct tl2_list* veclist, const struct tl2_list* problist,
 	double* COV, double* mean, int N)
