@@ -10,17 +10,16 @@
 #ifndef __TLIBS2_FILE_H__
 #define __TLIBS2_FILE_H__
 
-//#include <filesystem>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <tuple>
-#include <map>
-#include <algorithm>
+#if __has_include(<filesystem>)
+	#include <filesystem>
+	namespace fs = std::filesystem;
+#else
+	#pragma message("tlibs2: Standard filesystem header not found, using boost.filesystem.")
+	#include <boost/filesystem/path.hpp>
+	#include <boost/filesystem/operations.hpp>
+	namespace fs = boost::filesystem;
+#endif
 
 #include <boost/version.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -30,12 +29,18 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/optional.hpp>
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <vector>
+#include <tuple>
+#include <map>
+#include <algorithm>
+
 #include "str.h"
 #include "traits.h"
 
 
-//namespace fs = std::filesystem;
-namespace fs = boost::filesystem;
 namespace prop = ::boost::property_tree;
 
 
@@ -52,6 +57,7 @@ std::streampos get_file_size(std::basic_istream<t_char>& istr)
 
 	return iSize;
 }
+
 
 template<typename t_char=char>
 std::streampos get_file_pos(std::basic_istream<t_char>& istr)
@@ -71,10 +77,32 @@ std::size_t get_file_size(const std::basic_string<t_char>& _strFile)
 
 	return fs::file_size(fs::path(strFile));
 }
+
+
 template<>
 inline std::size_t get_file_size(const std::basic_string<typename fs::path::value_type>& strFile)
 {
 	return fs::file_size(fs::path(strFile));
+}
+
+
+/**
+ * loads a file into a string
+ */
+template<class t_str = std::string>
+std::tuple<bool, t_str> load_file(const t_str& file)
+{
+	std::ifstream ifstr(file);
+	if(!ifstr)
+		return std::make_tuple(false, "");
+
+	t_str contents;
+	auto filesize = get_file_size(ifstr);
+
+	contents.resize(filesize);
+	ifstr.read(contents.data(), filesize);
+
+	return std::make_tuple(true, contents);
 }
 
 
@@ -85,7 +113,8 @@ inline std::size_t get_file_size(const std::basic_string<typename fs::path::valu
  * @param len: length in size of T
  */
 template <class T, class t_char = char>
-std::pair<bool, std::shared_ptr<T[]>> get_file_mem(std::basic_istream<t_char>& istr, std::size_t offs, std::size_t len=1)
+std::pair<bool, std::shared_ptr<T[]>> 
+get_file_mem(std::basic_istream<t_char>& istr, std::size_t offs, std::size_t len=1)
 {
 	bool ok = true;
 
@@ -119,6 +148,7 @@ bool dir_exists(const t_char* pcDir)
 	return bExists && bIsDir;
 }
 
+
 template<typename t_char=char>
 bool file_exists(const t_char* pcDir)
 {
@@ -135,7 +165,9 @@ bool file_exists(const t_char* pcDir)
 // ----------------------------------------------------------------------------
 
 
-// iterates over all files in a directory
+/**
+ * iterates over all files in a directory
+ */
 template<bool bRecursive=0, class t_char = char,
 	template<class...> class t_cont = std::vector>
 t_cont<std::basic_string<t_char>> get_all_files(const t_char* pcPath)
@@ -215,6 +247,7 @@ template<class t_str> struct StringComparer<t_str, 1>
 	}
 };
 
+
 // ignore case
 template<class t_str> struct StringComparer<t_str, 0>
 {
@@ -261,6 +294,9 @@ get_prop_path(const std::string& _strAddr, const typename t_str::value_type& chS
 // ----------------------------------------------------------------------------
 
 
+/**
+ * property tree
+ */
 template<class _t_str = std::string, bool bCaseSensitive=0>
 class Prop
 {
@@ -270,9 +306,11 @@ public:
 	using t_prop = prop::basic_ptree<t_str, t_str, StringComparer<t_str, bCaseSensitive>>;
 	using t_propval = typename t_prop::value_type;
 
+
 protected:
 	t_prop m_prop;
 	t_ch m_chSep = '/';
+
 
 public:
 	Prop(t_ch chSep = '/') : m_chSep(chSep) {}
@@ -284,6 +322,7 @@ public:
 
 	const t_prop& GetProp() const { return m_prop; }
 	void SetProp(const t_prop& prop) { m_prop = prop; }
+
 
 	bool Load(const t_ch* pcFile)
 	{
@@ -302,6 +341,7 @@ public:
 		return false;
 	}
 
+
 	bool Load(const t_ch* pcFile, PropType ty)
 	{
 		std::basic_ifstream<t_ch> ifstr(pcFile);
@@ -309,6 +349,7 @@ public:
 
 		return Load(ifstr, ty);
 	}
+
 
 	bool Load(std::basic_istream<t_ch>& istr, PropType ty)
 	{
@@ -358,6 +399,7 @@ public:
 		return false;
 	}
 
+
 	bool Save(const t_ch* pcFile, PropType ty) const
 	{
 		std::basic_ofstream<t_ch> ofstr(pcFile);
@@ -365,6 +407,7 @@ public:
 
 		return Save(ofstr, ty);
 	}
+
 
 	bool Save(std::basic_ostream<t_ch>& ofstr, PropType ty) const
 	{
@@ -405,6 +448,8 @@ public:
 
 	bool Load(const t_str& strFile) { return Load(strFile.c_str()); }
 	bool Load(const t_str& strFile, PropType ty) { return Load(strFile.c_str(), ty); }
+
+
 	bool Save(const t_str& strFile) const { return Save(strFile.c_str()); }
 	bool Save(const t_str& strFile, PropType ty) const
 	{ return Save(strFile.c_str(), ty); }
@@ -436,11 +481,13 @@ public:
 		return tOut;
 	}
 
+
 	template<typename T>
 	T Query(const t_str& _strAddr, const T def, bool *pbOk=nullptr) const
 	{
 		return Query<T>(_strAddr, &def, pbOk);
 	}
+
 
 	template<typename T>
 	boost::optional<T> QueryOpt(const t_str& strAddr) const
@@ -449,6 +496,7 @@ public:
 		T tVal = Query<T>(strAddr, nullptr, &bOk);
 		return bOk ? boost::optional<T>(std::move(tVal)) : boost::optional<T>();
 	}
+
 
 	template<typename T>
 	T QueryAndParse(const t_str& _strAddr, const T* pDef=nullptr, bool *pbOk=nullptr) const
@@ -469,6 +517,7 @@ public:
 
 		return pairRes.second;
 	}
+
 
 	template<typename T>
 	T QueryAndParse(const t_str& _strAddr, const T def, bool *pbOk=nullptr) const
@@ -496,6 +545,7 @@ public:
 		return vecRet;
 	}
 
+
 	/**
 	 * get a list of children to a node
 	 */
@@ -514,6 +564,7 @@ public:
 
 		return vecRet;
 	}
+
 
 	/**
 	 * get a list of child values to a node
@@ -535,6 +586,7 @@ public:
 		return vecRet;
 	}
 
+
 	bool Exists(const t_str& strAddr) const
 	{
 		bool bOk = 0;
@@ -545,19 +597,12 @@ public:
 		return bOk;
 	}
 
+
 	bool PathExists(const t_str& strAddr) const
 	{
 		return GetChildNodes(strAddr).size() != 0;
 	}
 
-
-	/*template<class T = t_str>
-	void Add(T&& tKey, T&& tVal)
-	{
-		prop::string_path<t_str, prop::id_translator<t_str>>
-			path(std::forward<t_str>(tKey), m_chSep);
-		m_prop.add(std::move(path), std::forward<t_str>(tVal));
-	}*/
 
 	template<class T>
 	void Add(const t_str& strKey, T&& tVal)
@@ -565,10 +610,8 @@ public:
 		auto optPath = get_prop_path<t_str>(strKey, m_chSep);
 		if(!optPath) return;
 
-		//std::cout << "type: " << get_typename<remove_constref_t<T>>() << std::endl;
 		if(std::is_convertible<T, t_str>::value)
 		{
-			//std::cout << "string: " << tVal << std::endl;
 			m_prop.add(std::move(*optPath), std::forward<T>(tVal));
 		}
 		else
@@ -577,6 +620,7 @@ public:
 			m_prop.add(std::move(*optPath), std::move(strVal));
 		}
 	}
+
 
 	template<class t_map = std::map<t_str, t_str>>
 	void Add(const t_map& map)
@@ -593,6 +637,7 @@ public:
 			Add<t_str>(std::move(strKey), std::move(strVal));
 		}
 	}
+
 
 	friend std::ostream& operator<<(std::ostream& ostr,
 		const Prop<_t_str, bCaseSensitive>& prop)

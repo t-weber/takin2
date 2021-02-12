@@ -5,9 +5,10 @@
  * @license GPLv2
  *
  * @desc This is a reimplementation in C++ of the files rc_projs.m and rc_int.m of the
- *	- rescal5 package by Zinkin, McMorrow, Tennant, Farhi, and Wildes:
- *	  http://www.ill.eu/en/instruments-support/computing-for-science/cs-software/all-software/matlab-ill/rescal-for-matlab/
+ *  - rescal5 package by Zinkin, McMorrow, Tennant, Farhi, and Wildes:
+ *      http://www.ill.eu/en/instruments-support/computing-for-science/cs-software/all-software/matlab-ill/rescal-for-matlab/
  *  - and the 'mcresplot.pl' program from McStas (www.mcstas.org)
+ *      https://github.com/McStasMcXtrace/McCode/blob/master/tools/Legacy-Perl/mcresplot.pl
  *  - see also: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014)
  */
 
@@ -92,7 +93,7 @@ enum class EllipseCoordSys : int
 
 /**
  * project along one axis of the quadratic part of the quadric to remove line and column iIdx
- * this is a 1:1 C++ reimplementation of 'rc_int' from 'mcresplot' and 'rescal5'
+ * this is a 1:1 C++ reimplementation of 'rc_int' from 'mcresplot.pl' and 'rescal5'
  * (see also [eck14], equ. 57)
  * project along row/column iIdx
  *
@@ -298,7 +299,7 @@ static inline const std::string& ellipse_labels(int iCoord, EllipseCoordSys sys,
 
 
 /*
- * this is a 1:1 C++ reimplementation of 'proj_elip' from 'mcresplot' and 'rescal5'
+ * this is a 1:1 C++ reimplementation of 'proj_elip' from 'mcresplot.pl' and 'rescal5'
  * iX, iY: dimensions to plot
  * iInt: dimension to integrate
  * iRem1, iRem2: dimensions to remove

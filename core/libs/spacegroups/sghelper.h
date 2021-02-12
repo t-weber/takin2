@@ -384,15 +384,16 @@ bool is_centering_reflection_allowed(const std::string& strSG, t_int h, t_int k,
 
 /**
  * checks for allowed Bragg reflections
+ *
  * algorithm based on Clipper's HKL_class
- * constructor in clipper/core/coords.cpp by K. Cowtan, 2013
+ *   constructor in clipper/core/coords.cpp by K. Cowtan, 2013
  * @see http://www.ysbl.york.ac.uk/~cowtan/clipper/
  *
  * symmetry operation S on position r: R*r + t
  * F = sum<S>( exp(2*pi*i * (R*r + t)*G) )
  *   = sum<S>( exp(2*pi*i * ((R*r)*G + t*G)) )
  *   = sum<S>( exp(2*pi*i * (r*(G*R) + t*G)) )
- *   = sum<S>( exp(2*pi*i * (r*(G*R))  *  exp(2*pi*i * (G*t)) )
+ *   = sum<S>( exp(2*pi*i * (r*(G*R)))  *  exp(2*pi*i * (G*t)) )
  */
 template<template<class...> class t_cont = std::vector,
 	class t_mat = ublas::matrix<double>,

@@ -44,7 +44,7 @@ void normalise_P(std::vector<t_real>* pp_vec)
 
 /*
  * this function tries to be a 1:1 C++ reimplementation of the Perl function
- * 'read_mcstas_res' of the McStas 'mcresplot' program
+ * 'read_mcstas_res' of the McStas 'mcresplot.pl' program
  */
 Resolution calc_res(const std::vector<vector<t_real>>& Q_vec, const std::vector<t_real>* pp_vec,
 	const ublas::vector<t_real> *qPara, const ublas::vector<t_real> *qPerp)
@@ -149,7 +149,7 @@ Resolution calc_res(const std::vector<vector<t_real>>& Q_vec, const std::vector<
 
 /*
  * this function tries to be a 1:1 C++ reimplementation of the Perl function
- * 'read_mcstas_res' of the McStas 'mcresplot' program
+ * 'read_mcstas_res' of the McStas 'mcresplot.pl' program
  */
 Resolution calc_res(
 	const std::vector<ublas::vector<t_real>>& vecKi, const std::vector<ublas::vector<t_real>>& vecKf,
