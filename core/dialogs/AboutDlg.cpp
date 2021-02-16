@@ -55,6 +55,7 @@ AboutDlg::AboutDlg(QWidget* pParent, QSettings *pSett)
 
 	labelDesc->setText("Overviews of Takin can be found here:"
 		"<ul>"
+		"<li><a href=\"http://dx.doi.org/10.1016/j.softx.2021.100667\">doi:10.1016/j.softx.2021.100667</a>,</li>"
 		"<li><a href=\"http://dx.doi.org/10.1016/j.softx.2017.06.002\">doi:10.1016/j.softx.2017.06.002</a>,</li>"
 		"<li><a href=\"http://dx.doi.org/10.1016/j.softx.2016.06.002\">doi:10.1016/j.softx.2016.06.002</a>.</li>"
 		"</ul>");
