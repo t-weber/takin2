@@ -262,12 +262,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ROOT (Minuit2, etc.)
 URL: https://root.cern.ch
 URL: https://github.com/root-project/root
+URL: https://github.com/root-project/root/tree/master/math/minuit2
 URL: https://doi.org/10.5281/zenodo.848818
 URL: http://seal.web.cern.ch/seal/snapshot/work-packages/mathlibs/minuit/release/download.html
 
 Copyright (c) 1995-2021 by The ROOT Team.
 
 License: GNU LGPL version 2.1 (see below)
+License URL: https://root.cern/about/license/
 --------------------------------------------------------------------------------
 
 
