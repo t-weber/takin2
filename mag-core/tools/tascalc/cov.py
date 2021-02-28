@@ -7,6 +7,7 @@
 #
 # @desc For a good explanation of the covariance matrix method, see (Arens 2015), pp. 795 and 1372.
 # @desc reimplements the functionality of https://github.com/McStasMcXtrace/McCode/blob/master/tools/Legacy-Perl/mcresplot.pl
+# @desc see also [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014), doi: 10.1016/j.nima.2014.03.019
 #
 
 import os
@@ -206,6 +207,7 @@ def descr_ellipse(quadric):
 
 #
 # projects along one axis of the quadric
+# see [eck14], equ. 57
 #
 def proj_quad(_E, idx):
 	E = np.delete(np.delete(_E, idx, axis=0), idx, axis=1)
@@ -215,8 +217,9 @@ def proj_quad(_E, idx):
 	v = (_E[idx,:] + _E[:,idx]) * 0.5
 	vv = np.outer(v, v) / _E[idx, idx]
 	vv = np.delete(np.delete(vv, idx, axis=0), idx, axis=1)
+	proj = E - vv
 
-	return E - vv
+	return proj
 
 
 

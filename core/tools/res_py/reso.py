@@ -6,8 +6,9 @@
 # @date mar-2019
 # @license GPLv2
 #
-# @desc for algorithm: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014)
+# @desc for algorithm: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014), doi: 10.1016/j.nima.2014.03.019
 # @desc see covariance calculations: https://code.ill.fr/scientific-software/takin/mag-core/blob/master/tools/tascalc/cov.py
+# @desc see also https://github.com/McStasMcXtrace/McCode/blob/master/tools/Legacy-Perl/mcresplot.pl
 #
 
 # requires numpy version >= 1.10
@@ -31,18 +32,26 @@ def ellipsoid_volume(mat):
 
 #
 # projects along one axis of the quadric
-# (see [eck14], equ. 57)
+# see [eck14], equ. 57
 #
 def quadric_proj(_E, idx):
     E = np.delete(np.delete(_E, idx, axis=0), idx, axis=1)
     if np.abs(_E[idx, idx]) < 1e-8:
         return E
 
-    v = 0.5 * (_E[idx,:] + _E[:,idx])
+    v = (_E[idx,:] + _E[:,idx]) * 0.5
     vv = np.outer(v, v) / _E[idx, idx]
     vv = np.delete(np.delete(vv, idx, axis=0), idx, axis=1)
+    proj = E - vv
 
-    return E - vv
+    #v_check = np.delete(v, idx, axis=0)
+    #E_check = np.delete(np.delete(_E, idx, axis=0), idx, axis=1)
+    #vv_check = np.outer(v_check, v_check) / _E[idx, idx]
+    #proj_check = E_check - vv_check
+    #print("proj1: %s" % proj)
+    #print("proj2: %s\n" % proj_check)
+
+    return proj
 
 
 #
