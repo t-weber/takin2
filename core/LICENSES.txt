@@ -562,8 +562,8 @@ subject to the following restrictions:
 
 
 --------------------------------------------------------------------------------
-Text of the GNU GPL version 2 (only pertaining to above-mentioned third-party 
-software products which use this license):
+Text of the GNU GPL version 2 from https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+(only pertaining to above-mentioned third-party software products which use this license):
 --------------------------------------------------------------------------------
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
@@ -909,8 +909,8 @@ Public License instead of this License.
 
 
 --------------------------------------------------------------------------------
-Text of the GNU LGPL version 2.1 (only pertaining to above-mentioned third-party 
-software products which use this license):
+Text of the GNU LGPL version 2.1 from https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+(only pertaining to above-mentioned third-party software products which use this license):
 --------------------------------------------------------------------------------
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
