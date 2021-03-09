@@ -12,15 +12,20 @@
 #include <mutex>
 #include <memory>
 #include <string>
+#include <vector>
 #include <unistd.h>
 #include <boost/interprocess/ipc/message_queue.hpp>
 
 
-
 enum class SqwProcStartMode
 {
+	// run the parent process and fork child processes
 	START_PARENT_CREATE_CHILD,
+
+	// run the parent process, forking a child process
 	START_PARENT_FORK_CHILD,
+
+	// run the child process
 	START_CHILD
 };
 
@@ -33,20 +38,22 @@ private:
 
 
 protected:
-	mutable std::shared_ptr<std::mutex> m_pmtx;
+	mutable std::vector<std::shared_ptr<std::mutex>> m_pmtx;
 
-	std::string m_strProcName;
-	pid_t m_pidChild = 0;
+	std::size_t m_iNumChildProcesses = 1;
+	std::string m_strProcBaseName;
+	std::vector<pid_t> m_pidChild;
 
-	std::shared_ptr<boost::interprocess::managed_shared_memory> m_pMem;
-	std::shared_ptr<boost::interprocess::message_queue> m_pmsgIn, m_pmsgOut;
-	void *m_pSharedPars = nullptr;
+	std::vector<std::shared_ptr<boost::interprocess::managed_shared_memory>> m_pMem;
+	std::vector<std::shared_ptr<boost::interprocess::message_queue>> m_pmsgIn, m_pmsgOut;
+	std::vector<void*> m_pSharedPars;
 
 
 public:
 	SqwProc();
 	SqwProc(const char* pcCfg, SqwProcStartMode mode=SqwProcStartMode::START_PARENT_FORK_CHILD,
-		const char* pcProcMemName = nullptr, const char* pcProcExecName = nullptr);
+		const char* pcProcMemName = nullptr, const char* pcProcExecName = nullptr,
+		std::size_t iNumChildProcesses = 1);
 	explicit SqwProc(const std::string& strCfg);
 	virtual ~SqwProc();
 

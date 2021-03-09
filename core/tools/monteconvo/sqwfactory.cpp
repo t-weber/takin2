@@ -175,8 +175,14 @@ std::shared_ptr<SqwBase> construct_sqw(const std::string& strName,
 	{
 		tl::log_debug("Constructing \"", iterExt->first, "\" S(q,w) module via external interface.");
 
+		// limit number of spawned child processes
+		std::size_t iNumProcesses = g_iMaxThreads;
+		if(iNumProcesses > 8)
+			iNumProcesses = 8;
+
 		return std::make_shared<SqwProc<SqwNull>>(strConfigFile.c_str(),
-			SqwProcStartMode::START_PARENT_CREATE_CHILD, nullptr, std::get<1>(iterExt->second).c_str());
+			SqwProcStartMode::START_PARENT_CREATE_CHILD, nullptr,
+			std::get<1>(iterExt->second).c_str(), iNumProcesses);
 	}
 
 	tl::log_err("No S(q,w) model of name \"", strName, "\" found.");
