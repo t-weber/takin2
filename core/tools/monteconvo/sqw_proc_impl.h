@@ -435,7 +435,7 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 				m_bOk = msgReady.bRet;
 				if(!m_bOk)
 				{
-					m_iNumChildProcesses = iChild;
+					m_iNumChildProcesses = iChild + 1;
 					break;
 				}
 			}
