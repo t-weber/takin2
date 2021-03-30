@@ -42,7 +42,7 @@ DEALINGS IN THE SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-Rescal
+Rescal, Version 5
 URL: https://www.ill.eu/instruments-support/computing-for-science/cs-software/all-software/matlab-ill/#c4703 
 License: GNU GPL version 2 (see below)
 
