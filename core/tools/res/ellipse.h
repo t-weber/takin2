@@ -5,7 +5,7 @@
  * @license GPLv2
  *
  * @desc This is a reimplementation in C++ of the files rc_projs.m and rc_int.m of the
- *  - 'rescal5' package by Zinkin, McMorrow, Tennant, Farhi, and Wildes:
+ *  - 'rescal5' package by Zinkin, McMorrow, Tennant, Farhi, and Wildes (ca. 1995-2007):
  *      http://www.ill.eu/en/instruments-support/computing-for-science/cs-software/all-software/matlab-ill/rescal-for-matlab/
  *  - and the 'mcresplot.pl' program from McStas (www.mcstas.org):
  *      https://github.com/McStasMcXtrace/McCode/blob/master/tools/Legacy-Perl/mcresplot.pl
