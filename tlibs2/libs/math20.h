@@ -5163,7 +5163,7 @@ requires is_basic_mat<t_mat>
  * polarisation density matrix: rho = 0.5 * (1 + <P|sigma>)
  *
  * @see https://doi.org/10.1016/B978-044451050-1/50006-9
- * @see (Bronstein 2008), Ch. 21 (Zusatzkapitel.pdf), pp. 11-12
+ * @see (Bronstein 2008), Ch. 21 (Zusatzkapitel.pdf), pp. 11-12 and p. 24
  */
 template<class t_vec, class t_mat>
 t_mat pol_density_mat(const t_vec& P, typename t_vec::value_type c=0.5)
