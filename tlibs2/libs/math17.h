@@ -2679,7 +2679,8 @@ typename T::value_type vec_angle_unsigned(const T& q1, const T& q2)
 
 /**
  * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
- * @see (Bronstein 2008), formula 4.207
+ * @see (Desktop Bronstein 2008), formula 4.207
+ * @see (Bronstein 2008), p. 306, formula 4.155
  */
 template<class T>
 T slerp(const T& q1, const T& q2, typename T::value_type t)
@@ -3043,7 +3044,8 @@ get_minmax(const T& t)
 
 /**
  * Calculates the dominant eigenvector/eigenvalue for symmetric matrices
- * @see (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Desktop Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), p. 324
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -3083,7 +3085,8 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 /**
  * calculates the least dominant eigenvector/eigenvalue for symmetric matrices
- * @see (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Desktop Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), p. 324
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -3701,7 +3704,8 @@ t_quat unit_quat()
 
 /**
  * calculates the quaternion inverse
- * @see e.g.: (Bronstein 2008), Ch. 4
+ * @see (Bronstein 2008), Ch. 4
+ * @see (Kuipers 2002), p. 112
  */
 template<class t_quat = math::quaternion<double>>
 t_quat quat_inverse(const t_quat& q)
@@ -3790,7 +3794,8 @@ quat_type rot3_to_quat(const mat_type& rot)
 
 /**
  * quat -> 3x3 matrix
- * @see e.g.: (Bronstein 2008), Formulas (4.162a/b)
+ * @see (Desktop Bronstein 2008), formulas (4.162a/b)
+ * @see (Bronstein 2008), p. 296, formulas (4.109a/b)
  */
 template<class mat_type=ublas::matrix<double>,
 	class quat_type=math::quaternion<typename mat_type::value_type>>
@@ -3928,7 +3933,7 @@ T rotation_angle(const math::quaternion<T>& quat)
 
 /**
  * quat -> rotation axis
- * @see e.g.: (Bronstein 2008), Ch. 4
+ * @see (Bronstein 2008), Ch. 4, pp. 301-302
  */
 template<class t_vec = ublas::vector<double>>
 t_vec rotation_axis(const math::quaternion<typename t_vec::value_type>& quat)
@@ -3949,7 +3954,8 @@ t_vec rotation_axis(const math::quaternion<typename t_vec::value_type>& quat)
 
 /**
  * rotation axis -> quat
- * @see e.g.: (Bronstein 2008), formula (4.193)
+ * @see (Desktop Bronstein 2008), formula (4.193)
+ * @see (Bronstein 2008), p. 302
  */
 template<class quat_type = math::quaternion<double>,
 	class vec_type = ublas::vector<typename quat_type::value_type>,
@@ -4105,7 +4111,8 @@ std::vector<T> quat_to_euler(const quat_type& quat)
 
 
 /**
- * @see e.g.: (Bronstein 2008), formula (4.217)
+ * @see (Desktop Bronstein 2008), formula (4.217)
+ * @see (Bronstein 2008), p. 308, formula (4.165)
  */
 template<class quat_type=math::quaternion<double>,
 	typename T = typename quat_type::value_type>
@@ -4116,7 +4123,8 @@ quat_type stereo_proj(const quat_type& quat)
 
 
 /**
- * @see e.g.: (Bronstein 2008), formula (4.217)
+ * @see (Desktop Bronstein 2008), formula (4.217)
+ * @see (Bronstein 2008), p. 308, formula (4.165)
  */
 template<class quat_type=math::quaternion<double>,
 	typename T = typename quat_type::value_type>

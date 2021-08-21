@@ -218,7 +218,8 @@ requires is_quat<t_quat>
 /**
  * slerp
  * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
- * @see (Bronstein 2008), formula 4.207
+ * @see (Desktop Bronstein 2008), formula 4.207
+ * @see (Bronstein 2008), p. 306, formula 4.155
  */
 template<class T>
 T slerp(const T& q1, const T& q2, typename T::value_type t)
@@ -5163,7 +5164,7 @@ requires is_basic_mat<t_mat>
  * polarisation density matrix: rho = 0.5 * (1 + <P|sigma>)
  *
  * @see https://doi.org/10.1016/B978-044451050-1/50006-9
- * @see (Bronstein 2008), Ch. 21 (Zusatzkapitel.pdf), pp. 11-12 and p. 24
+ * @see (Desktop Bronstein 2008), Ch. 21 (Zusatzkapitel.pdf), pp. 11-12 and p. 24
  */
 template<class t_vec, class t_mat>
 t_mat pol_density_mat(const t_vec& P, typename t_vec::value_type c=0.5)
@@ -6480,6 +6481,7 @@ template<class t_quat> t_quat unit_quat() requires is_quat<t_quat>
 /**
  * calculates the quaternion inverse
  * @see (Bronstein 2008), Ch. 4
+ * @see (Kuipers 2002), p. 112
  */
 template<class t_quat> t_quat inv(const t_quat& q) requires is_quat<t_quat>
 {
@@ -6561,7 +6563,8 @@ requires is_quat<t_quat> && is_mat<t_mat>
 
 /**
  * quat -> 3x3 matrix
- * @see (Bronstein 2008), Formulas (4.162a/b)
+ * @see (Desktop Bronstein 2008), formulas (4.162a/b)
+ * @see (Bronstein 2008), p. 296, formulas (4.109a/b)
  */
 template<class t_quat, class t_mat>
 t_mat quat_to_rot3(const t_quat& quat)
@@ -6648,7 +6651,7 @@ requires is_quat<t_quat>
 
 /**
  * quat -> rotation axis
- * @see (Bronstein 2008), Ch. 4
+ * @see (Bronstein 2008), Ch. 4, pp. 301-302
  */
 template<class t_quat, class t_vec>
 std::pair<t_vec, typename t_vec::value_type> rotation_axis(const t_quat& quat)
@@ -6671,7 +6674,8 @@ requires is_quat<t_quat> && is_vec<t_vec>
 
 /**
  * rotation axis -> quat
- * @see (Bronstein 2008), formula (4.193)
+ * @see (Desktop Bronstein 2008), formula (4.193)
+ * @see (Bronstein 2008), p. 302
  */
 template<class t_vec, class t_quat>
 t_quat rotation_quat(const t_vec& vec, typename t_vec::value_type angle)
@@ -6816,7 +6820,8 @@ requires is_quat<t_quat>
 
 
 /**
- * @see (Bronstein 2008), formula (4.217)
+ * @see (Desktop Bronstein 2008), formula (4.217)
+ * @see (Bronstein 2008), p. 308, formula (4.165)
  */
 template<class t_quat>
 t_quat stereo_proj(const t_quat& quat)
@@ -6828,7 +6833,8 @@ requires is_quat<t_quat>
 
 
 /**
- * @see (Bronstein 2008), formula (4.217)
+ * @see (Desktop Bronstein 2008), formula (4.217)
+ * @see (Bronstein 2008), p. 308, formula (4.165)
  */
 template<class t_quat>
 t_quat stereo_proj_inv(const t_quat& quat)

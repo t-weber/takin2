@@ -2098,7 +2098,8 @@ typename T::value_type vec_angle_unsigned(const T& q1, const T& q2)
 
 /**
  * @see K. Shoemake, "Animating rotation with quaternion curves", http://dx.doi.org/10.1145/325334.325242
- * @see (Bronstein 2008), formula 4.207
+ * @see (Desktop Bronstein 2008), formula 4.207
+ * @see (Bronstein 2008), p. 306, formula 4.155
  */
 template<class T>
 T slerp(const T& q1, const T& q2, typename T::value_type t)
@@ -2483,7 +2484,8 @@ get_minmax(const T& t)
 
 /**
  * calculates the dominant eigenvector/eigenvalue for symmetric matrices
- * @see (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Desktop Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), p. 324
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
@@ -2523,7 +2525,8 @@ bool eigenvec_dominant_sym(const t_mat& mat, t_vec& evec, T& eval,
 
 /**
  * calculates the least dominant eigenvector/eigenvalue for symmetric matrices
- * @see (Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Desktop Bronstein 2008), equs. (4.148)-(4.151)
+ * @see (Bronstein 2008), p. 324
  */
 template<class t_mat = ublas::matrix<double>,
 	class t_vec = ublas::vector<typename t_mat::value_type>,
