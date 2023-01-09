@@ -2,20 +2,57 @@
  * tlibs2
  * logger/debug library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2014-2020
+ * @date 2014-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include "log.h"
 #include <iomanip>
 #include <boost/date_time/c_time.hpp>
+#if !defined(NDEBUG) && defined(_GNU_SOURCE)
+	#include <boost/stacktrace.hpp>
+#endif
 
 
 namespace tl2 {
 
 std::recursive_mutex Log::s_mtx;
 bool Log::s_bTermCmds = 1;
+
+
+std::string get_stacktrace()
+{
+#if !defined(NDEBUG) && defined(_GNU_SOURCE)
+	std::ostringstream ostr{};
+	boost::stacktrace::stacktrace trace{};
+	ostr << trace;
+	return ostr.str();
+#else
+	return "";
+#endif
+}
+
 
 std::string Log::get_timestamp()
 {
@@ -54,12 +91,14 @@ std::string Log::get_timestamp()
 	}
 }
 
+
 std::string Log::get_thread_id()
 {
 	std::ostringstream ostr;
 	ostr << std::hex << std::this_thread::get_id();
 	return ostr.str();
 }
+
 
 std::string Log::get_color(LogColor col, bool bBold)
 {
@@ -80,11 +119,12 @@ std::string Log::get_color(LogColor col, bool bBold)
 	}
 }
 
+
 void Log::begin_log()
 {
 	s_mtx.lock();
 
-	std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
+	const std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
 	std::vector<t_pairOstr> vecOstrs = arrayunion({m_vecOstrs, vecOstrsTh});
 
 	for(t_pairOstr &pairOstr : vecOstrs)
@@ -130,10 +170,11 @@ void Log::begin_log()
 	}
 }
 
+
 void Log::end_log()
 {
-        std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
-        std::vector<t_pairOstr> vecOstrs = arrayunion({m_vecOstrs, vecOstrsTh});
+	const std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
+	std::vector<t_pairOstr> vecOstrs = arrayunion({m_vecOstrs, vecOstrsTh});
 
 	for(t_pairOstr& pairOstr : vecOstrs)
 	{
@@ -149,6 +190,7 @@ void Log::end_log()
 	s_mtx.unlock();
 }
 
+
 void Log::inc_depth()
 {
 	std::lock_guard<decltype(s_mtx)> _lck(s_mtx);
@@ -156,6 +198,7 @@ void Log::inc_depth()
 	if(m_iDepth++ == 0)
 		begin_log();
 }
+
 
 void Log::dec_depth()
 {
@@ -167,13 +210,16 @@ void Log::dec_depth()
 	}
 }
 
+
 Log::Log() : m_vecOstrs{{&std::cerr, 1}}, m_mapOstrsTh{}, m_strInfo{}
 {}
+
 
 Log::Log(const std::string& strInfo, LogColor col, std::ostream* pOstr)
 	: m_vecOstrs{{pOstr ? pOstr : &std::cerr, 1}},
 		m_mapOstrsTh{}, m_strInfo(strInfo), m_col(col)
 {}
+
 
 Log::~Log()
 {
@@ -183,10 +229,12 @@ Log::~Log()
 	m_vecOstrs.clear();
 }
 
+
 std::vector<Log::t_pairOstr>& Log::GetThreadOstrs()
 {
 	return m_mapOstrsTh[std::this_thread::get_id()];
 }
+
 
 void Log::AddOstr(std::ostream* pOstr, bool bCol, bool bThreadLocal)
 {
@@ -201,6 +249,7 @@ void Log::AddOstr(std::ostream* pOstr, bool bCol, bool bThreadLocal)
 		m_vecOstrs.push_back({pOstr, bCol});
 	}
 }
+
 
 void Log::RemoveOstr(std::ostream* pOstr)
 {
@@ -225,6 +274,7 @@ void Log::RemoveOstr(std::ostream* pOstr)
 }
 
 
+// use -fvisibility=hidden to avoid multiple calls to the destructors in loaded external libraries
 Log log_info("INFO", LogColor::WHITE, &std::cerr),
 	log_warn("WARNING", LogColor::YELLOW, &std::cerr),
 	log_err("ERROR", LogColor::RED, &std::cerr),

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 07-mar-2013
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS_MISC_HELPER__
@@ -136,7 +157,7 @@ unsigned int lerprgb(unsigned char r1, unsigned char g1, unsigned char b1,
 	unsigned char g = lerp(g1, g2, dval);
 	unsigned char b = lerp(b1, b2, dval);
 
-	return (0xff<<24) | (r<<16) | (g<<8) | (b);
+	return (unsigned(0xff)<<24) | (r<<16) | (g<<8) | (b);
 }
 
 
@@ -156,7 +177,7 @@ unsigned int lerprgb(unsigned int col1, unsigned int col2, T dval)
 	unsigned char g = lerp(g1, g2, dval);
 	unsigned char b = lerp(b1, b2, dval);
 
-	return (0xff<<24) | (r<<16) | (g<<8) | (b);
+	return (unsigned(0xff)<<24) | (r<<16) | (g<<8) | (b);
 }
 // -----------------------------------------------------------------------------
 
@@ -171,11 +192,11 @@ struct sort_obj
 
 
 template<class T>
-bool comp_fkt(sort_obj<T> t0, sort_obj<T> t1)
+bool comp_fkt(const sort_obj<T>& t0, const sort_obj<T>& t1)
 { return t0.vec[0] < t1.vec[0]; }
 
 
-/** 
+/**
  * simultaneously sort two arrays
  */
 template<class Iter=double*>
@@ -202,7 +223,7 @@ void sort_2(Iter begin1, Iter end1, Iter begin2)
 }
 
 
-/** 
+/**
  * simultaneously sort three arrays
  */
 template<class Iter=double*>

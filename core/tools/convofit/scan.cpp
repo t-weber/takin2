@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "scan.h"
@@ -171,7 +192,7 @@ bool load_file(const std::vector<std::string>& vecFiles, Scan& scan, bool bNormT
 	{
 		scan.dTemp = tl::mean_value(vecTemp);
 		scan.dTempErr = tl::std_dev(vecTemp);
-		tl::log_info("Sample temperature: ", scan.dTemp, " +- ", scan.dTempErr);
+		tl::log_info("Sample temperature: ", scan.dTemp, " +- ", scan.dTempErr, ".");
 	}
 
 	const tl::FileInstrBase<t_real_sc>::t_vecVals& vecField = pInstr->GetCol(scan.strFieldCol);
@@ -262,7 +283,7 @@ bool load_file(const std::vector<std::string>& vecFiles, Scan& scan, bool bNormT
 
 	scan.m_iScIdx = 0;
 
-	if(iScanAxis >= 1 && iScanAxis <=4)
+	if(iScanAxis >= 1 && iScanAxis <= 4)
 	{
 		scan.m_iScIdx = iScanAxis-1;
 		scan.vecMainScanDir[scan.m_iScIdx] = 1.;
@@ -307,7 +328,7 @@ bool load_file(const std::vector<std::string>& vecFiles, Scan& scan, bool bNormT
 	decltype(scan.vecPoints) vecPointsNew;
 	decltype(scan.vecX) vecXNew;
 	decltype(scan.vecCts) vecCtsNew, vecMonNew, vecCtsErrNew, vecMonErrNew;
-	decltype(scan.vechklE) vechklENew;
+	decltype(scan.vechklE) vechklENew{};
 
 	for(std::size_t i=0; i<iNumPts; ++i)
 	{

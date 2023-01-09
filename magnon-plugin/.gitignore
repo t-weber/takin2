@@ -1,0 +1,46 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.moc
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Temporary files
+bin/**
+lib/**
+tmp/**
+*.pyc
+*.csv
+.DS_Store
+build
+build/**
+
+# External dependencies
+ext/tlibs
+ext/tlibs2
+ext/takin
+ext/takin2
+ext/tlibs/**
+ext/tlibs2/**
+ext/takin/**
+ext/takin2/**
+
+# Figures
+*.jpg
+*.png

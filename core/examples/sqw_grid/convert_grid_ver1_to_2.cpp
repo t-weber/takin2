@@ -19,7 +19,7 @@
  * <index block>
  *
  * Data block format:
- *     repeat for each reduced wave vector q:
+ *     repeat for each wave vector Q:
  *         4 bytes (unsigned int): number of dispersion branches
  *             repeat (number of branches times):
  *                 8 bytes (double): energy

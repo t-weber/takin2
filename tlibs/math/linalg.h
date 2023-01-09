@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2013-2018
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS_LINALG_H__
@@ -706,6 +727,31 @@ matrix_type submatrix_wnd(const matrix_type& mat, std::size_t iSubRows, std::siz
 }
 
 
+/**
+ * unite two matrices copying matrix 1 in the upper left block and matrix 2 in the lower right
+ */
+template<class matrix_type>
+matrix_type block_matrix(const matrix_type& mat1, const matrix_type& mat2)
+{
+	matrix_type matret(mat1.size1()+mat2.size1(), mat1.size2()+mat2.size2());
+
+	for(std::size_t i=0; i<matret.size1(); ++i)
+	{
+		for(std::size_t j=0; j<matret.size2(); ++j)
+		{
+			if(i>=0 && i<mat1.size1() && j>=0 && j<mat1.size2())
+				matret(i, j) = mat1(i, j);
+			else if(i>=mat1.size1() && j>=mat1.size2())
+				matret(i, j) = mat2(i-mat1.size1(), j-mat1.size2());
+			else
+				matret(i, j) = 0;
+		}
+	}
+
+	return matret;
+}
+
+
 template<class matrix_type>
 matrix_type remove_column(const matrix_type& mat, std::size_t iCol)
 {
@@ -1200,7 +1246,7 @@ bool is_centering_matrix(const t_mat& mat)
 
 	// translation?
 	if(has_translation_components<t_mat>(mat))
-			return true;
+		return true;
 	return false;
 }
 
@@ -1409,6 +1455,7 @@ bool inverse(const mat_type& mat, mat_type& inv)
 {
 	using T = typename mat_type::value_type;
 	const typename mat_type::size_type N = mat.size1();
+
 	if(N != mat.size2())
 		return false;
 
@@ -1429,6 +1476,36 @@ bool inverse(const mat_type& mat, mat_type& inv)
 			"Matrix to be inverted was: ", mat, ".");
 		return false;
 	}
+
+	return true;
+}
+
+
+/**
+ * calculates the matrix inverse of a diagonal matrix
+ */
+template<class mat_type = ublas::matrix<double>>
+bool inverse_diag(const mat_type& mat, mat_type& inv)
+{
+	using T = typename mat_type::value_type;
+	const typename mat_type::size_type N = mat.size1();
+
+	if(N != mat.size2())
+		return false;
+
+	try
+	{
+		inv = zero_m<mat_type>(N, N);
+		for(std::size_t i=0; i<N; ++i)
+			inv(i, i) = T(1) / mat(i, i);
+	}
+	catch(const std::exception& ex)
+	{
+		log_err("Diagonal matrix inversion failed with exception: ", ex.what(), ".", "\n",
+			"Matrix to be inverted was: ", mat, ".");
+		return false;
+	}
+
 	return true;
 }
 

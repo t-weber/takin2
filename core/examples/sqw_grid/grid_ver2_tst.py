@@ -4,6 +4,27 @@
 # @date 4-feb-2020
 # @license GPLv2
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
 import numpy as np
 
@@ -163,13 +184,19 @@ def plot_disp(datafilehandle, hklbegin, hklend, hklsteps):
     plt = fig.add_subplot(111)
     plt.set_xlabel("q (rlu)")
     plt.set_ylabel("E (meV)")
-    plt.set_xlim(-0.09, 0.09)
-    plt.set_ylim(-1., 1.)
+
+    #plt.set_xlim(-0.09, 0.09)
+    #plt.set_ylim(-1., 1.)
+    plt.set_ylim(np.min(Es), np.max(Es))
+
     if plot_dir == 0:
+        plt.set_xlim(np.min(qs_h), np.max(qs_h))
         plt.scatter(qs_h, Es, marker=".", s=ws*symscale)
     elif plot_dir == 1:
+        plt.set_xlim(np.min(qs_k), np.max(qs_k))
         plt.scatter(qs_k, Es, marker=".", s=ws*symscale)
     else:
+        plt.set_xlim(np.min(qs_l), np.max(qs_l))
         plt.scatter(qs_l, Es, marker=".", s=ws*symscale)
 
     plot.tight_layout()

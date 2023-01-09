@@ -5,6 +5,27 @@
 # @date jan-2021
 # @license GPLv2
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
 LICDIR=3rdparty_licenses
 
@@ -36,7 +57,7 @@ if ! wget https://raw.githubusercontent.com/root-project/root/master/LICENSE -O 
 fi
 
 # qwt
-if ! wget https://raw.githubusercontent.com/qwtplot/qwt/trunk/COPYING -O ${LICDIR}/qwt_license.txt; then
+if ! wget https://sourceforge.net/p/qwt/git/ci/develop/tree/COPYING\?format=raw -O ${LICDIR}/qwt_license.txt; then
 	echo -e "Error: Cannot download Qwt license.";
 fi
 
@@ -66,7 +87,8 @@ if ! wget https://raw.githubusercontent.com/egonw/bodr/master/bodr/COPYING -O ${
 fi
 
 # dejavu
-if ! wget https://dejavu-fonts.github.io/License.html -O ${LICDIR}/dejavu_license.htm; then
+#if ! wget https://dejavu-fonts.github.io/License.html -O ${LICDIR}/dejavu_license.htm; then
+if ! wget https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/LICENSE -O ${LICDIR}/dejavu_license.txt; then
 	echo -e "Error: Cannot download DejaVu license.";
 fi
 
@@ -76,7 +98,8 @@ if ! wget https://raw.githubusercontent.com/freedesktop/libjpeg/master/README -O
 fi
 
 # libtiff
-if ! wget http://www.libtiff.org/misc.html -O ${LICDIR}/libtiff_license.htm; then
+#if ! wget http://www.libtiff.org/misc.html -O ${LICDIR}/libtiff_license.htm; then
+if ! wget https://raw.githubusercontent.com/vadz/libtiff/master/COPYRIGHT -O ${LICDIR}/libtiff_license.txt; then
 	echo -e "Error: Cannot download libtiff license.";
 fi
 
@@ -98,4 +121,34 @@ fi
 # qcustomplot
 if ! wget https://gitlab.com/DerManu/QCustomPlot/-/raw/master/GPL.txt -O ${LICDIR}/qcustomplot_license.txt; then
 	echo -e "Error: Cannot download QCustomPlot license.";
+fi
+
+# xz
+if ! wget https://git.tukaani.org/\?p=xz.git\;a=blob_plain\;f=COPYING -O ${LICDIR}/xz_license.txt; then
+	echo -e "Error: Cannot download XZ license.";
+fi
+
+# zstd
+if ! wget https://raw.githubusercontent.com/facebook/zstd/dev/LICENSE -O ${LICDIR}/zstd_license.txt; then
+	echo -e "Error: Cannot download Zstandard license.";
+fi
+
+# libintl
+if ! wget https://git.savannah.gnu.org/cgit/gettext.git/plain/gettext-runtime/intl/COPYING.LIB -O ${LICDIR}/libintl_license.txt; then
+	echo -e "Error: Cannot download libintl license.";
+fi
+
+# pcre
+if ! wget https://raw.githubusercontent.com/PCRE2Project/pcre2/master/LICENCE -O ${LICDIR}/pcre_license.txt; then
+	echo -e "Error: Cannot download pcre license.";
+fi
+
+# glib
+if ! wget https://gitlab.gnome.org/GNOME/glib/-/raw/main/COPYING -O ${LICDIR}/glib_license.txt; then
+	echo -e "Error: Cannot download glib license.";
+fi
+
+# gcc runtime libraries
+if ! wget https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME -O ${LICDIR}/gcc_runtime_license.txt; then
+	echo -e "Error: Cannot download gcc_runtime license.";
 fi

@@ -43,3 +43,4 @@ doc/*
 obj/*
 !obj/.dir
 Faddeeva.*
+.DS_Store

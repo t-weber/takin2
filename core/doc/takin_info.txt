@@ -3,4 +3,4 @@ An inelastic neutron scattering software package.
 
 License: GPL version 2.
 Author: Tobias Weber.
-Date: 2014-2021.
+Date: 2014-2022.

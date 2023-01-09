@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "tlibs/file/prop.h"
@@ -156,6 +177,12 @@ bool Convofit::run_job(const std::string& _strJob)
 	if(strScFile == "")	// "scan_file_0" is synonymous to "scan_file"
 		strScFile = prop.Query<std::string>("input/scan_file_0");
 
+	boost::optional<unsigned> iMainScanAxis = prop.QueryOpt<unsigned>("input/scan_axis");  // 1-based scan axis
+	if(!iMainScanAxis)	// "scan_axis_0" is synonymous to "scan_axis"
+		iMainScanAxis = prop.Query<unsigned>("input/scan_axis_0", 0);
+	if(!iMainScanAxis)
+		iMainScanAxis = 0;	// automatic selection
+
 	std::string strTempCol = prop.Query<std::string>("input/temp_col");
 	std::string strFieldCol = prop.Query<std::string>("input/field_col");
 	bool bTempOverride = prop.Exists("input/temp_override");
@@ -176,8 +203,6 @@ bool Convofit::run_job(const std::string& _strJob)
 	bool bNormToMon = prop.Query<bool>("input/norm_to_monitor", 1);
 	bool bFlipCoords = prop.Query<bool>("input/flip_lhs_rhs", 0);
 	bool bUseFirstAndLastScanPt = prop.Query<bool>("input/use_first_last_pt", 0);
-	unsigned iScanAxis = prop.Query<unsigned>("input/scan_axis", 0);
-
 
 	if(g_strSetParams != "")
 	{
@@ -197,18 +222,22 @@ bool Convofit::run_job(const std::string& _strJob)
 	// files in inner vector will be merged
 	// files in outer vector will be used for multi-function fitting
 	std::vector<std::vector<std::string>> vecvecScFiles;
+	std::vector<unsigned> vecScanAxes;
 
-	// primary scan files
+	// primary scan file(s)
 	{
 		std::vector<std::string> vecScFiles;
 		tl::get_tokens<std::string, std::string>(strScFile, ";", vecScFiles);
 		std::for_each(vecScFiles.begin(), vecScFiles.end(), [](std::string& str){ tl::trim(str); });
 		vecvecScFiles.emplace_back(std::move(vecScFiles));
+
+		vecScanAxes.push_back(*iMainScanAxis);
 	}
 
 	// get secondary scan files for multi-function fitting
 	for(std::size_t iSecFile=1; 1; ++iSecFile)
 	{
+		// scan file names
 		std::string strSecFile = "input/scan_file_" + tl::var_to_str(iSecFile);
 		std::string strSecScFile = prop.Query<std::string>(strSecFile, "");
 		if(strSecScFile == "")
@@ -218,7 +247,15 @@ bool Convofit::run_job(const std::string& _strJob)
 		tl::get_tokens<std::string, std::string>(strSecScFile, ";", vecSecScFiles);
 		std::for_each(vecSecScFiles.begin(), vecSecScFiles.end(), [](std::string& str){ tl::trim(str); });
 		vecvecScFiles.emplace_back(std::move(vecSecScFiles));
+
+		// scan axes
+		unsigned iScanAxis = prop.Query<unsigned>("input/scan_axis_" + tl::var_to_str(iSecFile), *iMainScanAxis);
+		vecScanAxes.push_back(iScanAxis);
 	}
+
+	// fall-back default
+	if(!vecScanAxes.size())
+		vecScanAxes.push_back(*iMainScanAxis);
 	// --------------------------------------------------------------------
 
 
@@ -422,11 +459,14 @@ bool Convofit::run_job(const std::string& _strJob)
 		if(vecvecScFiles.size() > 1)
 			tl::log_info("Loading scan group ", iSc, ".");
 		if(!load_file(vecvecScFiles[iSc], sc, bNormToMon, filter,
-			bFlipCoords, bUseFirstAndLastScanPt, iScanAxis, g_bVerbose))
+			bFlipCoords, bUseFirstAndLastScanPt, vecScanAxes[iSc], g_bVerbose))
 		{
 			tl::log_err("Cannot load scan files of group ", iSc, ".");
 			continue;
 		}
+
+		// read back the determined scan axis
+		vecScanAxes[iSc] = sc.m_iScIdx + 1;
 
 		vecSc.emplace_back(std::move(sc));
 	}
@@ -438,14 +478,23 @@ bool Convofit::run_job(const std::string& _strJob)
 
 	tl::log_info("Number of scan groups: ", vecSc.size(), ".");
 
-	// scan plot object
-	tl::PlotObj<t_real> pltMeas;
+	// scan plot objects
+	std::vector<tl::PlotObj<t_real>> pltMeas;
 	if(bPlot || bPlotIntermediate)
 	{
-		pltMeas.vecX = vecSc[0].vecX;
-		pltMeas.vecY = vecSc[0].vecCts;
-		pltMeas.vecErrY = vecSc[0].vecCtsErr;
-		pltMeas.linestyle = tl::STYLE_POINTS;
+		pltMeas.reserve(vecSc.size());
+
+		for(std::size_t scan_group=0; scan_group<vecSc.size(); ++scan_group)
+		{
+			tl::PlotObj<t_real> thescan;
+
+			thescan.vecX = vecSc[scan_group].vecX;
+			thescan.vecY = vecSc[scan_group].vecCts;
+			thescan.vecErrY = vecSc[scan_group].vecCtsErr;
+			thescan.linestyle = tl::STYLE_POINTS;
+
+			pltMeas.emplace_back(std::move(thescan));
+		}
 	}
 	// --------------------------------------------------------------------
 
@@ -464,12 +513,14 @@ bool Convofit::run_job(const std::string& _strJob)
 
 		if(strResAlgo == "pop")
 			reso.SetAlgo(ResoAlgo::POP);
+		else if(strResAlgo == "pop_cn")
+			reso.SetAlgo(ResoAlgo::POP_CN);
 		else if(strResAlgo == "cn")
 			reso.SetAlgo(ResoAlgo::CN);
 		else if(strResAlgo == "eck")
 			reso.SetAlgo(ResoAlgo::ECK);
-		else if(strResAlgo == "viol")
-			reso.SetAlgo(ResoAlgo::VIOL);
+		else if(strResAlgo == "vio" || strResAlgo == "viol")
+			reso.SetAlgo(ResoAlgo::VIO);
 		else
 		{
 			tl::log_err("Invalid resolution algorithm selected: \"", strResAlgo, "\".");
@@ -523,14 +574,27 @@ bool Convofit::run_job(const std::string& _strJob)
 	std::vector<t_real> vecModTmpX, vecModTmpY;
 	// slots
 	mod.AddFuncResultSlot(
-	[this, &pltMeas, &vecModTmpX, &vecModTmpY, bPlotIntermediate](t_real h, t_real k, t_real l, t_real E, t_real S)
+	[this, &pltMeas, &vecModTmpX, &vecModTmpY, bPlotIntermediate, &vecScanAxes]
+		(t_real h, t_real k, t_real l, t_real E, t_real S, std::size_t scan_group)
 	{
 		if(g_bVerbose)
 			tl::log_info("Q = (", h, ", ", k, ", ", l, ") rlu, E = ", E, " meV -> S = ", S);
 
 		if(bPlotIntermediate)
 		{
-			vecModTmpX.push_back(E);	// TODO: use scan direction
+			t_real x = 0.;
+			unsigned iScanAxis = vecScanAxes[scan_group];
+
+			switch(iScanAxis)
+			{
+				case 1: x = h; break;
+				case 2: x = k; break;
+				case 3: x = l; break;
+				case 4: x = E; break;
+				default: x = E; break;
+			}
+
+			vecModTmpX.push_back(x);
 			vecModTmpY.push_back(S);
 
 			tl::PlotObj<t_real> pltMod;
@@ -539,7 +603,8 @@ bool Convofit::run_job(const std::string& _strJob)
 			pltMod.linestyle = tl::STYLE_LINES_SOLID;
 			pltMod.odSize = 1.5;
 
-			m_sigPlot(this->m_pPlt, "", "Intensity", pltMeas, pltMod, 0);
+			if(scan_group < pltMeas.size())
+				m_sigPlot(this->m_pPlt, "", "Intensity", pltMeas[scan_group], pltMod, 0);
 		}
 	});
 	mod.AddParamsChangedSlot(
@@ -732,7 +797,8 @@ bool Convofit::run_job(const std::string& _strJob)
 			pltMod.linestyle = tl::STYLE_LINES_SOLID;
 			pltMod.odSize = 1.5;
 
-			m_sigPlot(m_pPlt, "", "Intensity", pltMeas, pltMod, 1);
+			if(pltMeas.size())
+				m_sigPlot(m_pPlt, "", "Intensity", pltMeas[0], pltMod, 1);
 		}
 		else
 		{

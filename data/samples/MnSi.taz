@@ -1,7 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <taz>
+	<deadangles>
+		<0>
+			<centreon>1</centreon>
+			<end>10</end>
+			<offs>45</offs>
+			<relativeto>0</relativeto>
+			<start>-10</start>
+		</0>
+		<1>
+			<centreon>1</centreon>
+			<end>10</end>
+			<offs>225</offs>
+			<relativeto>0</relativeto>
+			<start>-10</start>
+		</1>
+		<num>2</num>
+		<num_stored>4</num_stored>
+		<stored_0>
+			<0>
+				<centreon>1</centreon>
+				<end>10</end>
+				<offs>45</offs>
+				<relativeto>0</relativeto>
+				<start>-10</start>
+			</0>
+			<1>
+				<centreon>1</centreon>
+				<end>10</end>
+				<offs>225</offs>
+				<relativeto>0</relativeto>
+				<start>-10</start>
+			</1>
+		</stored_0>
+		<stored_1>
+			<0>
+				<centreon>1</centreon>
+				<end>10</end>
+				<offs>135</offs>
+				<relativeto>0</relativeto>
+				<start>-10</start>
+			</0>
+			<1>
+				<centreon>1</centreon>
+				<end>10</end>
+				<offs>315</offs>
+				<relativeto>0</relativeto>
+				<start>-10</start>
+			</1>
+		</stored_1>
+		<stored_2>
+			<0>
+				<centreon>1</centreon>
+				<end>6</end>
+				<offs>15</offs>
+				<relativeto>0</relativeto>
+				<start>-6</start>
+			</0>
+			<1>
+				<centreon>1</centreon>
+				<end>3</end>
+				<offs>265</offs>
+				<relativeto>0</relativeto>
+				<start>-3</start>
+			</1>
+		</stored_2>
+		<stored_3>
+			<0>
+				<centreon>1</centreon>
+				<end>6</end>
+				<offs>195</offs>
+				<relativeto>0</relativeto>
+				<start>-6</start>
+			</0>
+			<1>
+				<centreon>1</centreon>
+				<end>3</end>
+				<offs>445</offs>
+				<relativeto>0</relativeto>
+				<start>-3</start>
+			</1>
+		</stored_3>
+	</deadangles>
 	<goto_pos>
-		<cki>1</cki>
+		<cki>0</cki>
 		<h>1</h>
 		<k>1</k>
 		<kf>1.4</kf>
@@ -9,9 +91,13 @@
 		<l>0</l>
 	</goto_pos>
 	<meta>
+		<doi>https://dx.doi.org/10.5281/zenodo.4117437</doi>
 		<info>Created with Takin.</info>
-		<timestamp>1487844518.752978</timestamp>
-		<version>1.0.6</version>
+		<module>takin</module>
+		<timestamp>1659006826.863754</timestamp>
+		<url>https://code.ill.fr/scientific-software/takin</url>
+		<user>t_weber</user>
+		<version>2.2</version>
 	</meta>
 	<plane>
 		<real_x0>1</real_x0>
@@ -28,33 +114,35 @@
 		<y2>0</y2>
 	</plane>
 	<real>
-		<analyser_x>-115.516884053797</analyser_x>
-		<analyser_y>8.240081105197421</analyser_y>
-		<detector_x>-124.4489562327208</detector_x>
-		<detector_y>-40.95563097004849</detector_y>
+		<analyser_x>419.2387464387006</analyser_x>
+		<analyser_y>17.67458071579618</analyser_y>
+		<detector_x>430.3076060305081</detector_x>
+		<detector_y>-31.08483219429588</detector_y>
 		<enable_realQDir>1</enable_realQDir>
 		<enable_ws>1</enable_ws>
-		<monochromator_x>0</monochromator_x>
-		<monochromator_y>150</monochromator_y>
+		<monochromator_x>297.6500033475202</monochromator_x>
+		<monochromator_y>154.2622912173869</monochromator_y>
 		<pixels_per_cm>1</pixels_per_cm>
-		<sample_x>-15.7915440965513</sample_x>
-		<sample_y>0.8335589515970412</sample_y>
+		<sample_x>319.9312467620266</sample_x>
+		<sample_y>5.926367746693103</sample_y>
 		<source_x>200</source_x>
 		<source_y>150</source_y>
 	</real>
 	<recip>
 		<Gq_x>103.3418636049274</Gq_x>
 		<Gq_y>-103.3418636049274</Gq_y>
+		<enable_axes>1</enable_axes>
 		<enable_bz>1</enable_bz>
 		<enable_q>0</enable_q>
 		<ewald_sphere>1</ewald_sphere>
 		<kfQ_x>103.3418636049274</kfQ_x>
-		<kfQ_y>-103.3418636049275</kfQ_y>
+		<kfQ_y>-103.3418636049274</kfQ_y>
 		<kiQ_x>0</kiQ_x>
 		<kiQ_y>0</kiQ_y>
-		<kikf_x>-1.645245917484878</kikf_x>
+		<kikf_x>-1.645245917484905</kikf_x>
 		<kikf_y>-104.9871095224123</kikf_y>
 		<pixels_per_A-1>75</pixels_per_A-1>
+		<show_all_peaks>1</show_all_peaks>
 		<snap_q>1</snap_q>
 	</recip>
 	<sample>
@@ -91,8 +179,8 @@
 	<tas>
 		<ana_d>3.355</ana_d>
 		<mono_d>3.355</mono_d>
-		<sense_a>0</sense_a>
-		<sense_m>0</sense_m>
-		<sense_s>1</sense_s>
+		<sense_a>1</sense_a>
+		<sense_m>1</sense_m>
+		<sense_s>0</sense_s>
 	</tas>
 </taz>

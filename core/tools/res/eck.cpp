@@ -8,10 +8,30 @@
  * @desc for algorithm: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014), doi: 10.1016/j.nima.2014.03.019
  * @desc for alternate R0 normalisation: [mit84] P. W. Mitchell, R. A. Cowley and S. A. Higgins, Acta Cryst. Sec A, 40(2), 152-160 (1984), doi: 10.1107/S0108767384000325
  * @desc for vertical scattering modification: [eck20] G. Eckold, personal communication, 2020.
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "eck.h"
-#include "r0.h"
 #include "helper.h"
 
 #include "tlibs/math/linalg.h"
@@ -43,6 +63,47 @@ static const t_real pi = tl::get_pi<t_real>();
 static const t_real sig2fwhm = tl::get_SIGMA2FWHM<t_real>();
 
 
+enum EckQE : std::size_t
+{
+	ECK_Q_X = 0, ECK_Q_Y, ECK_Q_Z,
+	ECK_OM, ECK_K_Y, ECK_K_Z,
+
+	ECK_NUM_QE
+};
+
+
+enum EckKiKfIdx : std::size_t
+{
+	ECK_KI_X = 0, ECK_KI_Y, ECK_KI_Z,
+	ECK_KF_X, ECK_KF_Y, ECK_KF_Z,
+
+	ECK_NUM_KIKF
+};
+
+
+/**
+ * general R0 normalisation factor from [mit84], equ. A.57
+ */
+template<class t_real = double>
+t_real mitch_R0(bool norm_to_ki_vol,
+	t_real dmono_refl, t_real dana_effic,
+	t_real dKiVol, t_real dKfVol, t_real dResVol,
+	bool bNormToResVol = false)
+{
+	t_real dR0 = dana_effic * dKfVol;
+	if(!norm_to_ki_vol)
+		dR0 *= dmono_refl * dKiVol;
+
+	// not needed for MC simulations, because the gaussian generated
+	// with std::normal_distribution is already normalised
+	// see: tools/test/tst_norm.cpp
+	if(bNormToResVol)
+		dR0 /= (dResVol * tl::get_pi<t_real>() * t_real{3});
+
+	return dR0;
+}
+
+
 static std::tuple<t_mat, t_vec, t_real, t_real, t_real>
 get_mono_vals(const length& src_w, const length& src_h,
 	const length& mono_w, const length& mono_h,
@@ -55,38 +116,39 @@ get_mono_vals(const length& src_w, const length& src_h,
 	const length& pos_x , const length& pos_y, const length& pos_z,
 	t_real dRefl)
 {
+	const t_real s_th_m = units::abs(units::sin(thetam));
+	const t_real t_th_m = units::tan(thetam);
+
 	// A matrix: formula 26 in [eck14]
 	t_mat A = ublas::identity_matrix<t_real>(3);
 	{
 		const auto A_t0 = t_real(1) / mono_mosaic;
-		const auto A_tx = inv_mono_curvh*dist_mono_sample / units::abs(units::sin(thetam));
+		const auto A_tx = inv_mono_curvh*dist_mono_sample / s_th_m;
 		const auto A_t1 = A_t0*A_tx;
 
-		A(0,0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
-			units::tan(thetam)*units::tan(thetam) *
+		A(0, 0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) * t_th_m*t_th_m *
 		(
 /*a*/			+ units::pow<2>(t_real(2)/coll_h_pre_mono) *rads*rads
 /*b*/			+ units::pow<2>(t_real(2)*dist_src_mono/src_w)
-/*c*/			+ A_t0*A_t0 *rads*rads
+/*c*/			+ A_t0*A_t0 * rads*rads
 		);
-		A(0,1) = A(1,0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs)
-			* units::tan(thetam) *
+		A(0, 1) = A(1, 0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) * t_th_m *
 		(
 /*w*/			+ t_real(2)*tl::my_units_pow2(t_real(1)/coll_h_pre_mono) *rads*rads
 /*x*/			+ t_real(2)*dist_src_mono*(dist_src_mono-dist_mono_sample)/(src_w*src_w)
 /*y*/			+ A_t0*A_t0 * rads*rads
-/*z*/			- A_t0*A_t1 *rads*rads
+/*z*/			- A_t0*A_t1 * rads*rads
 		);
-		A(1,1) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
+		A(1, 1) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
 		(
 /*1*/			+ units::pow<2>(t_real(1)/coll_h_pre_mono) *rads*rads
 /*2*/			+ units::pow<2>(t_real(1)/coll_h_pre_sample) *rads*rads
 /*3*/			+ units::pow<2>((dist_src_mono-dist_mono_sample)/src_w)
-/*4*/			+ units::pow<2>(dist_mono_sample/(mono_w*units::abs(units::sin(thetam))))
+/*4*/			+ units::pow<2>(dist_mono_sample/(mono_w*s_th_m))
 
-/*5*/			+ A_t0*A_t0 *rads*rads
-/*6*/			- t_real(2)*A_t0*A_t1 *rads*rads
-/*7*/			+ A_t1*A_t1 *rads*rads
+/*5*/			+ A_t0*A_t0 * rads*rads
+/*6*/			- t_real(2)*A_t0*A_t1 * rads*rads
+/*7*/			+ A_t1*A_t1 * rads*rads
 		);
 	}
 
@@ -96,10 +158,10 @@ get_mono_vals(const length& src_w, const length& src_h,
 	// corresponding pre-mono terms commented out in Av, as they are not considered there
 	t_mat Av(2,2);
 	{
-		const auto Av_t0 = t_real(0.5) / (mono_mosaic_v*units::abs(units::sin(thetam)));
+		const auto Av_t0 = t_real(0.5) / (mono_mosaic_v*s_th_m);
 		const auto Av_t1 = inv_mono_curvv*dist_mono_sample / mono_mosaic_v;
 
-		Av(0,0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
+		Av(0, 0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
 		(
 /*1*/	//		+ units::pow<2>(t_real(1)/coll_v_pre_mono) *rads*rads	// missing in paper?
 /*2*/			+ units::pow<2>(t_real(1)/coll_v_pre_sample) *rads*rads
@@ -110,16 +172,16 @@ get_mono_vals(const length& src_w, const length& src_h,
 /*6*/			- t_real(2)*Av_t0*Av_t1 * rads*rads
 /*7*/			+ Av_t1*Av_t1 * rads*rads 				// missing in paper?
 		);
-		Av(0,1) = Av(1,0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
+		Av(0, 1) = Av(1, 0) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
 		(
 /*w*/	//		- units::pow<2>(1./coll_v_pre_mono) *rads*rads		// missing in paper?
 /*~x*/			+ dist_src_mono*dist_mono_sample/(src_h*src_h)
 /*y*/			- Av_t0*Av_t0 * rads*rads
 /*z*/			+ Av_t0*Av_t1 * rads*rads
 		);
-		Av(1,1) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
+		Av(1, 1) = t_real(0.5)*sig2fwhm*sig2fwhm / (ki*angs*ki*angs) *
 		(
-/*a*/			+ units::pow<2>(t_real(1)/(coll_v_pre_mono)) *rads*rads
+/*a*/			+ units::pow<2>(t_real(1)/coll_v_pre_mono) *rads*rads
 /*b*/			+ units::pow<2>(dist_src_mono/src_h)
 /*c*/			+ Av_t0*Av_t0 *rads*rads
 		);
@@ -128,19 +190,18 @@ get_mono_vals(const length& src_w, const length& src_h,
 	// B vector: formula 27 in [eck14]
 	t_vec B(3);
 	{
-		const auto B_t0 = inv_mono_curvh / (mono_mosaic*mono_mosaic*units::abs(units::sin(thetam)));
+		const auto B_t0 = inv_mono_curvh / (mono_mosaic*mono_mosaic*s_th_m);
 
-		B(0) = sig2fwhm*sig2fwhm * pos_y / (ki*angs) * units::tan(thetam) *
+		B(0) = sig2fwhm*sig2fwhm * pos_y / (ki*angs) * t_th_m *
 		(
 /*i*/			+ t_real(2)*dist_src_mono / (src_w*src_w)
 /*j*/			+ B_t0 *rads*rads
 		);
 		B(1) = sig2fwhm*sig2fwhm * pos_y / (ki*angs) *
 		(
-/*r*/			- dist_mono_sample / (units::pow<2>(mono_w*units::abs(units::sin(thetam))))
+/*r*/			- dist_mono_sample / (units::pow<2>(mono_w*s_th_m))
 /*s*/			+ B_t0 * rads*rads
-/*t*/			- B_t0 * rads*rads * inv_mono_curvh*dist_mono_sample /
-					(units::abs(units::sin(thetam)))
+/*t*/			- B_t0 * rads*rads * inv_mono_curvh*dist_mono_sample / s_th_m
 /*u*/			+ (dist_src_mono-dist_mono_sample) / (src_w*src_w)
 		);
 	}
@@ -152,15 +213,15 @@ get_mono_vals(const length& src_w, const length& src_h,
 
 		Bv(0) = sig2fwhm*sig2fwhm * pos_z / (ki*angs) * t_real(-1.) *
 		(
-/*r*/			+ dist_mono_sample / (mono_h*mono_h)	// typo in paper?
-/*~s*/			- t_real(0.5)*Bv_t0 *rads*rads / units::abs(units::sin(thetam))
+/*r*/			+ dist_mono_sample / (mono_h*mono_h)    // typo in paper?
+/*~s*/			- t_real(0.5)*Bv_t0 *rads*rads / s_th_m
 /*~t*/			+ Bv_t0 * rads*rads * inv_mono_curvv*dist_mono_sample
-/*~u*/			+ dist_mono_sample / (src_h*src_h)		// typo in paper?
+/*~u*/			+ dist_mono_sample / (src_h*src_h)      // typo in paper?
 		);
 		Bv(1) = sig2fwhm*sig2fwhm * pos_z / (ki*angs) * t_real(-1.) *
 		(
-/*i*/			+ dist_src_mono / (src_h*src_h)			// typo in paper?
-/*j*/			+ t_real(0.5)*Bv_t0/units::abs(units::sin(thetam)) * rads*rads
+/*i*/			+ dist_src_mono / (src_h*src_h)         // typo in paper?
+/*j*/			+ t_real(0.5)*Bv_t0/s_th_m * rads*rads
 		);
 	}
 
@@ -169,8 +230,8 @@ get_mono_vals(const length& src_w, const length& src_h,
 	t_real C = t_real(0.5)*sig2fwhm*sig2fwhm * pos_y*pos_y *
 	(
 		t_real(1)/(src_w*src_w) +
-		units::pow<2>(t_real(1)/(mono_w*units::abs(units::sin(thetam)))) +
-		units::pow<2>(inv_mono_curvh/(mono_mosaic * units::abs(units::sin(thetam)))) *rads*rads
+		units::pow<2>(t_real(1)/(mono_w*s_th_m)) +
+		units::pow<2>(inv_mono_curvh/(mono_mosaic * s_th_m)) * rads*rads
 	);
 
 	// Cv scalar: formula 40 in [eck14]
@@ -178,18 +239,17 @@ get_mono_vals(const length& src_w, const length& src_h,
 	(
 		t_real(1)/(src_h*src_h) +
 		t_real(1)/(mono_h*mono_h) +
-		units::pow<2>(inv_mono_curvv/mono_mosaic_v) *rads*rads
+		units::pow<2>(inv_mono_curvv/mono_mosaic_v) * rads*rads
 	);
 
 
 	// z components, [eck14], equ. 42
-	A(2,2) = Av(0,0) - Av(0,1)*Av(0,1)/Av(1,1);
-	B[2] = Bv[0] - Bv[1]*Av(0,1)/Av(1,1);
-	t_real D = Cv - t_real(0.25)*Bv[1]/Av(1,1);
-
+	A(2, 2) = Av(0, 0) - Av(0, 1)*Av(0, 1)/Av(1, 1);
+	B[2] = Bv[0] - Bv[1]*Av(0, 1)/Av(1,1);
+	t_real D = Cv - t_real(0.25)*Bv[1]*Bv[1]/Av(1, 1);  // typo in paper? (thanks to F. Bourdarot for pointing this out)
 
 	// [eck14], equ. 54
-	t_real refl = dRefl * std::sqrt(pi / (Av(1,1) /* * A(1,1) */));	// check: typo in paper?
+	t_real refl = dRefl * std::sqrt(pi / (Av(1, 1)));
 
 
 	return std::make_tuple(A, B, C, D, refl);
@@ -211,10 +271,14 @@ ResoResults calc_eck(const EckParams& eck)
 	length mono_curvh = eck.mono_curvh, mono_curvv = eck.mono_curvv;
 	length ana_curvh = eck.ana_curvh, ana_curvv = eck.ana_curvv;
 
-	if(eck.bMonoIsOptimallyCurvedH) mono_curvh = tl::foc_curv(eck.dist_src_mono, eck.dist_mono_sample, units::abs(t_real(2)*thetam), false);
-	if(eck.bMonoIsOptimallyCurvedV) mono_curvv = tl::foc_curv(eck.dist_src_mono, eck.dist_mono_sample, units::abs(t_real(2)*thetam), true);
-	if(eck.bAnaIsOptimallyCurvedH) ana_curvh = tl::foc_curv(eck.dist_sample_ana, eck.dist_ana_det, units::abs(t_real(2)*thetaa), false);
-	if(eck.bAnaIsOptimallyCurvedV) ana_curvv = tl::foc_curv(eck.dist_sample_ana, eck.dist_ana_det, units::abs(t_real(2)*thetaa), true);
+	if(eck.bMonoIsOptimallyCurvedH)
+		mono_curvh = tl::foc_curv(eck.dist_src_mono, eck.dist_mono_sample, units::abs(t_real(2)*thetam), false);
+	if(eck.bMonoIsOptimallyCurvedV)
+		mono_curvv = tl::foc_curv(eck.dist_src_mono, eck.dist_mono_sample, units::abs(t_real(2)*thetam), true);
+	if(eck.bAnaIsOptimallyCurvedH)
+		ana_curvh = tl::foc_curv(eck.dist_sample_ana, eck.dist_ana_det, units::abs(t_real(2)*thetaa), false);
+	if(eck.bAnaIsOptimallyCurvedV)
+		ana_curvv = tl::foc_curv(eck.dist_sample_ana, eck.dist_ana_det, units::abs(t_real(2)*thetaa), true);
 
 	//mono_curvh *= eck.dmono_sense; mono_curvv *= eck.dmono_sense;
 	//ana_curvh *= eck.dana_sense; ana_curvv *= eck.dana_sense;
@@ -262,6 +326,19 @@ ResoResults calc_eck(const EckParams& eck)
 	if(eck.mono_refl_curve) dmono_refl *= (*eck.mono_refl_curve)(eck.ki);
 	if(eck.ana_effic_curve) dana_effic *= (*eck.ana_effic_curve)(eck.kf);
 	t_real dxsec = std::get<2>(tupScFact);
+	t_real dmonitor = std::get<3>(tupScFact);
+
+
+	// if no vertical mosaic is given, use the horizontal one
+	angle mono_mosaic_v = eck.mono_mosaic_v;
+	angle ana_mosaic_v = eck.ana_mosaic_v;
+	angle sample_mosaic_v = eck.sample_mosaic_v;
+	if(tl::float_equal<t_real>(mono_mosaic_v/rads, 0.), 0.)
+		mono_mosaic_v = eck.mono_mosaic;
+	if(tl::float_equal<t_real>(ana_mosaic_v/rads, 0.), 0.)
+		ana_mosaic_v = eck.ana_mosaic;
+	if(tl::float_equal<t_real>(sample_mosaic_v/rads, 0.), 0.)
+		sample_mosaic_v = eck.sample_mosaic;
 
 
 	//--------------------------------------------------------------------------
@@ -276,7 +353,7 @@ ResoResults calc_eck(const EckParams& eck)
 			eck.ki, thetam,
 			coll_h_pre_mono, eck.coll_h_pre_sample,
 			coll_v_pre_mono, eck.coll_v_pre_sample,
-			eck.mono_mosaic, eck.mono_mosaic_v,
+			eck.mono_mosaic, mono_mosaic_v,
 			inv_mono_curvh, inv_mono_curvv,
 			eck.pos_x , eck.pos_y, eck.pos_z,
 			dmono_refl);
@@ -288,8 +365,9 @@ ResoResults calc_eck(const EckParams& eck)
 	// ana part
 
 	// equ 43 in [eck14]
-	length pos_y2 = - eck.pos_x*units::sin(twotheta)
-		+ eck.pos_y*units::cos(twotheta);
+	length pos_y2 =
+		- eck.pos_x * units::sin(twotheta)
+		+ eck.pos_y * units::cos(twotheta);
 	length pos_z2 = eck.pos_z;
 
 	// vertical scattering in kf axis, formula from [eck20]
@@ -307,7 +385,7 @@ ResoResults calc_eck(const EckParams& eck)
 			eck.kf, -thetaa,
 			eck.coll_h_post_ana, eck.coll_h_post_sample,
 			eck.coll_v_post_ana, eck.coll_v_post_sample,
-			eck.ana_mosaic, eck.ana_mosaic_v,
+			eck.ana_mosaic, ana_mosaic_v,
 			inv_ana_curvh, inv_ana_curvv,
 			eck.pos_x, pos_y2, pos_z2,
 			dana_effic);
@@ -337,7 +415,7 @@ ResoResults calc_eck(const EckParams& eck)
 		matTvert(1,2) = 1.;
 		matTvert(2,1) = -1.;
 
-		E = tl::transform(E, matTvert, 1);
+		E = tl::transform(E, matTvert, true);
 		F = ublas::prod(matTvert, F);
 	}
 	//--------------------------------------------------------------------------
@@ -353,14 +431,15 @@ ResoResults calc_eck(const EckParams& eck)
 	const t_real ksq2E = tl::get_KSQ2E<t_real>();
 
 	// trafo, equ 52 in [eck14]
-	t_mat T = ublas::identity_matrix<t_real>(6);
-	T(0,3) = T(1,4) = T(2,5) = -1.;
-	T(3,0) = t_real(2)*ksq2E * kipara * angs;
-	T(3,3) = t_real(2)*ksq2E * kfpara * angs;
-	T(3,1) = t_real(2)*ksq2E * kperp * angs;
-	T(3,4) = t_real(-2)*ksq2E * kperp * angs;
-	T(4,1) = T(5,2) = (0.5 - dE);
-	T(4,4) = T(5,5) = (0.5 + dE);
+	t_mat T = ublas::zero_matrix<t_real>(ECK_NUM_QE, ECK_NUM_KIKF);
+	T(ECK_Q_X, ECK_KI_X) = T(ECK_Q_Y, ECK_KI_Y) = T(ECK_Q_Z, ECK_KI_Z) = +1.;
+	T(ECK_Q_X, ECK_KF_X) = T(ECK_Q_Y, ECK_KF_Y) = T(ECK_Q_Z, ECK_KF_Z) = -1.;
+	T(ECK_OM, ECK_KI_X) = t_real(2)*ksq2E * kipara * angs;
+	T(ECK_OM, ECK_KF_X) = t_real(2)*ksq2E * kfpara * angs;
+	T(ECK_OM, ECK_KI_Y) = t_real(2)*ksq2E * kperp * angs;
+	T(ECK_OM, ECK_KF_Y) = t_real(-2)*ksq2E * kperp * angs;
+	T(ECK_K_Y, ECK_KI_Y) = T(ECK_K_Z, ECK_KI_Z) = (0.5 - dE);
+	T(ECK_K_Y, ECK_KF_Y) = T(ECK_K_Z, ECK_KF_Z) = (0.5 + dE);
 	t_mat Tinv;
 	if(!tl::inverse(T, Tinv))
 	{
@@ -372,78 +451,106 @@ ResoResults calc_eck(const EckParams& eck)
 	// equ 54 in [eck14]
 	t_mat Dalph_i = tl::rotation_matrix_3d_z(-ki_Q/rads);
 	t_mat Dalph_f = tl::rotation_matrix_3d_z(-kf_Q/rads);
-	t_mat Arot = tl::transform(A, Dalph_i, 1);
-	t_mat Erot = tl::transform(E, Dalph_f, 1);
+	t_mat Arot = tl::transform(A, Dalph_i, true);
+	t_mat Erot = tl::transform(E, Dalph_f, true);
 
-	t_mat matAE = ublas::zero_matrix<t_real>(6,6);
-	tl::submatrix_copy(matAE, Arot, 0,0);
-	tl::submatrix_copy(matAE, Erot, 3,3);
+	t_mat matAE = ublas::zero_matrix<t_real>(Arot.size1() + Erot.size1(), Arot.size2() + Erot.size2());
+	tl::submatrix_copy(matAE, Arot, 0, 0);
+	tl::submatrix_copy(matAE, Erot, 3, 3);
 
 	// U1 matrix
-	t_mat U1 = tl::transform(matAE, Tinv, 1);	// typo in paper in quadric trafo in equ 54 (top)?
+	t_mat U1 = tl::transform(matAE, Tinv, true);	// typo in paper in quadric trafo in equ 54 (top)?
 
 	// V1 vector
-	t_vec vecBF = ublas::zero_vector<t_real>(6);
 	t_vec vecBrot = ublas::prod(ublas::trans(Dalph_i), B);
 	t_vec vecFrot = ublas::prod(ublas::trans(Dalph_f), F);
+	t_vec vecBF = ublas::zero_vector<t_real>(vecBrot.size() + vecFrot.size());
 	tl::subvector_copy(vecBF, vecBrot, 0);
 	tl::subvector_copy(vecBF, vecFrot, 3);
 	t_vec V1 = ublas::prod(vecBF, Tinv);
 
 
-
 	//--------------------------------------------------------------------------
 	// integrate last 2 vars -> equs 57 & 58 in [eck14]
+	t_mat U2 = quadric_proj(U1, ECK_K_Z);
+	// careful: factor -0.5*... missing in U matrix compared to normal gaussian!
+	t_mat U = t_real(2) * quadric_proj(U2, ECK_K_Y);
 
-	t_mat U2 = quadric_proj(U1, 5);
-	t_mat U = quadric_proj(U2, 4);
+	t_vec V2 = quadric_proj(V1, U1, ECK_K_Z);
+	t_vec V = quadric_proj(V2, U2, ECK_K_Y);
 
-	t_vec V2 = quadric_proj(V1, U1, 5);
-	t_vec V = quadric_proj(V2, U2, 4);
+	t_real W = C + D + G + H;
+	// squares in Vs missing in paper? (thanks to F. Bourdarot for pointing this out)
+	W -= 0.25*V1[ECK_K_Z]*V1[ECK_K_Z] / U1(ECK_K_Z, ECK_K_Z)
+		+ 0.25*V2[ECK_K_Y]*V2[ECK_K_Y] / U2(ECK_K_Y, ECK_K_Y);
 
-	t_real W = (C + D + G + H) - 0.25*V1[5]/U1(5,5) - 0.25*V2[4]/U2(4,4);
-
-	t_real Z = dReflM*dReflA
-		* std::sqrt(pi/std::abs(U1(5,5)))
-		* std::sqrt(pi/std::abs(U2(4,4)));
+	t_real Z0 =
+		  std::sqrt(pi/std::abs(U1(ECK_K_Z, ECK_K_Z)))
+		* std::sqrt(pi/std::abs(U2(ECK_K_Y, ECK_K_Y)));
+	t_real Z = dReflM * dReflA * Z0;
 	//--------------------------------------------------------------------------
+
+
+	// TODO: add a flag to explicitly include the sample mosaic, because in
+	// this method, sample effects are generated by a secondary convolution
+
+	// add horizontal sample mosaic
+	const t_real mos_Q_sq =
+		(eck.sample_mosaic/rads * eck.Q*angs) *
+		(eck.sample_mosaic/rads * eck.Q*angs);
+	t_vec vec1 = tl::get_column<t_vec>(U/(sig2fwhm*sig2fwhm), 1);
+	U -= sig2fwhm*sig2fwhm * ublas::outer_prod(vec1, vec1)
+		/ (1./mos_Q_sq + U(1, 1)/(sig2fwhm*sig2fwhm));
+
+	// add vertical sample mosaic
+	const t_real mos_v_Q_sq =
+		(sample_mosaic_v/rads * eck.Q*angs) *
+		(sample_mosaic_v/rads * eck.Q*angs);
+	t_vec vec2 = tl::get_column<t_vec>(U/(sig2fwhm*sig2fwhm), 2);
+	U -= sig2fwhm*sig2fwhm * ublas::outer_prod(vec2, vec2)
+		/ (1./mos_v_Q_sq + U(2, 2)/(sig2fwhm*sig2fwhm));
 
 
 	// quadratic part of quadric (matrix U)
-	// careful: factor -0.5*... missing in U matrix compared to normal gaussian!
-	res.reso = t_real(2) * U;
+	res.reso = U;
 	// linear (vector V) and constant (scalar W) part of quadric
 	res.reso_v = V;
 	res.reso_s = W;
 
-	if(eck.dsample_sense < 0.)
+	/*if(eck.dsample_sense < 0.)
 	{
 		// mirror Q_perp
 		t_mat matMirror = tl::mirror_matrix<t_mat>(res.reso.size1(), 1);
 		res.reso = tl::transform(res.reso, matMirror, true);
 		res.reso_v[1] = -res.reso_v[1];
-	}
+	}*/
 
 	// prefactor and volume
 	res.dResVol = tl::get_ellipsoid_volume(res.reso);
+	bool use_monitor = (eck.flags & CALC_MON) != 0;
 
 	if(eck.flags & CALC_GENERAL_R0)
 	{
 		// alternate R0 normalisation factor, see [mit84], equ. A.57
-		res.dR0 = mitch_R0<t_real>(dmono_refl, dana_effic,
-			tl::get_ellipsoid_volume(A), tl::get_ellipsoid_volume(E), res.dResVol, false);
+		res.dR0 = mitch_R0<t_real>(use_monitor, dReflM, dReflA,
+			tl::get_ellipsoid_volume(Arot), tl::get_ellipsoid_volume(Erot),
+			res.dResVol, false);
 	}
 	else
 	{
 		res.dR0 = Z;
+		if(use_monitor)
+			res.dR0 /= dReflM;
+
 		// missing volume prefactor to normalise gaussian,
 		// cf. equ. 56 in [eck14] to  equ. 1 in [pop75] and equ. A.57 in [mit84]
 		//res.dR0 /= std::sqrt(std::abs(tl::determinant(res.reso))) / (2.*pi*2.*pi);
-		res.dR0 *= res.dResVol * pi * t_real(3.);
+		res.dR0 *= res.dResVol * pi * t_real(3.);  // TODO: check
 	}
 
 	res.dR0 *= std::exp(-W);
-	res.dR0 *= dxsec;
+	res.dR0 *= dxsec * dmonitor;
+	res.dR0 = std::abs(res.dR0);
 
 	// Bragg widths
 	const std::vector<t_real> vecFwhms = calc_bragg_fwhms(res.reso);

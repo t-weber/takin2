@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 15-oct-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "GotoDlg.h"
@@ -22,11 +43,17 @@ static const tl::t_angle_si<t_real> rads = tl::get_one_radian<t_real>();
 GotoDlg::GotoDlg(QWidget* pParent, QSettings* pSett) : QDialog(pParent), m_pSettings(pSett)
 {
 	this->setupUi(this);
+	splitter->setStretchFactor(0, 1);
+	splitter->setStretchFactor(1, 2);
+
 	if(m_pSettings)
 	{
 		QFont font;
-		if(m_pSettings->contains("main/font_gen") && font.fromString(m_pSettings->value("main/font_gen", "").toString()))
+		if(m_pSettings->contains("main/font_gen") &&
+			font.fromString(m_pSettings->value("main/font_gen", "").toString()))
+		{
 			setFont(font);
+		}
 	}
 
 	btnAdd->setIcon(load_icon("res/icons/list-add.svg"));
@@ -35,16 +62,21 @@ GotoDlg::GotoDlg(QWidget* pParent, QSettings* pSett) : QDialog(pParent), m_pSett
 	btnLoad->setIcon(load_icon("res/icons/document-open.svg"));
 
 	std::vector<QLineEdit*> vecObjs {editH, editK, editL};
-	std::vector<QLineEdit*> vecAngles {edit2ThetaM, editThetaM, edit2ThetaA, editThetaA, edit2ThetaS, editThetaS};
+	std::vector<QLineEdit*> vecAngles {edit2ThetaM, editThetaM,
+		edit2ThetaA, editThetaA, edit2ThetaS, editThetaS};
 
 	QObject::connect(buttonBox, &QDialogButtonBox::clicked, this, &GotoDlg::ButtonBoxClicked);
 
-	QObject::connect(btnAdd, &QAbstractButton::clicked, this, static_cast<void(GotoDlg::*)()>(&GotoDlg::AddPosToList));
-	QObject::connect(btnDel, &QAbstractButton::clicked, this, &GotoDlg::RemPosFromList);
+	QObject::connect(btnAdd, &QAbstractButton::clicked,
+		this, static_cast<void(GotoDlg::*)()>(&GotoDlg::AddPosToList));
+	QObject::connect(btnDel, &QAbstractButton::clicked,
+		this, &GotoDlg::RemPosFromList);
 	QObject::connect(btnLoad, &QAbstractButton::clicked, this, &GotoDlg::LoadList);
 	QObject::connect(btnSave, &QAbstractButton::clicked, this, &GotoDlg::SaveList);
-	QObject::connect(listSeq, &QListWidget::itemSelectionChanged, this, &GotoDlg::ListItemSelected);
-	QObject::connect(listSeq, &QListWidget::itemDoubleClicked, this, &GotoDlg::ListItemDoubleClicked);
+	QObject::connect(listSeq, &QListWidget::itemSelectionChanged,
+		this, &GotoDlg::ListItemSelected);
+	QObject::connect(listSeq, &QListWidget::itemDoubleClicked,
+		this, &GotoDlg::ListItemDoubleClicked);
 
 	QObject::connect(editKi, &QLineEdit::textEdited, this, &GotoDlg::EditedKiKf);
 	QObject::connect(editKf, &QLineEdit::textEdited, this, &GotoDlg::EditedKiKf);
@@ -64,9 +96,9 @@ GotoDlg::GotoDlg(QWidget* pParent, QSettings* pSett) : QDialog(pParent), m_pSett
 		{
 			bool bKi = m_pSettings->value("goto_pos/ki_fix").toBool();
 			if(bKi)
-				radioFixedKi->setChecked(1);
+				radioFixedKi->setChecked(true);
 			else
-				radioFixedKf->setChecked(1);
+				radioFixedKf->setChecked(true);
 		}
 	}
 }
@@ -93,7 +125,7 @@ void GotoDlg::CalcSample()
 	t_real dKf = tl::str_to_var_parse<t_real>(editKf->text().toStdString());
 
 	ublas::vector<t_real> vecQ;
-	bool bFailed = 0;
+	bool bFailed = false;
 	try
 	{
 		tl::get_tas_angles(m_lattice,
@@ -116,17 +148,19 @@ void GotoDlg::CalcSample()
 
 		//log_err(ex.what());
 		labelStatus->setText((std::string("Error (sample): ") + ex.what()).c_str());
-		bFailed = 1;
+		bFailed = true;
 	}
 
 	tl::set_eps_0(vecQ, g_dEps);
 	tl::set_eps_0(m_dSample2Theta, g_dEps);
 	tl::set_eps_0(m_dSampleTheta, g_dEps);
 
-	const std::wstring strAA = tl::get_spec_char_utf16("AA") + tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
+	const std::wstring strAA = tl::get_spec_char_utf16("AA") +
+		tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
 
 	std::wostringstream ostrStatus;
-	ostrStatus << "Q = " << vecQ << " " << strAA << ", |Q| = " << ublas::norm_2(vecQ) << " " << strAA;
+	ostrStatus << "Q = " << vecQ << " " << strAA << ", |Q| = "
+		<< ublas::norm_2(vecQ) << " " << strAA;
 	labelQ->setText(QString::fromWCharArray(ostrStatus.str().c_str()));
 
 #ifndef NDEBUG
@@ -167,8 +201,8 @@ void GotoDlg::CalcMonoAna()
 	tl::t_wavenumber_si<t_real> ki = dKi / angs;
 	tl::t_wavenumber_si<t_real> kf = dKf / angs;
 
-	bool bMonoOk = 0;
-	bool bAnaOk = 0;
+	bool bMonoOk = false;
+	bool bAnaOk = false;
 
 	try
 	{
@@ -177,7 +211,7 @@ void GotoDlg::CalcMonoAna()
 			throw tl::Err("Invalid monochromator angle.");
 
 		tl::set_eps_0(m_dMono2Theta, g_dEps);
-		bMonoOk = 1;
+		bMonoOk = true;
 	}
 	catch(const std::exception& ex)
 	{
@@ -195,7 +229,7 @@ void GotoDlg::CalcMonoAna()
 			throw tl::Err("Invalid analysator angle.");
 
 		tl::set_eps_0(m_dAna2Theta, g_dEps);
-		bAnaOk = 1;
+		bAnaOk = true;
 	}
 	catch(const std::exception& ex)
 	{
@@ -254,7 +288,7 @@ void GotoDlg::EditedE()
 	t_real dE = tl::str_to_var_parse<t_real>(editE->text().toStdString());
 	tl::t_energy_si<t_real> E = dE * meV;
 
-	bool bImag=0;
+	bool bImag = false;
 	tl::t_wavenumber_si<t_real> k_E = tl::E2k(E, bImag);
 	t_real dSign = 1.;
 	if(bImag) dSign = -1.;
@@ -312,7 +346,7 @@ void GotoDlg::EditedAngles()
 	t_real h,k,l;
 	t_real dKi, dKf, dE;
 	ublas::vector<t_real> vecQ;
-	bool bFailed = 0;
+	bool bFailed = false;
 	try
 	{
 		tl::get_hkl_from_tas_angles<t_real>(m_lattice,
@@ -334,9 +368,11 @@ void GotoDlg::EditedAngles()
 		bFailed = 1;
 	}
 
-	const std::wstring strAA = tl::get_spec_char_utf16("AA") + tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
+	const std::wstring strAA = tl::get_spec_char_utf16("AA") +
+		tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
 	std::wostringstream ostrStatus;
-	ostrStatus << "Q = " << vecQ << " " << strAA << ", |Q| = " << ublas::norm_2(vecQ) << " " << strAA;
+	ostrStatus << "Q = " << vecQ << " " << strAA
+		<< ", |Q| = " << ublas::norm_2(vecQ) << " " << strAA;
 	labelQ->setText(QString::fromWCharArray(ostrStatus.str().c_str()));
 
 	if(bFailed) return;
@@ -429,6 +465,9 @@ void GotoDlg::showEvent(QShowEvent *pEvt)
 //------------------------------------------------------------------------------
 
 
+/**
+ * instrument position stored in the list
+ */
 struct HklPos
 {
 	t_real dh, dk, dl;
@@ -534,7 +573,8 @@ void GotoDlg::AddPosToList(t_real dh, t_real dk, t_real dl, t_real dki, t_real d
 	tl::set_eps_0(pPos->dkf, g_dEps);
 	tl::set_eps_0(pPos->dE, g_dEps);
 
-	const std::wstring strAA = tl::get_spec_char_utf16("AA") + tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
+	const std::wstring strAA = tl::get_spec_char_utf16("AA") +
+		tl::get_spec_char_utf16("sup-") + tl::get_spec_char_utf16("sup1");
 
 	std::wostringstream ostrHKL;
 	ostrHKL.precision(g_iPrecGfx);
@@ -595,9 +635,9 @@ void GotoDlg::LoadList()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSettings)
-		strDirLast = m_pSettings->value("goto_pos/last_dir", ".").toString();
+		strDirLast = m_pSettings->value("goto_pos/last_dir", "~").toString();
 	QString qstrFile = QFileDialog::getOpenFileName(this,
 		"Load Positions", strDirLast,
 		"TAZ files (*.taz *.TAZ)", nullptr,
@@ -629,9 +669,9 @@ void GotoDlg::SaveList()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSettings)
-		m_pSettings->value("goto_pos/last_dir", ".").toString();
+		m_pSettings->value("goto_pos/last_dir", "~").toString();
 	QString qstrFile = QFileDialog::getSaveFileName(this,
 		"Save Positions", strDirLast,
 		"TAZ files (*.taz *.TAZ)", nullptr,
@@ -691,14 +731,20 @@ void GotoDlg::Save(std::map<std::string, std::string>& mapConf, const std::strin
 
 void GotoDlg::Load(tl::Prop<std::string>& xml, const std::string& strXmlRoot)
 {
-	bool bOk=0;
+	bool bOk = false;
 
 	editH->setText(tl::var_to_str(xml.Query<t_real>(strXmlRoot + "goto_pos/h", 1., &bOk), g_iPrec).c_str());
 	editK->setText(tl::var_to_str(xml.Query<t_real>(strXmlRoot + "goto_pos/k", 0., &bOk), g_iPrec).c_str());
 	editL->setText(tl::var_to_str(xml.Query<t_real>(strXmlRoot + "goto_pos/l", 0., &bOk), g_iPrec).c_str());
 	editKi->setText(tl::var_to_str(xml.Query<t_real>(strXmlRoot + "goto_pos/ki", 1.4, &bOk), g_iPrec).c_str());
 	editKf->setText(tl::var_to_str(xml.Query<t_real>(strXmlRoot + "goto_pos/kf", 1.4, &bOk), g_iPrec).c_str());
-	radioFixedKi->setChecked(xml.Query<bool>(strXmlRoot + "goto_pos/cki", 0, &bOk));
+
+	bool cki = xml.Query<bool>(strXmlRoot + "goto_pos/cki", false, &bOk);
+
+	if(cki)
+		radioFixedKi->setChecked(true);
+	else
+		radioFixedKf->setChecked(true);
 
 	// favlist
 	ClearList();

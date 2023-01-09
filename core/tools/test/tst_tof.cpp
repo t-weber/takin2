@@ -1,16 +1,37 @@
 /**
  * @author Tobias Weber <tobias.weber@tum.de>
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
-// gcc -DNO_QT -I. -I../.. -o tst_tof ../../tools/test/tst_tof.cpp ../../tools/res/viol.cpp ../../tlibs/log/log.cpp -lstdc++ -std=c++11 -lstdc++ -lm
+// gcc -DNO_QT -I. -I../.. -o tst_tof ../../tools/test/tst_tof.cpp ../../tools/res/vio.cpp ../../tlibs/log/log.cpp -lstdc++ -std=c++11 -lstdc++ -lm
 
-#include "tools/res/viol.h"
+#include "tools/res/vio.h"
 #include <iostream>
 
 int main()
 {
-	ViolParams parms;
+	VioParams parms;
 
 	parms.ki = 1.4 / tl::get_one_angstrom<double>();
 	parms.kf = 1.4 / tl::get_one_angstrom<double>();
@@ -38,7 +59,7 @@ int main()
 	parms.sig_outplane_i = tl::m2r(30.) * tl::get_one_radian<double>();
 	parms.sig_outplane_f = tl::m2r(30.) * tl::get_one_radian<double>();
 
-	ResoResults res = calc_viol(parms);
+	ResoResults res = calc_vio(parms);
 
 	return 0;
 }

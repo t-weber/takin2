@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date jul-2013, 28-may-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "NeutronDlg.h"
@@ -53,6 +74,7 @@ NeutronDlg::NeutronDlg(QWidget* pParent, QSettings *pSett)
 	connect(editV, &QLineEdit::textEdited, this, &NeutronDlg::CalcNeutronv);
 	connect(editK, &QLineEdit::textEdited, this, &NeutronDlg::CalcNeutronk);
 	connect(editT, &QLineEdit::textEdited, this, &NeutronDlg::CalcNeutronT);
+	connect(editTau, &QLineEdit::textEdited, this, &NeutronDlg::CalcNeutronTau);
 
 	connect(btnSyncKi, &QPushButton::clicked, this, &NeutronDlg::SetExtKi);
 	connect(btnSyncKf, &QPushButton::clicked, this, &NeutronDlg::SetExtKf);
@@ -61,9 +83,9 @@ NeutronDlg::NeutronDlg(QWidget* pParent, QSettings *pSett)
 
 
 
-	std::vector<QLineEdit*> editsReci = { editBraggReciN, editBraggReciLam, 
+	std::vector<QLineEdit*> editsReci = { editBraggReciN, editBraggReciLam,
 		editBraggReciK, editBraggReciQ, editBraggRecid, editBraggReciT, editBraggReciTT };
-	std::vector<QRadioButton*> radioReci = { /*radioBraggReciN,*/ radioBraggReciLam, 
+	std::vector<QRadioButton*> radioReci = { /*radioBraggReciN,*/ radioBraggReciLam,
 		radioBraggReciQ, radioBraggReciTT };
 
 	connect(editBraggReciT, &QLineEdit::textEdited, this, &NeutronDlg::RecipThetaEdited);
@@ -138,6 +160,7 @@ void NeutronDlg::CalcNeutronLam()
 	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
 	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronk()
@@ -155,6 +178,7 @@ void NeutronDlg::CalcNeutronk()
 	editF->setText(tl::var_to_str<t_real>(E_n / tl::get_h<t_real>() * ps, g_iPrec).c_str());
 	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronv()
@@ -173,6 +197,7 @@ void NeutronDlg::CalcNeutronv()
 	editF->setText(tl::var_to_str<t_real>(E_n / tl::get_h<t_real>() * ps, g_iPrec).c_str());
 	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronE()
@@ -191,6 +216,7 @@ void NeutronDlg::CalcNeutronE()
 	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
 	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronOm()
@@ -209,6 +235,7 @@ void NeutronDlg::CalcNeutronOm()
 	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
 	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronF()
@@ -227,6 +254,7 @@ void NeutronDlg::CalcNeutronF()
 	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
 	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
 	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
 }
 
 void NeutronDlg::CalcNeutronT()
@@ -246,6 +274,26 @@ void NeutronDlg::CalcNeutronT()
 	editE->setText(tl::var_to_str<t_real>(E_n / meV, g_iPrec).c_str());
 	editOm->setText(tl::var_to_str<t_real>(E_n / tl::get_hbar<t_real>() * ps, g_iPrec).c_str());
 	editF->setText(tl::var_to_str<t_real>(E_n / tl::get_h<t_real>() * ps, g_iPrec).c_str());
+	editTau->setText(tl::var_to_str<t_real>(tl::get_h<t_real>() / E_n / ps, g_iPrec).c_str());
+}
+
+void NeutronDlg::CalcNeutronTau()
+{
+	std::string strInput = editTau->text().toStdString();
+
+	bool bImag = 0;
+	tl::t_energy_si<t_real> E_n = 1./tl::str_to_var_parse<t_real>(strInput) / ps * tl::get_h<t_real>();
+	tl::t_wavenumber_si<t_real> k_n = tl::E2k(E_n, bImag);
+	tl::t_length_si<t_real> lam_n = tl::k2lam(k_n);
+	tl::t_momentum_si<t_real> p_n = tl::lam2p(lam_n);
+
+	editE->setText(tl::var_to_str<t_real>(E_n / meV, g_iPrec).c_str());
+	editF->setText(tl::var_to_str<t_real>(E_n / tl::get_h<t_real>() * ps, g_iPrec).c_str());
+	editOm->setText(tl::var_to_str<t_real>(E_n / tl::get_hbar<t_real>() * ps, g_iPrec).c_str());
+	editLam->setText(tl::var_to_str<t_real>(lam_n / angs, g_iPrec).c_str());
+	editK->setText(tl::var_to_str<t_real>(k_n * angs, g_iPrec).c_str());
+	editV->setText(tl::var_to_str<t_real>((p_n / tl::get_m_n<t_real>()) * sec / meter, g_iPrec).c_str());
+	editT->setText(tl::var_to_str<t_real>((E_n / tl::get_kB<t_real>()) / kelvin, g_iPrec).c_str());
 }
 
 
@@ -812,11 +860,11 @@ void NeutronDlg::CalcBraggRecip()
 			lam = tl::bragg_recip_lam(Q, tt, t_real(iOrder));
 			t_real dK = tl::lam2k(lam) * angs;
 
-			std::string strLam = tl::var_to_str(t_real(lam/angs), g_iPrec);
-			std::string strK = tl::var_to_str(dK, g_iPrec);
+			std::string strLamNew = tl::var_to_str(t_real(lam/angs), g_iPrec);
+			std::string strKNew = tl::var_to_str(dK, g_iPrec);
 
-			editBraggReciLam->setText(strLam.c_str());
-			editBraggReciK->setText(strK.c_str());
+			editBraggReciLam->setText(strLamNew.c_str());
+			editBraggReciK->setText(strKNew.c_str());
 		}
 		catch(const std::exception& ex)
 		{
@@ -831,11 +879,11 @@ void NeutronDlg::CalcBraggRecip()
 			Q = tl::bragg_recip_Q(lam, tt, t_real(iOrder));
 			t_real dD = tl::G2d(Q) / angs;
 
-			std::string strQ = tl::var_to_str(t_real(Q*angs), g_iPrec);
-			std::string strD = tl::var_to_str(dD, g_iPrec);
+			std::string strQNew = tl::var_to_str(t_real(Q*angs), g_iPrec);
+			std::string strDNew = tl::var_to_str(dD, g_iPrec);
 
-			editBraggReciQ->setText(strQ.c_str());
-			editBraggRecid->setText(strD.c_str());
+			editBraggReciQ->setText(strQNew.c_str());
+			editBraggRecid->setText(strDNew.c_str());
 		}
 		catch(const std::exception& ex)
 		{
@@ -849,11 +897,11 @@ void NeutronDlg::CalcBraggRecip()
 		{
 			tt = tl::bragg_recip_twotheta(Q, lam, t_real(iOrder));
 
-			std::string strTT = tl::var_to_str<t_real>(tl::r2d(tt/rads), g_iPrec);
-			std::string strT = tl::var_to_str<t_real>(tl::r2d(t_real(0.5)*tt/rads), g_iPrec);
+			std::string strTTNew = tl::var_to_str<t_real>(tl::r2d(tt/rads), g_iPrec);
+			std::string strTNew = tl::var_to_str<t_real>(tl::r2d(t_real(0.5)*tt/rads), g_iPrec);
 
-			editBraggReciTT->setText(strTT.c_str());
-			editBraggReciT->setText(strT.c_str());
+			editBraggReciTT->setText(strTTNew.c_str());
+			editBraggReciT->setText(strTNew.c_str());
 		}
 		catch(const std::exception& ex)
 		{

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include <fstream>
@@ -64,6 +85,7 @@ bool SqwFuncModel::SetTASPos(t_real dPrincipalX, TASReso& reso) const
 		tl::log_err(ostrErr.str());
 		return false;
 	}
+
 	return true;
 }
 
@@ -76,8 +98,8 @@ tl::t_real_min SqwFuncModel::operator()(tl::t_real_min x_principal) const
 
 	const t_real xrange = t_real(m_dPrincipalAxisMax - m_dPrincipalAxisMin);
 	const t_real xscale = (t_real(x_principal) - t_real(m_dPrincipalAxisMin)) / xrange;
-
 	const ublas::vector<t_real> vecScanPos = m_vecScanOrigin + t_real(xscale)*m_vecScanDir;
+
 	std::vector<ublas::vector<t_real_reso>> vecNeutrons;
 	Ellipsoid4d<t_real_reso> elli;
 	if(m_bUseThreads)
@@ -98,21 +120,21 @@ tl::t_real_min SqwFuncModel::operator()(tl::t_real_min x_principal) const
 	}
 
 	dS /= t_real(m_iNumNeutrons);
+	dS += m_pSqw->GetBackground(vecScanPos[0], vecScanPos[1], vecScanPos[2], vecScanPos[3]);
+
 	for(int i=0; i<4; ++i)
 		dhklE_mean[i] /= t_real(m_iNumNeutrons);
 
-	if(reso.GetResoParams().flags & CALC_R0)
-		dS *= reso.GetResoResults().dR0;
-	if(reso.GetResoParams().flags & CALC_RESVOL)
-		dS /= reso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
-
+	dS *= reso.GetResoResults().dR0 * reso.GetR0Scale();
+	//if(reso.GetResoParams().flags & CALC_RESVOL)
+	//	dS /= reso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
 
 	t_real dYVal = m_dScale*(dS + m_dSlope*x_principal) + m_dOffs;
 	if(dYVal < 0.)
 		dYVal = 0.;
 
 	if(m_psigFuncResult)
-		(*m_psigFuncResult)(vecScanPos[0], vecScanPos[1], vecScanPos[2], vecScanPos[3], dYVal);
+		(*m_psigFuncResult)(vecScanPos[0], vecScanPos[1], vecScanPos[2], vecScanPos[3], dYVal, m_iCurParamSet);
 	return tl::t_real_min(dYVal);
 }
 

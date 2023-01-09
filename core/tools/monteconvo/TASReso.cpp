@@ -3,9 +3,31 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date jul-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "TASReso.h"
+#include "libs/version.h"
 #include "tlibs/phys/lattice.h"
 #include "tlibs/math/rand.h"
 #include "tlibs/file/prop.h"
@@ -55,6 +77,7 @@ const TASReso& TASReso::operator=(const TASReso& res)
 	this->m_res = res.m_res;
 	this->m_bKiFix = res.m_bKiFix;
 	this->m_dKFix = res.m_dKFix;
+	this->m_R0_scale = res.m_R0_scale;
 
 	return *this;
 }
@@ -63,7 +86,7 @@ const TASReso& TASReso::operator=(const TASReso& res)
 /**
  * loads a crystal definition file
  */
-bool TASReso::LoadLattice(const char* pcXmlFile)
+bool TASReso::LoadLattice(const char* pcXmlFile, bool flip_coords)
 {
 	const std::string strXmlRoot("taz/");
 
@@ -93,6 +116,13 @@ bool TASReso::LoadLattice(const char* pcXmlFile)
 	t_real dPlaneY0 = xml.Query<t_real>((strXmlRoot + "plane/y0").c_str(), 0.);
 	t_real dPlaneY1 = xml.Query<t_real>((strXmlRoot + "plane/y1").c_str(), 1.);
 	t_real dPlaneY2 = xml.Query<t_real>((strXmlRoot + "plane/y2").c_str(), 0.);
+
+	if(flip_coords)
+	{
+		dPlaneY0 *= t_real(-1);
+		dPlaneY1 *= t_real(-1);
+		dPlaneY2 *= t_real(-1);
+	}
 
 	t_vec vec1 = tl::make_vec({dPlaneX0, dPlaneX1, dPlaneX2});
 	t_vec vec2 = tl::make_vec({dPlaneY0, dPlaneY1, dPlaneY2});
@@ -126,6 +156,29 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 		return false;
 	}
 
+	// check version with which the file has been written
+	std::string very_old_ver = "< 1.6.0"; // first version that wrote version information
+	std::string version = xml.Query<std::string>((strXmlRoot + "meta/version").c_str(), very_old_ver);
+	bool version_error = (version == very_old_ver);
+	bool version_warning = (version != TAKIN_VER);
+	if(!version_error)
+	{
+		std::vector<int> vecVer;
+		tl::get_tokens<int, std::string>(version, ".", vecVer);
+		if(vecVer.size() < 1 || vecVer[0] < 2)
+			version_error = true;
+	}
+	if(version_error)
+	{
+		tl::log_err("File \"", pcXmlFile, "\" was created using a very old version of Takin (",
+			version, "). Please load, adapt, and save it again using the resolution dialog.");
+		//return false;
+	}
+	else if(version_warning)
+	{
+		tl::log_warn("File \"", pcXmlFile, "\" was created using a different version of Takin (",
+			version, "), whose settings may differ from the current version.");
+	}
 
 	// CN
 	m_reso.mono_d = xml.Query<t_real>((strXmlRoot + "reso/mono_d").c_str(), 0.) * angs;
@@ -170,22 +223,26 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 	}
 
 
-	if(xml.Query<int>((strXmlRoot + "reso/use_ki3").c_str(), 1))
+	if(xml.Query<int>((strXmlRoot + "reso/use_ki3").c_str(), /*1*/ 0))
 		m_reso.flags |= CALC_KI3;
 	else
 		m_reso.flags &= ~CALC_KI3;
-	if(xml.Query<int>((strXmlRoot + "reso/use_kf3").c_str(), 1))
+	if(xml.Query<int>((strXmlRoot + "reso/use_kf3").c_str(), /*1*/ 0))
 		m_reso.flags |= CALC_KF3;
 	else
 		m_reso.flags &= ~CALC_KF3;
-	if(xml.Query<int>((strXmlRoot + "reso/use_kfki").c_str(), 1))
+	if(xml.Query<int>((strXmlRoot + "reso/use_kfki").c_str(), /*1*/ 0))
 		m_reso.flags |= CALC_KFKI;
 	else
 		m_reso.flags &= ~CALC_KFKI;
-	if(xml.Query<int>((strXmlRoot + "reso/use_R0").c_str(), 1))
-		m_reso.flags |= CALC_R0;
+	if(xml.Query<int>((strXmlRoot + "reso/use_monki").c_str(), /*1*/ 0))
+		m_reso.flags |= CALC_MONKI;
 	else
-		m_reso.flags &= ~CALC_R0;
+		m_reso.flags &= ~CALC_MONKI;
+	if(xml.Query<int>((strXmlRoot + "reso/use_mon").c_str(), /*1*/ 0))
+		m_reso.flags |= CALC_MON;
+	else
+		m_reso.flags &= ~CALC_MON;
 	if(xml.Query<int>((strXmlRoot + "reso/use_general_R0").c_str(), 0))
 		m_reso.flags |= CALC_GENERAL_R0;
 	else
@@ -194,7 +251,9 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 	//	m_reso.flags |= CALC_RESVOL;
 	//else
 	//	m_reso.flags &= ~CALC_RESVOL;
-	m_reso.flags &= ~CALC_RESVOL;	// not used anymore
+	//m_reso.flags &= ~CALC_RESVOL;	// not used anymore
+
+	m_R0_scale = xml.Query<t_real>((strXmlRoot + "reso/r0_scale").c_str(), 1.);
 
 	m_reso.dmono_sense = (xml.Query<int>((strXmlRoot+"reso/mono_scatter_sense").c_str(), 0) ? +1. : -1.);
 	m_reso.dana_sense = (xml.Query<int>((strXmlRoot+"reso/ana_scatter_sense").c_str(), 0) ? +1. : -1.);
@@ -224,7 +283,7 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 
 	m_reso.bSampleCub = (xml.Query<int>((strXmlRoot + "reso/pop_sample_cuboid").c_str(), 0) != 0);
 	m_reso.sample_w_q = xml.Query<t_real>((strXmlRoot + "reso/pop_sample_wq").c_str(), 0.)*cm;
-	m_reso.sample_w_perpq = xml.Query<t_real>((strXmlRoot + "reso/pop_sampe_wperpq").c_str(), 0.)*cm;
+	m_reso.sample_w_perpq = xml.Query<t_real>((strXmlRoot + "reso/pop_sample_wperpq").c_str(), 0.)*cm;
 	m_reso.sample_h = xml.Query<t_real>((strXmlRoot + "reso/pop_sample_h").c_str(), 0.)*cm;
 
 	m_reso.bSrcRect = (xml.Query<int>((strXmlRoot + "reso/pop_source_rect").c_str(), 0) != 0);
@@ -244,9 +303,14 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 	m_reso.dist_ana_det = xml.Query<t_real>((strXmlRoot + "reso/pop_dist_ana_det").c_str(), 0.)*cm;
 	m_reso.dist_src_mono = xml.Query<t_real>((strXmlRoot + "reso/pop_dist_src_mono").c_str(), 0.)*cm;
 
+	m_reso.monitor_w = xml.Query<t_real>((strXmlRoot + "reso/pop_monitor_w").c_str(), 0.)*cm;
+	m_reso.monitor_h = xml.Query<t_real>((strXmlRoot + "reso/pop_monitor_h").c_str(), 0.)*cm;
+	m_reso.dist_mono_monitor = xml.Query<t_real>((strXmlRoot + "reso/pop_dist_mono_monitor").c_str(), 0.)*cm;
+
 
 	// Eck
 	m_reso.mono_mosaic_v = tl::m2r(xml.Query<t_real>((strXmlRoot + "reso/eck_mono_mosaic_v").c_str(), 0.)) * rads;
+	m_reso.sample_mosaic_v = tl::m2r(xml.Query<t_real>((strXmlRoot + "reso/eck_sample_mosaic_v").c_str(), 0.)) * rads;
 	m_reso.ana_mosaic_v = tl::m2r(xml.Query<t_real>((strXmlRoot + "reso/eck_ana_mosaic_v").c_str(), 0.)) * rads;
 	m_reso.pos_x = xml.Query<t_real>((strXmlRoot + "reso/eck_sample_pos_x").c_str(), 0.)*cm;
 	m_reso.pos_y = xml.Query<t_real>((strXmlRoot + "reso/eck_sample_pos_y").c_str(), 0.)*cm;
@@ -291,7 +355,37 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 	m_tofreso.det_shape = tofdet;
 
 
-	m_algo = ResoAlgo(xml.Query<int>((strXmlRoot + "reso/algo").c_str(), 0));
+	// get selected reso algo
+	std::string algo = xml.Query<std::string>((strXmlRoot + "reso/algo").c_str(), "");
+	if(algo == "cn")
+		m_algo = ResoAlgo::CN;
+	else if(algo == "pop_cn")
+		m_algo = ResoAlgo::POP_CN;
+	else if(algo == "pop")
+		m_algo = ResoAlgo::POP;
+	else if(algo == "eck")
+		m_algo = ResoAlgo::ECK;
+	else if(algo == "vio" || algo == "viol")
+		m_algo = ResoAlgo::VIO;
+	else
+	{
+		// in former versions, an index was used
+		int algo_idx = xml.Query<int>((strXmlRoot + "reso/algo").c_str(), 0);
+		if(algo_idx == 0)
+			m_algo = ResoAlgo::CN;
+		else if(algo_idx == 1)
+			m_algo = ResoAlgo::POP;
+		else if(algo_idx == 2)
+			m_algo = ResoAlgo::ECK;
+		else if(algo_idx == 3)
+			m_algo = ResoAlgo::VIO;
+		else
+		{
+			// get the index instead
+			m_algo = ResoAlgo(xml.Query<int>(
+				(strXmlRoot + "reso/algo_idx").c_str(), 0));
+		}
+	}
 
 
 	// preliminary position
@@ -396,6 +490,8 @@ bool TASReso::SetHKLE(t_real h, t_real k, t_real l, t_real E)
 		m_tofreso.kf = m_reso.kf = m_dKFix / angs;
 	}
 
+	//tl::log_debug("ki = ", m_reso.ki, " (fixed = ", m_bKiFix, "), kf = ", m_reso.kf, ".");
+
 	m_reso.thetam = units::abs(tl::get_mono_twotheta(m_reso.ki, m_reso.mono_d, /*m_reso.dmono_sense>=0.*/1)*t_real(0.5));
 	m_reso.thetaa = units::abs(tl::get_mono_twotheta(m_reso.kf, m_reso.ana_d, /*m_reso.dana_sense>=0.*/1)*t_real(0.5));
 	m_tofreso.twotheta = m_reso.twotheta = units::abs(tl::get_sample_twotheta(m_reso.ki, m_reso.kf, m_reso.Q, 1));
@@ -462,6 +558,11 @@ bool TASReso::SetHKLE(t_real h, t_real k, t_real l, t_real E)
 			//tl::log_info("Algorithm: Cooper-Nathans (TAS)");
 			resores_cur = calc_cn(m_reso);
 		}
+		else if(m_algo == ResoAlgo::POP_CN)
+		{
+			//tl::log_info("Algorithm: Popovici/Pointlike (TAS)");
+			resores_cur = calc_pop_cn(m_reso);
+		}
 		else if(m_algo == ResoAlgo::POP)
 		{
 			//tl::log_info("Algorithm: Popovici (TAS)");
@@ -472,11 +573,10 @@ bool TASReso::SetHKLE(t_real h, t_real k, t_real l, t_real E)
 			//tl::log_info("Algorithm: Eckold-Sobolev (TAS)");
 			resores_cur = calc_eck(m_reso);
 		}
-		else if(m_algo == ResoAlgo::VIOL)
+		else if(m_algo == ResoAlgo::VIO)
 		{
 			//tl::log_info("Algorithm: Violini (TOF)");
-			m_reso.flags &= ~CALC_R0;
-			resores_cur = calc_viol(m_tofreso);
+			resores_cur = calc_vio(m_tofreso);
 		}
 		else
 		{

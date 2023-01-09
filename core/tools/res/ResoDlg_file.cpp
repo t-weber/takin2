@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2013 - 2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ResoDlg.h"
@@ -174,7 +195,7 @@ void ResoDlg::WriteLastConfig()
 		m_pSettings->setValue(m_vecComboNames[iCombo].c_str(), m_vecComboBoxes[iCombo]->currentIndex());
 
 	const int iAlgo = static_cast<int>(ResoDlg::GetSelectedAlgo());
-		m_pSettings->setValue("reso/algo", iAlgo);
+		m_pSettings->setValue("reso/algo_idx", iAlgo);
 
 	m_pSettings->setValue("reso/use_guide", groupGuide->isChecked());
 }
@@ -251,8 +272,8 @@ void ResoDlg::ReadLastConfig()
 			m_pSettings->value(m_vecComboNames[iCombo].c_str()).value<int>());
 	}
 
-	if(m_pSettings->contains("reso/algo"))
-		SetSelectedAlgo(static_cast<ResoAlgo>(m_pSettings->value("reso/algo").value<int>()));
+	if(m_pSettings->contains("reso/algo_idx"))
+		SetSelectedAlgo(static_cast<ResoAlgo>(m_pSettings->value("reso/algo_idx").value<int>()));
 
 	groupGuide->setChecked(m_pSettings->value("reso/use_guide").value<bool>());
 
@@ -307,8 +328,33 @@ void ResoDlg::Save(std::map<std::string, std::string>& mapConf, const std::strin
 	for(std::size_t iCombo=0; iCombo<m_vecComboBoxes.size(); ++iCombo)
 		mapConf[strXmlRoot + m_vecComboNames[iCombo]] = tl::var_to_str<int>(m_vecComboBoxes[iCombo]->currentIndex());
 
-	const int iAlgo = static_cast<int>(ResoDlg::GetSelectedAlgo());
-		mapConf[strXmlRoot + "reso/algo"] = tl::var_to_str<int>(iAlgo);
+	ResoAlgo algo = ResoDlg::GetSelectedAlgo();
+	const int iAlgo = static_cast<int>(algo);
+	mapConf[strXmlRoot + "reso/algo_idx"] = tl::var_to_str<int>(static_cast<int>(algo));
+
+	switch(algo)
+	{
+		case ResoAlgo::CN:
+			mapConf[strXmlRoot + "reso/algo"] = "cn";
+			break;
+		case ResoAlgo::POP_CN:
+			mapConf[strXmlRoot + "reso/algo"] = "pop_cn";
+			break;
+		case ResoAlgo::POP:
+			mapConf[strXmlRoot + "reso/algo"] = "pop";
+			break;
+		case ResoAlgo::ECK:
+			mapConf[strXmlRoot + "reso/algo"] = "eck";
+			break;
+		case ResoAlgo::VIO:
+			mapConf[strXmlRoot + "reso/algo"] = "vio";
+			break;
+		case ResoAlgo::SIMPLE:
+			mapConf[strXmlRoot + "reso/algo"] = "simple";
+			break;
+		default:
+			break;
+	}
 
 	mapConf[strXmlRoot + "reso/use_guide"] = groupGuide->isChecked() ? "1" : "0";
 
@@ -318,6 +364,8 @@ void ResoDlg::Save(std::map<std::string, std::string>& mapConf, const std::strin
 	mapConf[strXmlRoot + "meta/timestamp"] = tl::var_to_str<t_real_reso>(tl::epoch<t_real_reso>());
 	mapConf[strXmlRoot + "meta/version"] = TAKIN_VER;
 	mapConf[strXmlRoot + "meta/info"] = "Created with Takin/Reso.";
+	mapConf[strXmlRoot + "meta/url"] = "https://code.ill.fr/scientific-software/takin";
+	mapConf[strXmlRoot + "meta/doi"] = "https://dx.doi.org/10.5281/zenodo.4117437";
 	mapConf[strXmlRoot + "meta/module"] = "takin/res";
 	mapConf[strXmlRoot + "meta/user"] = pcUser;
 }
@@ -382,8 +430,29 @@ void ResoDlg::Load(tl::Prop<std::string>& xml, const std::string& strXmlRoot)
 		if(oiComboIdx) m_vecComboBoxes[iCombo]->setCurrentIndex(*oiComboIdx);
 	}
 
-	boost::optional<int> oiAlgo = xml.QueryOpt<int>(strXmlRoot + "reso/algo");
-	if(oiAlgo) SetSelectedAlgo(static_cast<ResoAlgo>(*oiAlgo));
+	// get reso algo by name
+	boost::optional<std::string> opAlgo = xml.QueryOpt<std::string>(strXmlRoot+"reso/algo");
+	if(opAlgo)
+	{
+		if(*opAlgo == "cn")
+			SetSelectedAlgo(ResoAlgo::CN);
+		else if(*opAlgo == "pop_cn")
+			SetSelectedAlgo(ResoAlgo::POP_CN);
+		else if(*opAlgo == "pop")
+			SetSelectedAlgo(ResoAlgo::POP);
+		else if(*opAlgo == "eck")
+			SetSelectedAlgo(ResoAlgo::ECK);
+		else if(*opAlgo == "vio" || *opAlgo == "viol")
+			SetSelectedAlgo(ResoAlgo::VIO);
+		else if(*opAlgo == "simple")
+			SetSelectedAlgo(ResoAlgo::SIMPLE);
+	}
+	else
+	{
+		// get reso algo by index
+		boost::optional<int> oiAlgo = xml.QueryOpt<int>(strXmlRoot + "reso/algo_idx");
+		if(oiAlgo) SetSelectedAlgo(static_cast<ResoAlgo>(*oiAlgo));
+	}
 
 	boost::optional<int> obGroupVal = xml.QueryOpt<int>(strXmlRoot+"reso/use_guide");
 	if(obGroupVal) groupGuide->setChecked(*obGroupVal);

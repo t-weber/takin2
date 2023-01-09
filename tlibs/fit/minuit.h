@@ -8,6 +8,27 @@
  * @desc general fitter structure (i.e. function => chi^2 calculation => calling
  * 	minuit) originally based on the examples in the Minuit user's guide:
  * 	http://seal.cern.ch/documents/minuit/mnusersguide.pdf
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __MINUIT_IFACE_H__
@@ -103,7 +124,7 @@ public:
 	virtual t_real_min operator()(const std::vector<t_real_min>& vecParams) const override
 	{
 		t_real_min dChi2 = chi2(vecParams);
-		if(m_bDebug) tl::log_debug("Chi2 = ", dChi2);
+		if(m_bDebug) tl::log_debug("Chi2 = ", dChi2, ".");
 		return dChi2;
 	}
 
@@ -212,7 +233,7 @@ public:
 			dChi += dSingleChi;
 
 			if(m_bDebug && iNumParamSets>1)
-				tl::log_debug("Function ", iParamSet, " chi2 = ", dSingleChi);
+				tl::log_debug("Function ", iParamSet, " chi2 = ", dSingleChi, ".");
 		}
 		dChi /= t_real_min(iNumParamSets);
 		return dChi;
@@ -227,7 +248,7 @@ public:
 			dChi += dSingleChi;
 
 			if(m_bDebug && m_vecFkt.size()>1)
-				tl::log_debug("Function ", iFkt, " chi2 = ", dSingleChi);
+				tl::log_debug("Function ", iFkt, " chi2 = ", dSingleChi, ".");
 		}
 		dChi /= t_real_min(m_vecFkt.size());
 		return dChi;
@@ -238,7 +259,8 @@ public:
 	virtual t_real_min operator()(const std::vector<t_real_min>& vecParams) const override
 	{
 		t_real_min dChi2 = chi2(vecParams);
-		if(m_bDebug) tl::log_debug("Total chi2 = ", dChi2);
+		if(m_bDebug)
+			tl::log_debug("Total chi2 = ", dChi2, ".");
 		return dChi2;
 	}
 
@@ -297,7 +319,8 @@ public:
 	virtual t_real_min operator()(const std::vector<t_real_min>& vecParams) const override
 	{
 		t_real_min dChi2 = chi2(vecParams);
-		if(m_bDebug) tl::log_debug("Chi2 = ", dChi2);
+		if(m_bDebug)
+			tl::log_debug("Chi2 = ", dChi2, ".");
 		return dChi2;
 	}
 

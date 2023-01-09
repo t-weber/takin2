@@ -2,9 +2,29 @@
  * tlibs2
  * string library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2013-2020
+ * @date 2013-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_STRINGS__
@@ -64,7 +84,7 @@ static inline const std::string& wstr_to_str(const std::string& str) { return st
 // -----------------------------------------------------------------------------
 
 
-template<class t_str=std::string>
+template<class t_str = std::string>
 t_str str_to_upper(const t_str& str)
 {
 	t_str strOut;
@@ -75,7 +95,7 @@ t_str str_to_upper(const t_str& str)
 }
 
 
-template<class t_str=std::string>
+template<class t_str = std::string>
 t_str str_to_lower(const t_str& str)
 {
 	t_str strLower;
@@ -89,8 +109,8 @@ t_str str_to_lower(const t_str& str)
 // -----------------------------------------------------------------------------
 
 
-template<class t_str=std::string>
-t_str get_file_noext(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_file_noext(const t_str& str, bool bToLower = false)
 {
 	std::size_t iPos = str.find_last_of('.');
 
@@ -105,8 +125,8 @@ t_str get_file_noext(const t_str& str, bool bToLower=0)
 }
 
 
-template<class t_str=std::string>
-t_str get_fileext(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_fileext(const t_str& str, bool bToLower = false)
 {
 	std::size_t iPos = str.find_last_of('.');
 
@@ -124,8 +144,8 @@ t_str get_fileext(const t_str& str, bool bToLower=0)
 /**
  *  e.g. returns "tof" for "123.tof.bz2"
  */
-template<class t_str=std::string>
-t_str get_fileext2(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_fileext2(const t_str& str, bool bToLower = false)
 {
 	std::size_t iPos = str.find_last_of('.');
 	if(iPos == t_str::npos || iPos == 0)
@@ -139,8 +159,8 @@ t_str get_fileext2(const t_str& str, bool bToLower=0)
 /**
  * e.g. returns "tof" for "123.tof.bz2" and for "123.tof"
  */
-template<class t_str=std::string>
-t_str get_fileext_nocomp(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_fileext_nocomp(const t_str& str, bool bToLower = false)
 {
 	std::size_t iCnt = std::count(str.begin(), str.end(), '.');
 	if(iCnt==0)
@@ -152,16 +172,16 @@ t_str get_fileext_nocomp(const t_str& str, bool bToLower=0)
 }
 
 
-template<class t_str=std::string>
-t_str get_dir(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_dir(const t_str& str, bool bToLower = false)
 {
 	using t_ch = typename t_str::value_type;
 	std::size_t iPos = std::string::npos;
 
 	if constexpr(std::is_same_v<t_ch, char>)
-		str.find_last_of("\\/");
+		iPos = str.find_last_of("\\/");
 	else if constexpr(std::is_same_v<t_ch, wchar_t>)
-		str.find_last_of(L"\\/");
+		iPos = str.find_last_of(L"\\/");
 
 	if(iPos == t_str::npos)
 		return t_str();
@@ -174,19 +194,19 @@ t_str get_dir(const t_str& str, bool bToLower=0)
 }
 
 
-template<class t_str=std::string>
-t_str get_file_nodir(const t_str& str, bool bToLower=0)
+template<class t_str = std::string>
+t_str get_file_nodir(const t_str& str, bool bToLower = false)
 {
 	using t_ch = typename t_str::value_type;
 	std::size_t iPos = std::string::npos;
 
 	if constexpr(std::is_same_v<t_ch, char>)
-		str.find_last_of("\\/");
+		iPos = str.find_last_of("\\/");
 	else if constexpr(std::is_same_v<t_ch, wchar_t>)
-		str.find_last_of(L"\\/");
+		iPos = str.find_last_of(L"\\/");
 
 	if(iPos == t_str::npos)
-		return t_str();
+		return str;
 
 	t_str strRet = str.substr(iPos+1);
 	if(bToLower)
@@ -200,8 +220,8 @@ t_str get_file_nodir(const t_str& str, bool bToLower=0)
 
 
 
-template<class t_str=std::string>
-bool str_is_equal(const t_str& str0, const t_str& str1, bool bCase=0)
+template<class t_str = std::string>
+bool str_is_equal(const t_str& str0, const t_str& str1, bool bCase = false)
 {
 	if(bCase)
 		return algo::equals(str0, str1, algo::is_equal());
@@ -210,9 +230,9 @@ bool str_is_equal(const t_str& str0, const t_str& str1, bool bCase=0)
 }
 
 
-template<class t_str=std::string>
+template<class t_str = std::string>
 bool str_is_equal_to_either(const t_str& str0,
-	const std::initializer_list<t_str>& lststr1, bool bCase=0)
+	const std::initializer_list<t_str>& lststr1, bool bCase = false)
 {
 	for(const t_str& str1 : lststr1)
 		if(str_is_equal<t_str>(str0, str1, bCase))
@@ -221,8 +241,8 @@ bool str_is_equal_to_either(const t_str& str0,
 }
 
 
-template<class t_str=std::string>
-bool str_contains(const t_str& str, const t_str& strSub, bool bCase=0)
+template<class t_str = std::string>
+bool str_contains(const t_str& str, const t_str& strSub, bool bCase = false)
 {
 	if(bCase)
 		return algo::contains(str, strSub, algo::is_equal());
@@ -234,7 +254,7 @@ bool str_contains(const t_str& str, const t_str& strSub, bool bCase=0)
 // -----------------------------------------------------------------------------
 
 
-template<class t_str=std::string>
+template<class t_str = std::string>
 void trim(t_str& str)
 {
 	using t_char = typename t_str::value_type;
@@ -251,7 +271,7 @@ void trim(t_str& str)
 }
 
 
-template<class t_str=std::string>
+template<class t_str = std::string>
 t_str trimmed(const t_str& str)
 {
 	t_str strret = str;
@@ -477,7 +497,7 @@ void get_tokens(const t_str& str, const t_str& strDelim, t_cont& vecRet)
 
 
 /**
- * Tokenises string on strDelim
+ * tokenises string on strDelim
  */
 template<class T, class t_str=std::string, template<class...> class t_cont=std::vector>
 void get_tokens_seq(const t_str& str, const t_str& strDelim, t_cont<T>& vecRet, bool bCase=1)
@@ -538,7 +558,8 @@ T str_to_var_parse(const t_str& str)
 template<typename T, class t_str=std::string>
 T str_to_var(const t_str& str)
 {
-	return _str_to_var_impl<T, t_str, std::is_convertible<T, t_str>::value>()(str);
+	return _str_to_var_impl<T, t_str, 
+		std::is_convertible<T, t_str>::value>()(str);
 }
 
 
@@ -826,7 +847,9 @@ std::pair<bool, t_val> eval_expr(const t_str& str) noexcept
 	}
 	catch(const std::exception& ex)
 	{
+#ifdef __TLIBS2_SHOW_ERR__
 		log_err("Parsing failed with error: ", ex.what(), ".");
+#endif
 		return std::make_pair(false, t_val(0));
 	}
 }

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "taz.h"
@@ -92,7 +113,7 @@ bool TazDlg::Load()
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_settings.value("main/last_dir", ".").toString();
+	QString strDirLast = m_settings.value("main/last_dir", "~").toString();
 	QString strFile = QFileDialog::getOpenFileName(this,
 		"Open TAS Configuration...", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
@@ -332,27 +353,11 @@ bool TazDlg::Load(const char* pcFile)
 
 	// dead angles
 	m_vecDeadAngles.clear();
-	unsigned int iNumAngles = xml.Query<unsigned int>(strXmlRoot + "deadangles/num", 0, &bOk);
-	if(bOk)
+	if(xml.Exists(strXmlRoot + "deadangles"))
 	{
-		m_vecDeadAngles.reserve(iNumAngles);
-
-		for(unsigned int iAngle=0; iAngle<iNumAngles; ++iAngle)
-		{
-			DeadAngle<t_real> angle;
-
-			std::string strNr = tl::var_to_str(iAngle);
-			angle.dAngleStart = xml.Query<t_real>(strXmlRoot + "deadangles/" + strNr + "/start", 0.);
-			angle.dAngleEnd = xml.Query<t_real>(strXmlRoot + "deadangles/" + strNr + "/end", 0.);
-			angle.dAngleOffs = xml.Query<t_real>(strXmlRoot + "deadangles/" + strNr + "/offs", 0.);
-			angle.iCentreOn = xml.Query<int>(strXmlRoot + "deadangles/" + strNr + "/centreon", 1);
-			angle.iRelativeTo = xml.Query<int>(strXmlRoot + "deadangles/" + strNr + "/relativeto", 0);
-
-			m_vecDeadAngles.emplace_back(std::move(angle));
-		}
-
-		if(m_pDeadAnglesDlg)
-			m_pDeadAnglesDlg->SetDeadAngles(m_vecDeadAngles);
+		InitDeadAngles();
+		m_pDeadAnglesDlg->Load(xml, strXmlRoot);
+		m_vecDeadAngles = m_pDeadAnglesDlg->GetDeadAngles();
 		if(m_sceneReal.GetTasLayout())
 			m_sceneReal.GetTasLayout()->SetDeadAngles(&m_vecDeadAngles);
 	}
@@ -539,32 +544,14 @@ bool TazDlg::Save()
 	}
 
 
-	// dead angles
-	mapConf[strXmlRoot + "deadangles/num"] = tl::var_to_str(m_vecDeadAngles.size());
-	for(std::size_t iAngle=0; iAngle<m_vecDeadAngles.size(); ++iAngle)
-	{
-		const DeadAngle<t_real>& angle = m_vecDeadAngles[iAngle];
-
-		std::string strAtomNr = tl::var_to_str(iAngle);
-		mapConf[strXmlRoot + "deadangles/" + strAtomNr + "/start"] =
-			tl::var_to_str(angle.dAngleStart);
-		mapConf[strXmlRoot + "deadangles/" + strAtomNr + "/end"] =
-			tl::var_to_str(angle.dAngleEnd);
-		mapConf[strXmlRoot + "deadangles/" + strAtomNr + "/offs"] =
-			tl::var_to_str(angle.dAngleOffs);
-		mapConf[strXmlRoot + "deadangles/" + strAtomNr + "/centreon"] =
-			tl::var_to_str(angle.iCentreOn);
-		mapConf[strXmlRoot + "deadangles/" + strAtomNr + "/relativeto"] =
-			tl::var_to_str(angle.iRelativeTo);
-	}
-
-
 	// meta data
 	const char* pcUser = std::getenv("USER");
 	if(!pcUser) pcUser = "";
 	mapConf[strXmlRoot + "meta/timestamp"] = tl::var_to_str<t_real>(tl::epoch<t_real>());
 	mapConf[strXmlRoot + "meta/version"] = TAKIN_VER;
 	mapConf[strXmlRoot + "meta/info"] = "Created with Takin.";
+	mapConf[strXmlRoot + "meta/url"] = "https://code.ill.fr/scientific-software/takin";
+	mapConf[strXmlRoot + "meta/doi"] = "https://dx.doi.org/10.5281/zenodo.4117437";
 	mapConf[strXmlRoot + "meta/module"] = "takin";
 	mapConf[strXmlRoot + "meta/user"] = pcUser;
 
@@ -573,6 +560,7 @@ bool TazDlg::Save()
 	if(m_pReso) m_pReso->Save(mapConf, strXmlRoot);
 	if(m_pConvoDlg) m_pConvoDlg->Save(mapConf, strXmlRoot);
 	if(m_pGotoDlg) m_pGotoDlg->Save(mapConf, strXmlRoot);
+	if(m_pDeadAnglesDlg) m_pDeadAnglesDlg->Save(mapConf, strXmlRoot);
 	//if(m_pPowderDlg) m_pPowderDlg->Save(mapConf, strXmlRoot);
 
 
@@ -599,7 +587,7 @@ bool TazDlg::SaveAs()
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_settings.value("main/last_dir", ".").toString();
+	QString strDirLast = m_settings.value("main/last_dir", "~").toString();
 	QString strFile = QFileDialog::getSaveFileName(this,
 		"Save TAS Configuration", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
@@ -639,7 +627,7 @@ bool TazDlg::Import()
 		fileopt = QFileDialog::DontUseNativeDialog;
 
 	const bool bShowPreview = m_settings.value("main/dlg_previews", true).toBool();
-	QString strDirLast = m_settings.value("main/last_import_dir", ".").toString();
+	QString strDirLast = m_settings.value("main/last_import_dir", "~").toString();
 
 	std::unique_ptr<QFileDialog> pdlg;
 	if(bShowPreview)
@@ -802,7 +790,7 @@ bool TazDlg::ImportCIF()
 		fileopt = QFileDialog::DontUseNativeDialog;
 
 	const bool bShowPreview = m_settings.value("main/dlg_previews", true).toBool();
-	QString strDirLast = m_settings.value("main/last_import_cif_dir", ".").toString();
+	QString strDirLast = m_settings.value("main/last_import_cif_dir", "~").toString();
 
 	std::unique_ptr<QFileDialog> pdlg{new QFileDialog(this, "Import CIF...")};
 

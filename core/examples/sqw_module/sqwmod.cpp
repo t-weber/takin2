@@ -18,6 +18,7 @@
 using t_real = typename SqwMod::t_real;
 
 
+
 // ----------------------------------------------------------------------------
 // constructors
 
@@ -26,15 +27,18 @@ SqwMod::SqwMod() : m_vecG(tl::make_vec<t_vec>({1,0,0}))
 	SqwBase::m_bOk = 1;
 }
 
+
 SqwMod::SqwMod(const std::string& strCfgFile) : SqwMod()
 {
 	tl::log_info("Config file: \"", strCfgFile, "\".");
 	SqwBase::m_bOk = 1;
 }
 
+
 SqwMod::~SqwMod()
 {
 }
+
 
 
 // ----------------------------------------------------------------------------
@@ -53,6 +57,7 @@ std::tuple<std::vector<t_real>, std::vector<t_real>>
 	return std::make_tuple(std::vector<t_real>({dEp, dEm}),
 		std::vector<t_real>({dwp, dwm}));
 }
+
 
 t_real SqwMod::operator()(t_real dh, t_real dk, t_real dl, t_real dE) const
 {
@@ -77,6 +82,13 @@ t_real SqwMod::operator()(t_real dh, t_real dk, t_real dl, t_real dE) const
 
 
 
+t_real SqwMod::GetBackground(t_real dh, t_real dk, t_real dl, t_real dE) const
+{
+	return 0.;
+}
+
+
+
 // ----------------------------------------------------------------------------
 // get & set variables
 
@@ -95,6 +107,7 @@ std::vector<SqwMod::t_var> SqwMod::GetVars() const
 
 	return vecVars;
 }
+
 
 void SqwMod::SetVars(const std::vector<SqwMod::t_var>& vecVars)
 {
@@ -116,10 +129,12 @@ void SqwMod::SetVars(const std::vector<SqwMod::t_var>& vecVars)
 	}
 }
 
+
 bool SqwMod::SetVarIfAvail(const std::string& strKey, const std::string& strNewVal)
 {
 	return SqwBase::SetVarIfAvail(strKey, strNewVal);
 }
+
 
 
 // ----------------------------------------------------------------------------

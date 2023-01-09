@@ -3,11 +3,33 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2015, 2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ConvoDlg.h"
 #include "libs/version.h"
 
+#include "tlibs/time/chrono.h"
 #include "tlibs/time/stopwatch.h"
 #include "tlibs/helper/thread.h"
 #include "tlibs/math/stat.h"
@@ -42,6 +64,7 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 	t_real dOffs = tl::str_to_var<t_real>(editOffs->text().toStdString());
 
 	bool bRecycleNeutrons = checkRnd->isChecked();
+	bool bFlipCoords = checkFlip->isChecked();
 	bool bLiveResults = m_pLiveResults->isChecked();
 	bool bLivePlots = m_pLivePlots->isChecked();
 	std::string strAutosave = editAutosave->text().toStdString();
@@ -49,8 +72,10 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 	btnStart->setEnabled(false);
 	btnStartFit->setEnabled(false);
 	tabSettings->setEnabled(false);
+	tabOptions->setEnabled(false);
 	m_pMenuBar->setEnabled(false);
-	if(m_pSqwParamDlg) m_pSqwParamDlg->setEnabled(false);
+	if(m_pSqwParamDlg)
+		m_pSqwParamDlg->setEnabled(false);
 	editScale->setEnabled(false);
 	editSlope->setEnabled(false);
 	editOffs->setEnabled(false);
@@ -61,15 +86,17 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 		? Qt::ConnectionType::DirectConnection
 		: Qt::ConnectionType::BlockingQueuedConnection;
 
-	std::function<void()> fkt = [this, connty, bForceDeferred, bUseScan, seed, bRecycleNeutrons,
-		dScale, dSlope, dOffs, bLiveResults, bLivePlots, strAutosave]
+	std::function<void()> fkt = [this, connty, bForceDeferred, bUseScan, bFlipCoords,
+		seed, bRecycleNeutrons, dScale, dSlope, dOffs, bLiveResults, bLivePlots, strAutosave]
 	{
 		std::function<void()> fktEnableButtons = [this]
 		{
 			QMetaObject::invokeMethod(btnStop, "setEnabled", Q_ARG(bool, false));
 			QMetaObject::invokeMethod(tabSettings, "setEnabled", Q_ARG(bool, true));
+			QMetaObject::invokeMethod(tabOptions, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(m_pMenuBar, "setEnabled", Q_ARG(bool, true));
-			if(m_pSqwParamDlg) QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
+			if(m_pSqwParamDlg)
+				QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editScale, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editSlope, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editOffs, "setEnabled", Q_ARG(bool, true));
@@ -153,7 +180,7 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 			const std::string strLatticeFile = find_file_in_global_paths(_strLatticeFile);
 
 			tl::log_debug("Loading crystal from \"", strLatticeFile, "\".");
-			if(strLatticeFile == "" || !reso.LoadLattice(strLatticeFile.c_str()))
+			if(strLatticeFile == "" || !reso.LoadLattice(strLatticeFile.c_str(), bFlipCoords))
 			{
 				//QMessageBox::critical(this, "Error", "Could not load crystal file.");
 				fktEnableButtons();
@@ -181,6 +208,9 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 		ostrOut.precision(g_iPrec);
 		ostrOut << "#\n";
 		ostrOut << "# Takin/Monteconvo version " << TAKIN_VER << "\n";
+		ostrOut << "# DOI: https://dx.doi.org/10.5281/zenodo.4117437\n";
+		ostrOut << "# URL: https://code.ill.fr/scientific-software/takin\n";
+		ostrOut << "# Timestamp: " << tl::epoch_to_str(tl::epoch()) << "\n";
 		ostrOut << "# MC neutrons: " << iNumNeutrons << "\n";
 		ostrOut << "# MC sample steps: " << iNumSampleSteps << "\n";
 		ostrOut << "# Scale: " << dScale << "\n";
@@ -223,9 +253,9 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 		{
 			// TODO: init random seeds for non-deferred, threaded simulation
 			if(bRecycleNeutrons && bForceDeferred)
-				tl::init_rand_seed(seed); 
+				tl::init_rand_seed(seed);
 			else
-				tl::init_rand(); 
+				tl::init_rand();
 		};
 
 		// call the start function directly in non-threaded mode
@@ -256,6 +286,7 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 					// TODO: add an option to let the user choose if S(Q,E) is
 					// really the dynamical structure factor, or its absolute square
 					dS += (*m_pSqw)(dCurH, dCurK, dCurL, dCurE);
+					dS += m_pSqw->GetBackground(dCurH, dCurK, dCurL, dCurE);
 				}
 				else
 				{	// convolution
@@ -297,13 +328,14 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 					}
 
 					dS /= t_real(iNumNeutrons*iNumSampleSteps);
+					dS += m_pSqw->GetBackground(dCurH, dCurK, dCurL, dCurE);
+
 					for(int i=0; i<4; ++i)
 						dhklE_mean[i] /= t_real(iNumNeutrons*iNumSampleSteps);
 
-					if(localreso.GetResoParams().flags & CALC_R0)
-						dS *= localreso.GetResoResults().dR0;
-					if(localreso.GetResoParams().flags & CALC_RESVOL)
-						dS /= localreso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
+					dS *= localreso.GetResoResults().dR0 * localreso.GetR0Scale();
+					//if(localreso.GetResoParams().flags & CALC_RESVOL)
+					//	dS /= localreso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
 				}
 				return std::pair<bool, t_real>(true, dS);
 			});
@@ -503,6 +535,7 @@ void ConvoDlg::Start2D()
 {
 	m_atStop.store(false);
 
+	bool bFlipCoords = checkFlip->isChecked();
 	bool bLiveResults = m_pLiveResults->isChecked();
 	bool bLivePlots = m_pLivePlots->isChecked();
 	std::string strAutosave = editAutosave->text().toStdString();
@@ -510,8 +543,10 @@ void ConvoDlg::Start2D()
 	btnStart->setEnabled(false);
 	btnStartFit->setEnabled(false);
 	tabSettings->setEnabled(false);
+	tabOptions->setEnabled(false);
 	m_pMenuBar->setEnabled(false);
-	if(m_pSqwParamDlg) m_pSqwParamDlg->setEnabled(false);
+	if(m_pSqwParamDlg)
+		m_pSqwParamDlg->setEnabled(false);
 	editScale->setEnabled(false);
 	editSlope->setEnabled(false);
 	editOffs->setEnabled(false);
@@ -523,14 +558,17 @@ void ConvoDlg::Start2D()
 		? Qt::ConnectionType::DirectConnection
 		: Qt::ConnectionType::BlockingQueuedConnection;
 
-	std::function<void()> fkt = [this, connty, bForceDeferred, bLiveResults, bLivePlots, strAutosave]
+	std::function<void()> fkt = [this, connty, bFlipCoords, bForceDeferred,
+		bLiveResults, bLivePlots, strAutosave]
 	{
 		std::function<void()> fktEnableButtons = [this]
 		{
 			QMetaObject::invokeMethod(btnStop, "setEnabled", Q_ARG(bool, false));
 			QMetaObject::invokeMethod(tabSettings, "setEnabled", Q_ARG(bool, true));
+			QMetaObject::invokeMethod(tabOptions, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(m_pMenuBar, "setEnabled", Q_ARG(bool, true));
-			if(m_pSqwParamDlg) QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
+			if(m_pSqwParamDlg)
+				QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editScale, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editSlope, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editOffs, "setEnabled", Q_ARG(bool, true));
@@ -660,7 +698,7 @@ void ConvoDlg::Start2D()
 		const std::string strLatticeFile = find_file_in_global_paths(_strLatticeFile);
 
 		tl::log_debug("Loading crystal from \"", strLatticeFile, "\".");
-		if(strLatticeFile == "" || !reso.LoadLattice(strLatticeFile.c_str()))
+		if(strLatticeFile == "" || !reso.LoadLattice(strLatticeFile.c_str(), bFlipCoords))
 		{
 			//QMessageBox::critical(this, "Error", "Could not load crystal file.");
 			fktEnableButtons();
@@ -802,10 +840,9 @@ void ConvoDlg::Start2D()
 					for(int i=0; i<4; ++i)
 						dhklE_mean[i] /= t_real(iNumNeutrons*iNumSampleSteps);
 
-					if(localreso.GetResoParams().flags & CALC_R0)
-						dS *= localreso.GetResoResults().dR0;
-					if(localreso.GetResoParams().flags & CALC_RESVOL)
-						dS /= localreso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
+					dS *= localreso.GetResoResults().dR0 * localreso.GetR0Scale();
+					//if(localreso.GetResoParams().flags & CALC_RESVOL)
+					//	dS /= localreso.GetResoResults().dResVol * tl::get_pi<t_real>() * t_real(3.);
 				}
 				return std::pair<bool, t_real>(true, dS);
 			});
@@ -917,8 +954,10 @@ void ConvoDlg::StartDisp()
 	btnStart->setEnabled(false);
 	btnStartFit->setEnabled(false);
 	tabSettings->setEnabled(false);
+	tabOptions->setEnabled(false);
 	m_pMenuBar->setEnabled(false);
-	if(m_pSqwParamDlg) m_pSqwParamDlg->setEnabled(false);
+	if(m_pSqwParamDlg)
+		m_pSqwParamDlg->setEnabled(false);
 	editScale->setEnabled(false);
 	editSlope->setEnabled(false);
 	editOffs->setEnabled(false);
@@ -936,8 +975,10 @@ void ConvoDlg::StartDisp()
 		{
 			QMetaObject::invokeMethod(btnStop, "setEnabled", Q_ARG(bool, false));
 			QMetaObject::invokeMethod(tabSettings, "setEnabled", Q_ARG(bool, true));
+			QMetaObject::invokeMethod(tabOptions, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(m_pMenuBar, "setEnabled", Q_ARG(bool, true));
-			if(m_pSqwParamDlg) QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
+			if(m_pSqwParamDlg)
+				QMetaObject::invokeMethod(m_pSqwParamDlg, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editScale, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editSlope, "setEnabled", Q_ARG(bool, true));
 			QMetaObject::invokeMethod(editOffs, "setEnabled", Q_ARG(bool, true));

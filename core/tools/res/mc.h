@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __MC_NEUTR_H__
@@ -63,8 +84,6 @@ void mc_neutrons(const Ellipsoid4d<typename t_vec::value_type>& ell4d,
 	//if(vecResult.size() != iNum)
 	//	vecResult.resize(iNum);
 
-	//tl::log_debug("rot: ", rot);
-	//tl::log_debug("Qvec0 = ", opts.dAngleQVec0/M_PI*180.);
 	t_mat matQVec0 = tl::rotation_matrix_2d(-opts.dAngleQVec0);
 	tl::resize_unity(matQVec0, 4);
 
@@ -76,9 +95,9 @@ void mc_neutrons(const Ellipsoid4d<typename t_vec::value_type>& ell4d,
 			tl::rand_norm_nd<t_real, std::vector>
 				({0.,0.,0.,0.},
 				{ ell4d.x_hwhm*tl::get_HWHM2SIGMA<t_real>(),
-				ell4d.y_hwhm*tl::get_HWHM2SIGMA<t_real>(),
-				ell4d.z_hwhm*tl::get_HWHM2SIGMA<t_real>(),
-				ell4d.w_hwhm*tl::get_HWHM2SIGMA<t_real>() }));
+				  ell4d.y_hwhm*tl::get_HWHM2SIGMA<t_real>(),
+				  ell4d.z_hwhm*tl::get_HWHM2SIGMA<t_real>(),
+				  ell4d.w_hwhm*tl::get_HWHM2SIGMA<t_real>() }));
 
 		vecMC = ublas::prod(rot, vecMC);
 		if(!opts.bCenter)

@@ -3,8 +3,30 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 
 #include "convofit.h"
@@ -34,7 +56,7 @@ int convofit_main(int argc, char** argv)
 #ifdef MONTECONVO_STANDALONE	// only show copyright banner if not already displayed from Takin main program
 		tl::log_info("--------------------------------------------------------------------------------");
 		tl::log_info("This is the Takin command-line convolution fitter (convofit), version " TAKIN_VER ".");
-		tl::log_info("Written by Tobias Weber <tweber@ill.fr>, 2014 - 2021.");
+		tl::log_info("Written by Tobias Weber <tweber@ill.fr>, 2014 - 2022.");
 		tl::log_info(TAKIN_LICENSE("Takin/Convofit"));
 		tl::log_debug("Resolution calculation uses ", sizeof(t_real_reso)*8, " bit ", tl::get_typename<t_real_reso>(), "s.");
 		tl::log_debug("Fitting uses ", sizeof(tl::t_real_min)*8, " bit ", tl::get_typename<tl::t_real_min>(), "s.");
@@ -50,58 +72,46 @@ int convofit_main(int argc, char** argv)
 
 		// normal args
 		opts::options_description args("convofit options (overriding job file settings)");
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("job-file",
-			opts::value<decltype(vecJobs)>(&vecJobs),
-			"convolution fitting job file")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("verbose",
-			opts::bool_switch(&g_bVerbose),
-			"verbose logging")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("neutrons",
-			opts::value<decltype(g_iNumNeutrons)>(&g_iNumNeutrons),
-			"neutron count")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("skip-fit",
-			opts::bool_switch(&g_bSkipFit),
-			"skip the fitting step")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("keep-model",
-			opts::bool_switch(&g_bUseValuesFromModel),
-			"keep the initial values from the model file")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("model-params",
-			opts::value<decltype(g_strSetParams)>(&g_strSetParams),
-			"set S(q,w) model parameters")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("outfile-suffix",
-			opts::value<decltype(g_strOutFileSuffix)>(&g_strOutFileSuffix),
-			"suffix to append to output files")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("plot-points",
-			opts::value<decltype(g_iPlotPoints)>(&g_iPlotSkipBegin),
-			"number of plot points")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("plot-skip-begin",
-			opts::value<decltype(g_iPlotSkipBegin)>(&g_iPlotSkipBegin),
-			"skip plot points in the beginning of the range")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("plot-skip-end",
-			opts::value<decltype(g_iPlotSkipEnd)>(&g_iPlotSkipEnd),
-			"skip plot points in the end of the range")));
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("max-threads",
-			opts::value<decltype(g_iMaxThreads)>(&g_iMaxThreads),
-			"maximum number of threads")));
+		args.add(boost::make_shared<opts::option_description>(
+			"job-file", opts::value<decltype(vecJobs)>(&vecJobs),
+			"convolution fitting job file"));
+		args.add(boost::make_shared<opts::option_description>(
+			"verbose", opts::bool_switch(&g_bVerbose),
+			"verbose logging"));
+		args.add(boost::make_shared<opts::option_description>(
+			"neutrons", opts::value<decltype(g_iNumNeutrons)>(&g_iNumNeutrons),
+			"neutron count"));
+		args.add(boost::make_shared<opts::option_description>(
+			"skip-fit", opts::bool_switch(&g_bSkipFit),
+			"skip the fitting step"));
+		args.add(boost::make_shared<opts::option_description>(
+			"keep-model", opts::bool_switch(&g_bUseValuesFromModel),
+			"keep the initial values from the model file"));
+		args.add(boost::make_shared<opts::option_description>(
+			"model-params", opts::value<decltype(g_strSetParams)>(&g_strSetParams),
+			"set S(q,w) model parameters"));
+		args.add(boost::make_shared<opts::option_description>(
+			"outfile-suffix", opts::value<decltype(g_strOutFileSuffix)>(&g_strOutFileSuffix),
+			"suffix to append to output files"));
+		args.add(boost::make_shared<opts::option_description>(
+			"plot-points", opts::value<decltype(g_iPlotPoints)>(&g_iPlotSkipBegin),
+			"number of plot points"));
+		args.add(boost::make_shared<opts::option_description>(
+			"plot-skip-begin", opts::value<decltype(g_iPlotSkipBegin)>(&g_iPlotSkipBegin),
+			"skip plot points in the beginning of the range"));
+		args.add(boost::make_shared<opts::option_description>(
+			"plot-skip-end", opts::value<decltype(g_iPlotSkipEnd)>(&g_iPlotSkipEnd),
+			"skip plot points in the end of the range"));
+		args.add(boost::make_shared<opts::option_description>(
+			"max-threads", opts::value<decltype(g_iMaxThreads)>(&g_iMaxThreads),
+			"maximum number of threads"));
 
 		// dummy arg if launched from takin executable
 		bool bStartedFromTakin = 0;
 #ifndef CONVOFIT_STANDALONE
-		args.add(boost::shared_ptr<opts::option_description>(
-			new opts::option_description("convofit",
-			opts::bool_switch(&bStartedFromTakin),
-			"launch convofit from takin")));
+		args.add(boost::make_shared<opts::option_description>(
+			"convofit", opts::bool_switch(&bStartedFromTakin),
+			"launch convofit from takin"));
 #endif
 
 		// positional args

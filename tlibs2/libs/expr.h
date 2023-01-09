@@ -2,12 +2,35 @@
  * tlibs2 -- simple LL(1) expression parser
  * @author Tobias Weber <tweber@ill.fr>
  * @date 28-mar-2020
+ * @note The present version was forked on 28-Mar-2020 from my privately developed "misc" project (https://github.com/t-weber/misc).
  * @license GPLv3, see 'LICENSE' file
- * @desc The present version was forked on 28-Mar-2020 from my privately developed "misc" project (https://github.com/t-weber/misc).
  *
  * References:
+ *   - R. Güting, "Übersetzerbau", ISBN: 978-3540653899 (1999, 2013).
  *   - https://de.wikipedia.org/wiki/LL(k)-Grammatik
  *   - https://www.cs.uaf.edu/~cs331/notes/FirstFollow.pdf
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_EXPR_PARSER_H__
@@ -42,6 +65,8 @@
 	#include "units.h"
 #endif
 
+#include "traits.h"
+
 
 namespace tl2 {
 
@@ -53,8 +78,12 @@ t_num expr_modfunc(t_num t1, t_num t2)
 		return std::fmod(t1, t2);
 	else if constexpr(std::is_integral_v<t_num>)
 		return t1%t2;
+	else if constexpr(is_complex<t_num>)
+		throw std::runtime_error{"Invalid mod operation."};
 	else
-		throw std::runtime_error{"Invalid type for mod function."};
+		static_assert(tl2::bool_value<0, t_num>, "Invalid type for mod function.");
+
+	return t_num{};
 }
 
 
@@ -238,7 +267,7 @@ public:
 		}
 
 		if(m_stack.size() != 1)
-			throw std::runtime_error("Result not on stack");
+			throw std::runtime_error("Result not on stack.");
 		t_num result = m_stack.top(); m_stack.pop();
 		return result;
 	}
@@ -542,17 +571,26 @@ public:
 	}
 
 
+	/**
+	 * parse a given string into an ast (and generate code)
+	 */
 	bool parse(const std::string& str, bool codegen=true)
 	{
 		m_code.clear();
 
 		m_istr = std::make_shared<std::istringstream>(str);
 		next_lookahead();
+
+		// no input given?
+		bool at_eof = (m_lookahead == (int)Token::TOK_INVALID || m_lookahead == (int)Token::TOK_END);
+		if(at_eof)
+			return false;
+
 		m_ast = plus_term();
 
 		// check if there would be are more tokens available?
 		next_lookahead();
-		bool at_eof = (m_lookahead == (int)Token::TOK_INVALID || m_lookahead == (int)Token::TOK_END);
+		at_eof = (m_lookahead == (int)Token::TOK_INVALID || m_lookahead == (int)Token::TOK_END);
 		if(!at_eof)
 			throw std::underflow_error("Not all input tokens have been consumed.");
 
@@ -583,6 +621,9 @@ public:
 	}
 
 
+	/**
+	 * evaluate the ast (or execute the code)
+	 */
 	t_num eval()
 	{
 		// is compiled code available?
@@ -608,29 +649,56 @@ protected:
 
 	void register_funcs()
 	{
-		// common functions
-		register_func1("abs", std::abs);
-		register_func2("mod", expr_modfunc<t_num>);
+		// common real and integer functions
+		if constexpr(std::is_floating_point_v<t_num> || std::is_integral_v<t_num>)
+		{
+			register_func1("abs", [](t_num t) -> t_num
+				{ return t<t_num(0) ? -t : t; });
+			register_func2("mod", expr_modfunc<t_num>);
+		}
+
+		// common real and complex functions
+		if constexpr(std::is_floating_point_v<t_num> || is_complex<t_num>)
+		{
+			register_func1("sin", [](t_num num) -> t_num
+				{ return std::sin(num); });
+			register_func1("cos", [](t_num num) -> t_num
+				{ return std::cos(num); });
+			register_func1("tan", [](t_num num) -> t_num
+				{ return std::tan(num); });
+			register_func1("asin", [](t_num num) -> t_num
+				{ return std::asin(num); });
+			register_func1("acos", [](t_num num) -> t_num
+				{ return std::acos(num); });
+			register_func1("atan", [](t_num num) -> t_num
+				{ return std::atan(num); });
+			register_func1("sinh", [](t_num num) -> t_num
+				{ return std::sinh(num); });
+			register_func1("cosh", [](t_num num) -> t_num
+				{ return std::cosh(num); });
+			register_func1("tanh", [](t_num num) -> t_num
+				{ return std::tanh(num); });
+			register_func1("asinh", [](t_num num) -> t_num
+				{ return std::asinh(num); });
+			register_func1("acosh", [](t_num num) -> t_num
+				{ return std::acosh(num); });
+			register_func1("atanh", [](t_num num) -> t_num
+				{ return std::atanh(num); });
+			register_func1("sqrt", [](t_num num) -> t_num
+				{ return std::sqrt(num); });
+			register_func1("exp", [](t_num num) -> t_num
+				{ return std::exp(num); });
+			register_func1("log", [](t_num num) -> t_num
+				{ return std::log(num); });
+
+			register_func2("pow", [](t_num num1, t_num num2) -> t_num
+				{ return std::pow(num1, num2); });
+		}
 
 		// real functions
 		if constexpr(std::is_floating_point_v<t_num>)
 		{
-			register_func1("sin", std::sin);
-			register_func1("cos", std::cos);
-			register_func1("tan", std::tan);
-			register_func1("asin", std::asin);
-			register_func1("acos", std::acos);
-			register_func1("atan", std::atan);
-			register_func1("sinh", std::sinh);
-			register_func1("cosh", std::cosh);
-			register_func1("tanh", std::tanh);
-			register_func1("asinh", std::asinh);
-			register_func1("acosh", std::acosh);
-			register_func1("atanh", std::atanh);
-			register_func1("sqrt", std::sqrt);
 			register_func1("cbrt", std::cbrt);
-			register_func1("exp", std::exp);
-			register_func1("log", std::log);
 			register_func1("log2", std::log2);
 			register_func1("log10", std::log10);
 			register_func1("erf", std::erf);
@@ -642,14 +710,15 @@ protected:
 			register_func1("erf_inv", boost::math::erf_inv);
 #endif
 
-			register_func2("pow", std::pow);
 			register_func2("atan2", std::atan2);
 		}
 
 		// integer functions
 		else if constexpr(std::is_integral_v<t_num>)
 		{
-			register_func2("pow", [](t_num t1, t_num t2) -> t_num { return t_num(std::pow(t1, t2)); } );
+			register_func2("pow",
+				[](t_num t1, t_num t2) -> t_num
+				{ return t_num(std::pow(t1, t2)); } );
 		}
 	}
 
@@ -684,8 +753,19 @@ protected:
 #ifdef TL2_USE_UNITS
 			register_const("pi", __pi<t_num>);
 			register_const("hbar",  t_num(hbar<t_num>/meV<t_num>/sec<t_num>));	// hbar in [meV s]
-			register_const("kB",  t_num(kB<t_num>/meV<t_num>*kelvin<t_num>));		// kB in [meV / K]
+			register_const("kB",  t_num(kB<t_num>/meV<t_num>*kelvin<t_num>));	// kB in [meV / K]
 #endif
+		}
+
+		// complex constants
+		else if constexpr(is_complex<t_num>)
+		{
+			using t_real = typename t_num::value_type;
+
+			register_const("imag", t_num(0, 1));					// imaginary unit
+			register_const("pi", __pi<t_real>);
+			register_const("hbar",  t_real(hbar<t_real>/meV<t_real>/sec<t_real>));	// hbar in [meV s]
+			register_const("kB",  t_real(kB<t_real>/meV<t_real>*kelvin<t_real>));	// kB in [meV / K]
 		}
 
 		// integer constants
@@ -736,7 +816,18 @@ protected:
 
 		if constexpr(std::is_floating_point_v<t_num>)
 		{	// real
-			std::regex regex{"[0-9]+(\\.[0-9]*)?|\\.[0-9]+([eE][-+]?[0-9]+)?"};
+			std::regex regex{"[0-9]+(\\.)?[0-9]*(E|e|E\\+|E-|e\\+|e-)?[0-9]*"};
+			std::smatch smatch;
+			if(std::regex_match(str, smatch, regex))
+			{
+				t_num val{};
+				std::istringstream{str} >> val;
+				matches.push_back(std::make_pair((int)Token::TOK_NUM, val));
+			}
+		}
+		else if constexpr(is_complex<t_num>)
+		{	// TODO: complex
+			std::regex regex{"[0-9]+(\\.)?[0-9]*(E|e|E\\+|E-|e\\+|e-)?[0-9]*"};
 			std::smatch smatch;
 			if(std::regex_match(str, smatch, regex))
 			{
@@ -746,7 +837,7 @@ protected:
 			}
 		}
 		else if constexpr(std::is_integral_v<t_num>)
-		{	// real
+		{	// integer
 			std::regex regex{"[0-9]+"};
 			std::smatch smatch;
 			if(std::regex_match(str, smatch, regex))
@@ -758,7 +849,7 @@ protected:
 		}
 		else
 		{
-			throw std::invalid_argument("Invalid number type.");
+			static_assert(tl2::bool_value<0, t_num>, "Invalid number type.");
 		}
 
 		{	// ident
@@ -1148,7 +1239,9 @@ protected:
 			else
 			{
 				// register the variable if it doesn't yet exist
-				if(m_vars.find(ident) == m_vars.end() && m_consts.find(ident) == m_consts.end())
+				if(m_vars.find(ident) == m_vars.end() &&
+					m_consts.find(ident) == m_consts.end() &&
+					m_autoregister_var)
 					register_var(ident, t_num{});
 				return std::make_shared<ExprASTVar<t_num>>(ident);
 			}
@@ -1207,8 +1300,24 @@ public:
 	}
 
 
+	void SetDebug(bool b)
+	{
+		m_debug = b;
+	}
+
+
+	void SetAutoregisterVariables(bool b)
+	{
+		m_autoregister_var = b;
+	}
+
+
 private:
+	// debug output
 	bool m_debug = false;
+
+	// automatically register unknown variable
+	bool m_autoregister_var = true;
 
 	// ast root
 	std::shared_ptr<ExprAST<t_num>> m_ast{};
@@ -1224,10 +1333,10 @@ private:
 	std::unordered_map<std::string, t_num(*)(t_num)> m_funcs1{};
 	std::unordered_map<std::string, t_num(*)(t_num, t_num)> m_funcs2{};
 
-
-private:
+	// input stream
 	std::shared_ptr<std::istream> m_istr{};
 
+	// lookahead token
 	int m_lookahead = (int)Token::TOK_INVALID;
 	t_num m_lookahead_val = 0;
 	std::string m_lookahead_text = "";

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2013, 2-dec-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "PowderDlg.h"
@@ -673,9 +694,9 @@ void PowderDlg::SavePowder()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSettings)
-		m_pSettings->value("powder/last_dir", ".").toString();
+		m_pSettings->value("powder/last_dir", "~").toString();
 	QString qstrFile = QFileDialog::getSaveFileName(this,
 		"Save Powder Configuration", strDirLast,
 		"TAZ files (*.taz *.TAZ)", nullptr,
@@ -752,9 +773,9 @@ void PowderDlg::LoadPowder()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSettings)
-		strDirLast = m_pSettings->value("powder/last_dir", ".").toString();
+		strDirLast = m_pSettings->value("powder/last_dir", "~").toString();
 	QString qstrFile = QFileDialog::getOpenFileName(this,
 		"Open Powder Configuration", strDirLast,
 		"TAZ files (*.taz *.TAZ)", nullptr,
@@ -874,7 +895,7 @@ void PowderDlg::SaveTable()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_pSettings ? m_pSettings->value("powder/last_dir_table", ".").toString() : ".";
+	QString strDirLast = m_pSettings ? m_pSettings->value("powder/last_dir_table", "~").toString() : "~";
 	QString _strFile = QFileDialog::getSaveFileName(this,
 		"Save Table", strDirLast, "Data files (*.dat *.DAT)", nullptr, fileopt);
 

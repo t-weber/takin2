@@ -41,33 +41,59 @@
 
 	<entry_7>
 		<type>program</type>
-		<name>Nuclear Stucture Factors...</name>
-		<program>takin_structfact</program>
+		<name>Brillouin Zones...</name>
+		<program>takin_bz</program>
 	</entry_7>
 
 	<entry_8>
-		<type>program</type>
-		<name>Magnetic Stucture Factors...</name>
-		<program>takin_magstructfact</program>
+		<type>separator</type>
 	</entry_8>
 
 	<entry_9>
-		<type>separator</type>
+		<type>program</type>
+		<name>Nuclear Stucture Factors...</name>
+		<program>takin_structfact</program>
 	</entry_9>
 
 	<entry_10>
 		<type>program</type>
-		<name>Polarisation Vectors...</name>
-		<program>takin_pol</program>
+		<name>Magnetic Stucture Factors...</name>
+		<program>takin_magstructfact</program>
 	</entry_10>
 
 	<entry_11>
-		<type>separator</type>
+		<type>program</type>
+		<name>Magnetic Dynamics...</name>
+		<program>takin_magdyn</program>
 	</entry_11>
 
 	<entry_12>
+		<type>separator</type>
+	</entry_12>
+
+	<entry_13>
+		<type>program</type>
+		<name>Polarisation Vectors...</name>
+		<program>takin_pol</program>
+	</entry_13>
+
+	<entry_14>
+		<type>separator</type>
+	</entry_14>
+
+	<entry_15>
 		<type>program</type>
 		<name>Molecular Dynamics...</name>
 		<program>takin_moldyn</program>
-	</entry_12>
+	</entry_15>
+
+	<entry_16>
+		<type>separator</type>
+	</entry_16>
+
+	<entry_17>
+		<type>program</type>
+		<name>TAS Pathfinding...</name>
+		<program>takin_taspaths</program>
+	</entry_17>
 </tools>

@@ -2,9 +2,29 @@
  * tlibs2
  * physical units library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2015-2020
+ * @date 2015-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_UNITS__
@@ -35,6 +55,7 @@ namespace tl2 {
 
 
 template<typename T=double> constexpr T __pi = boost::math::constants::pi<T>();
+
 
 // general quantities
 template<class Sys, class T=double> using t_length = units::quantity<units::unit<units::length_dimension, Sys>, T>;
@@ -139,7 +160,6 @@ template<class Y=double> constexpr t_energy_per_field<units::si::system, Y> mu_N
 template<class Y=double> constexpr t_energy_per_field<units::si::system, Y> mu_e = Y(co::mu_e/units::si::joules*units::si::tesla)*units::si::joules/units::si::tesla;
 
 
-
 // helper functions
 template<class t_quant>
 t_quant my_units_sqrt(const decltype(t_quant() * t_quant())& val)
@@ -154,11 +174,13 @@ t_quant my_units_sqrt(const decltype(t_quant() * t_quant())& val)
 	return std::sqrt(valsq) * one_quant;
 }
 
+
 template<class t_quant>
 decltype(t_quant()*t_quant()) my_units_pow2(const t_quant& val)
 {
 	return val*val;
 }
+
 
 template<class t_elem, template<class...> class t_vec>
 t_elem my_units_norm2(const t_vec<t_elem>& vec)

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 // mingw hack
@@ -280,25 +301,29 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 
 	QAction *pNew = new QAction("New", this);
 	pNew->setIcon(load_icon("res/icons/document-new.svg"));
+	pNew->setShortcut(QKeySequence::New);
 	pMenuFile->addAction(pNew);
 
 	pMenuFile->addSeparator();
 
-	QAction *pLoad = new QAction("Load...", this);
+	QAction *pLoad = new QAction("Open...", this);
 	pLoad->setIcon(load_icon("res/icons/document-open.svg"));
+	pLoad->setShortcut(QKeySequence::Open);
 	pMenuFile->addAction(pLoad);
 
-	m_pMenuRecent = new QMenu("Recently Loaded", this);
+	m_pMenuRecent = new QMenu("Recently Opened", this);
 	RecentFiles recent(&m_settings, "main/recent");
 	recent.FillMenu(m_pMenuRecent, [this](const std::string& str){ LoadFile(str.c_str()); });
 	pMenuFile->addMenu(m_pMenuRecent);
 
 	QAction *pSave = new QAction("Save", this);
 	pSave->setIcon(load_icon("res/icons/document-save.svg"));
+	pSave->setShortcut(QKeySequence::Save);
 	pMenuFile->addAction(pSave);
 
 	QAction *pSaveAs = new QAction("Save as...", this);
 	pSaveAs->setIcon(load_icon("res/icons/document-save-as.svg"));
+	pSaveAs->setShortcut(QKeySequence::SaveAs);
 	pMenuFile->addAction(pSaveAs);
 
 	pMenuFile->addSeparator();
@@ -335,6 +360,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	QAction *pExit = new QAction("Quit Takin", this);
 	pExit->setMenuRole(QAction::QuitRole);
 	pExit->setIcon(load_icon("res/icons/system-log-out.svg"));
+	pExit->setShortcut(QKeySequence::Quit);
 	pMenuFile->addAction(pExit);
 
 
@@ -447,6 +473,9 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	pBZ3DExport->setIcon(load_icon("res/icons/image-x-generic.svg"));
 	m_pMenuViewRecip->addAction(pBZ3DExport);
 
+	QAction *pBZCutExport = new QAction("Export Brillouin Zone Cut...", this);
+	pBZCutExport->setIcon(load_icon("res/icons/image-x-generic.svg"));
+	m_pMenuViewRecip->addAction(pBZCutExport);
 
 
 	// --------------------------------------------------------------------------------
@@ -644,7 +673,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 					std::string toolbin = find_program_binary(toolprog);
 					if(toolbin == "")
 					{
-						tl::log_err("Tool binary \"", toolprog, "\" was not found.");
+						tl::log_warn("Tool binary \"", toolprog, "\" was not found.");
 						continue;
 					}
 
@@ -658,7 +687,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 						// run exernal tool process
 						tl::log_debug("Running process \"", toolbin, "\"...");
 
-						tl::PipeProc<char> proc(toolbin.c_str(), false);
+						tl::PipeProc<char> proc((toolbin + "&").c_str(), false);
 						if(!proc.IsReady())
 							tl::log_err("Process \"", toolbin, "\" could not be created.");
 					});
@@ -737,6 +766,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 
 	QAction *pHelp = new QAction("Show Help...", this);
 	pHelp->setIcon(load_icon("res/icons/help-browser.svg"));
+	pHelp->setShortcut(QKeySequence::HelpContents);
 	pMenuHelp->addAction(pHelp);
 
 	QAction *pDevelDoc = new QAction("Show Developer Help...", this);
@@ -750,6 +780,8 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	pMenuHelp->addAction(pLog);
 
 	pMenuHelp->addSeparator();
+	QAction *pWebsite = new QAction("Show Takin Website...", this);
+	pMenuHelp->addAction(pWebsite);
 	QAction *pBugReport = new QAction("Report Bug...", this);
 	pMenuHelp->addAction(pBugReport);
 
@@ -824,6 +856,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 
 	QObject::connect(pRecipExport, &QAction::triggered, this, &TazDlg::ExportRecip);
 	QObject::connect(pBZ3DExport, &QAction::triggered, this, &TazDlg::ExportBZ3DModel);
+	QObject::connect(pBZCutExport, &QAction::triggered, this, &TazDlg::ExportBZCut);
 	QObject::connect(pProjExport, &QAction::triggered, this, &TazDlg::ExportProj);
 	QObject::connect(pRealExport, &QAction::triggered, this, &TazDlg::ExportReal);
 	QObject::connect(pTofExport, &QAction::triggered, this, &TazDlg::ExportTof);
@@ -858,6 +891,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	QObject::connect(pHelp, &QAction::triggered, this, &TazDlg::ShowHelp);
 	QObject::connect(pDevelDoc, &QAction::triggered, this, &TazDlg::ShowDevelDoc);
 	QObject::connect(pLog, &QAction::triggered, this, &TazDlg::ShowLog);
+	QObject::connect(pWebsite, &QAction::triggered, this, &TazDlg::ShowWebsite);
 	QObject::connect(pBugReport, &QAction::triggered, this, &TazDlg::ReportBug);
 	QObject::connect(pAbout, &QAction::triggered, this, &TazDlg::ShowAbout);
 	QObject::connect(pAboutQt, &QAction::triggered, qApp, &QApplication::aboutQt);
@@ -1572,14 +1606,20 @@ void TazDlg::RealContextMenu(const QPoint& _pt)
 //--------------------------------------------------------------------------------
 // obstacles
 
-void TazDlg::ShowDeadAnglesDlg()
+void TazDlg::InitDeadAngles()
 {
 	if(!m_pDeadAnglesDlg)
 	{
 		m_pDeadAnglesDlg = new DeadAnglesDlg(this, &m_settings);
-		QObject::connect(m_pDeadAnglesDlg, &DeadAnglesDlg::ApplyDeadAngles, this, &TazDlg::ApplyDeadAngles);
+		QObject::connect(m_pDeadAnglesDlg, &DeadAnglesDlg::ApplyDeadAngles,
+			this, &TazDlg::ApplyDeadAngles);
 	}
+}
 
+
+void TazDlg::ShowDeadAnglesDlg()
+{
+	InitDeadAngles();
 	m_pDeadAnglesDlg->SetDeadAngles(m_vecDeadAngles);
 	focus_dlg(m_pDeadAnglesDlg);
 }
@@ -1606,9 +1646,16 @@ void TazDlg::ShowAbout()
 }
 
 
+void TazDlg::ShowWebsite()
+{
+	QDesktopServices::openUrl(QUrl("http://www.ill.eu/takin"));
+}
+
+
 void TazDlg::ReportBug()
 {
-	QDesktopServices::openUrl(QUrl("https://code.ill.fr/scientific-software/takin/core/-/issues"));
+	QDesktopServices::openUrl(QUrl(
+		"https://code.ill.fr/scientific-software/takin/core/-/issues"));
 }
 
 
@@ -1632,7 +1679,7 @@ void TazDlg::ShowHelp()
 			std::string{"assistant"}
 		}};
 
-		for(const std::string strHelpProg : vecHelpProg)
+		for(const std::string& strHelpProg : vecHelpProg)
 		{
 			fs::path pathAssistant = proc::search_path(strHelpProg);
 			if(fs::exists(pathAssistant) && pathAssistant!="")

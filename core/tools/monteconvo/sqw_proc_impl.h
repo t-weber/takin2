@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date sep-2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __SQW_PROC_IMPL_H__
@@ -24,6 +45,7 @@
 
 #define MSG_QUEUE_SIZE 512
 #define PARAM_MEM 1024*1024
+#define WAIT_END_PROCESSES 250
 
 
 namespace ipr = boost::interprocess;
@@ -226,6 +248,7 @@ static void msg_send(ipr::message_queue& msgqueue, const ProcMsg& msg)
 static ProcMsg msg_recv(ipr::message_queue& msgqueue)
 {
 	ProcMsg msg;
+
 	try
 	{
 		std::size_t iSize = 0;
@@ -239,6 +262,7 @@ static ProcMsg msg_recv(ipr::message_queue& msgqueue)
 	{
 		tl::log_err(ex.what());
 	}
+
 	return msg;
 }
 
@@ -269,6 +293,7 @@ static void child_proc(ipr::message_queue& msgToParent, ipr::message_queue& msgF
 	{
 		ProcMsg msg = msg_recv(msgFromParent);
 		ProcMsg msgRet;
+		bool bFailure = 0;
 
 		switch(msg.ty)
 		{
@@ -306,6 +331,9 @@ static void child_proc(ipr::message_queue& msgToParent, ipr::message_queue& msgF
 				msgRet.ty = msg.ty;
 				msgRet.bRet = pSqw->IsOk();
 				msg_send(msgToParent, msgRet);
+
+				if(!msgRet.bRet)
+					bFailure = 1;
 				break;
 			}
 			case ProcMsgTypes::QUIT:
@@ -318,6 +346,9 @@ static void child_proc(ipr::message_queue& msgToParent, ipr::message_queue& msgF
 				break;
 			}
 		}
+
+		if(bFailure)
+			break;
 	}
 
 	tl::log_debug("Child process ", getpid(), " message loop has ended.");
@@ -341,15 +372,10 @@ SqwProc<t_sqw>::SqwProc()
  */
 template<class t_sqw>
 SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
-	const char* pcProcMemName, const char* pcProcExecName,
-	std::size_t iNumChildProcesses)
-		: m_iNumChildProcesses(iNumChildProcesses), m_strProcBaseName(tl::rand_name<std::string>(8))
+	const char* pcProcMemName, const char* pcProcExecName, unsigned int iNumChildProcesses)
+	: m_iNumChildProcesses(iNumChildProcesses), m_strProcBaseName(tl::rand_name<std::string>(8))
 {
 	++m_iRefCnt;
-
-	// only support one child process when forking
-	if(mode == SqwProcStartMode::START_PARENT_FORK_CHILD)
-		m_iNumChildProcesses = 1;
 
 	// if a process name is given (e.g. for the child process), use it
 	if(pcProcMemName)
@@ -362,7 +388,7 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 			tl::log_debug("Starting ", m_iNumChildProcesses, " child process(es).");
 
 			// start all child processes
-			for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+			for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 			{
 				std::string strProcName = m_strProcBaseName + "_" + tl::var_to_str(iChild);
 				tl::log_debug("Creating process memory \"", "takin_sqw_proc_*_", strProcName, "\".");
@@ -371,7 +397,7 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 
 				m_pMem.push_back(std::make_shared<ipr::managed_shared_memory>(ipr::create_only,
 					("takin_sqw_proc_mem_" + strProcName).c_str(), PARAM_MEM));
-				m_pSharedPars.push_back(static_cast<void*>(m_pMem[iChild]->construct<t_sh_str>
+				m_pSharedPars.push_back(static_cast<void*>(m_pMem[iChild]->template construct<t_sh_str>
 					(("takin_sqw_proc_params_" + strProcName).c_str())
 					(t_sh_str_alloc(m_pMem[iChild]->get_segment_manager()))));
 
@@ -400,43 +426,53 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 					}
 				}
 
+#ifndef __MINGW32__
 				// fork a child process from the parent process
-	#ifndef __MINGW32__
 				else if(mode == SqwProcStartMode::START_PARENT_FORK_CHILD)
 				{
-					m_pidChild.push_back(fork());
-					if(m_pidChild[iChild] < 0)
+					pid_t pidChild = fork();
+
+					if(pidChild < 0)
 					{
-						tl::log_err("Cannot fork process.");
+						tl::log_err("Cannot fork child process.");
 						return;
 					}
-					else if(m_pidChild[iChild] == 0)
+					else if(pidChild == 0)
 					{
+						// start of child process
 						m_iNumChildProcesses = 1;
+						m_pidChild.resize(1);
 						m_pidChild[0] = 0;
 
 						child_proc<t_sqw>(*m_pmsgIn[iChild], *m_pmsgOut[iChild], pcCfg, m_pSharedPars[iChild]);
+
 						exit(0);
+						// end of child process
+
 						return;
 					}
+
+					// in control process
+					m_pidChild.push_back(pidChild);
 				}
-	#endif
+#endif
 
 				tl::log_debug("Waiting for child process ", iChild, " to become ready...");
 
 				ProcMsg msgReady = msg_recv(*m_pmsgIn[iChild]);
 				if(mode == SqwProcStartMode::START_PARENT_CREATE_CHILD)
 					m_pidChild.push_back(*((pid_t*)&msgReady.dRet));
-				if(!msgReady.bRet)
-					tl::log_err("Child process ", m_pidChild[iChild], " reports failure.");
-				else
-					tl::log_debug("Child process ", m_pidChild[iChild], " is ready.");
-
 				m_bOk = msgReady.bRet;
+
 				if(!m_bOk)
 				{
-					m_iNumChildProcesses = iChild + 1;
+					tl::log_err("Child process ", m_pidChild[iChild], " reports failure.");
+					m_iNumChildProcesses = iChild+1;
 					break;
+				}
+				else
+				{
+					tl::log_debug("Child process ", m_pidChild[iChild], " is ready.");
 				}
 			}
 		}
@@ -446,11 +482,14 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 		{
 			// for the child process, the vectors have only one element
 			m_iNumChildProcesses = 1;
+			m_pidChild.resize(1);
+			m_pidChild[0] = 0;
+
 			const std::string& strProcName = m_strProcBaseName;
 
 			m_pMem.push_back(std::make_shared<ipr::managed_shared_memory>(ipr::open_only,
 				("takin_sqw_proc_mem_" + strProcName).c_str()));
-			m_pSharedPars.push_back(static_cast<void*>(m_pMem[0]->find<t_sh_str>
+			m_pSharedPars.push_back(static_cast<void*>(m_pMem[0]->template find<t_sh_str>
 				(("takin_sqw_proc_params_" + strProcName).c_str()).first));
 
 			m_pmsgIn.push_back(std::make_shared<ipr::message_queue>(ipr::open_only,
@@ -458,7 +497,6 @@ SqwProc<t_sqw>::SqwProc(const char* pcCfg, SqwProcStartMode mode,
 			m_pmsgOut.push_back(std::make_shared<ipr::message_queue>(ipr::open_only,
 				("takin_sqw_proc_out_" + strProcName).c_str()));
 
-			m_pidChild.push_back(0);
 			child_proc<t_sqw>(*m_pmsgIn[0], *m_pmsgOut[0], pcCfg, m_pSharedPars[0]);
 		}
 	}
@@ -496,7 +534,7 @@ SqwProc<t_sqw>::~SqwProc()
 		return;
 	}
 
-	for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+	for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 	{
 		// make sure that this instance is the last
 		if(m_pMem[iChild].use_count() > 1)
@@ -506,7 +544,7 @@ SqwProc<t_sqw>::~SqwProc()
 	// shut down the parent process
 	try
 	{
-		for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+		for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 		{
 			if(m_pmsgOut[iChild])
 			{
@@ -521,19 +559,20 @@ SqwProc<t_sqw>::~SqwProc()
 		if(--m_iRefCnt == 0)
 		{
 			// give clients time to end before removing the shared memory
-			std::this_thread::sleep_for(std::chrono::milliseconds{200});
+			std::this_thread::sleep_for(std::chrono::milliseconds{WAIT_END_PROCESSES});
 
-			for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+			for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 			{
 				std::string strProcName = m_strProcBaseName + "_" + tl::var_to_str(iChild);
 
 				ipr::message_queue::remove(("takin_sqw_proc_in_" + strProcName).c_str());
 				ipr::message_queue::remove(("takin_sqw_proc_out_" + strProcName).c_str());
 
-				m_pMem[iChild]->destroy<t_sh_str>(("takin_sqw_proc_params_" + strProcName).c_str());
+				m_pMem[iChild]->template destroy<t_sh_str>(("takin_sqw_proc_params_" + strProcName).c_str());
 				ipr::shared_memory_object::remove(("takin_sqw_proc_mem_" + strProcName).c_str());
 
-				tl::log_debug("Removed process memory \"", "takin_sqw_proc_*_", strProcName, "\" for child process ", m_pidChild[iChild], ".");
+				tl::log_debug("Removed process memory \"", "takin_sqw_proc_*_",
+					strProcName, "\" for child process ", m_pidChild[iChild], ".");
 			}
 		}
 	}
@@ -572,7 +611,7 @@ SqwProc<t_sqw>::disp(t_real dh, t_real dk, t_real dl) const
 		return std::make_tuple(std::vector<t_real>{}, std::vector<t_real>{});
 
 	// find a free child process
-	for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+	for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 	{
 		std::unique_lock<std::mutex> lock(*m_pmtx[iChild], std::defer_lock);
 		if(lock.try_lock())
@@ -611,7 +650,7 @@ t_real SqwProc<t_sqw>::operator()(t_real dh, t_real dk, t_real dl, t_real dE) co
 		return 0.;
 
 	// find a free child process
-	for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+	for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 	{
 		std::unique_lock<std::mutex> lock(*m_pmtx[iChild], std::defer_lock);
 		if(lock.try_lock())
@@ -631,7 +670,7 @@ bool SqwProc<t_sqw>::IsOk() const
 		return false;
 
 	// check all sub-processes
-	for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+	for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 	{
 		std::lock_guard<std::mutex> lock(*m_pmtx[iChild]);
 
@@ -681,7 +720,7 @@ void SqwProc<t_sqw>::SetVars(const std::vector<SqwBase::t_var>& vecVars)
 		return;
 
 	// set the same variables for all child-processes
-	for(std::size_t iChild=0; iChild<m_iNumChildProcesses; ++iChild)
+	for(unsigned int iChild=0; iChild<m_iNumChildProcesses; ++iChild)
 	{
 		std::lock_guard<std::mutex> lock(*m_pmtx[iChild]);
 

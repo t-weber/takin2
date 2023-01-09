@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2013 - 2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ResoDlg.h"
@@ -60,7 +81,7 @@ ResoDlg::ResoDlg(QWidget *pParent, QSettings* pSettings)
 
 	setupAlgos();
 	connect(comboAlgo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ResoDlg::AlgoChanged);
-	comboAlgo->setCurrentIndex(1);
+	comboAlgo->setCurrentIndex(static_cast<int>(ResoAlgo::POP)-1);
 
 	groupGuide->setChecked(false);
 
@@ -81,7 +102,9 @@ ResoDlg::ResoDlg(QWidget *pParent, QSettings* pSettings)
 		spinDetW, spinDetH,
 		spinDistMonoSample, spinDistSampleAna, spinDistAnaDet, spinDistSrcMono,
 
-		spinMonoMosaicV, spinAnaMosaicV,
+		spinMonitorW, spinMonitorH, spinDistMonoMonitor,
+
+		spinMonoMosaicV, spinSampleMosaicV, spinAnaMosaicV,
 		spinSamplePosX, spinSamplePosY, spinSamplePosZ,
 
 		spinDistTofPulseMono, spinDistTofMonoSample, spinDistTofSampleDet,
@@ -103,14 +126,16 @@ ResoDlg::ResoDlg(QWidget *pParent, QSettings* pSettings)
 		"reso/mono_refl", "reso/ana_effic",
 
 		"reso/pop_mono_w", "reso/pop_mono_h", "reso/pop_mono_thick", "reso/pop_mono_curvh", "reso/pop_mono_curvv",
-		"reso/pop_sample_wq", "reso/pop_sampe_wperpq", "reso/pop_sample_h",
+		"reso/pop_sample_wq", "reso/pop_sample_wperpq", "reso/pop_sample_h",
 		"reso/pop_ana_w", "reso/pop_ana_h", "reso/pop_ana_thick", "reso/pop_ana_curvh", "reso/pop_ana_curvv",
 		"reso/pop_src_w", "reso/pop_src_h",
 		"reso/pop_guide_divh", "reso/pop_guide_divv",
 		"reso/pop_det_w", "reso/pop_det_h",
 		"reso/pop_dist_mono_sample", "reso/pop_dist_sample_ana", "reso/pop_dist_ana_det", "reso/pop_dist_src_mono",
 
-		"reso/eck_mono_mosaic_v", "reso/eck_ana_mosaic_v",
+		"reso/pop_monitor_w", "reso/pop_monitor_h", "reso/pop_dist_mono_monitor",
+
+		"reso/eck_mono_mosaic_v", "reso/eck_sample_mosaic_v", "reso/eck_ana_mosaic_v",
 		"reso/eck_sample_pos_x", "reso/eck_sample_pos_y", "reso/eck_sample_pos_z",
 
 		"reso/viol_dist_pulse_mono", "reso/viol_dist_mono_sample", "reso/viol_dist_sample_det",
@@ -132,8 +157,10 @@ ResoDlg::ResoDlg(QWidget *pParent, QSettings* pSettings)
 	m_vecPosEditBoxes = {editE, editQ, editKi, editKf};
 	m_vecPosEditNames = {"reso/E", "reso/Q", "reso/ki", "reso/kf"};
 
-	m_vecCheckBoxes = {checkUseR0, checkUseGeneralR0, checkUseKi3, checkUseKf3, checkUseKfKi, checkKfVert};
-	m_vecCheckNames = {"reso/use_R0", "reso/use_general_R0", "reso/use_ki3", "reso/use_kf3", "reso/use_kfki", "reso/scatter_kf_vert"};
+	m_vecCheckBoxes = {checkUseGeneralR0, checkUseKi3, checkUseKf3,
+		checkUseKfKi, checkUseKi, checkUseMonitor, checkKfVert};
+	m_vecCheckNames = {"reso/use_general_R0", "reso/use_ki3", "reso/use_kf3",
+		"reso/use_kfki", "reso/use_monki", "reso/use_mon", "reso/scatter_kf_vert"};
 
 
 	m_vecRadioPlus = {radioMonoScatterPlus, radioAnaScatterPlus,
@@ -197,12 +224,13 @@ ResoDlg::~ResoDlg() {}
 
 void ResoDlg::setupAlgos()
 {
-	comboAlgo->addItem("TAS: Cooper-Nathans", static_cast<int>(ResoAlgo::CN));
-	comboAlgo->addItem("TAS: Popovici", static_cast<int>(ResoAlgo::POP));
-	comboAlgo->addItem("TAS: Eckold-Sobolev", static_cast<int>(ResoAlgo::ECK));
-	comboAlgo->insertSeparator(3);
-	comboAlgo->addItem("TOF: Violini", static_cast<int>(ResoAlgo::VIOL));
-	comboAlgo->insertSeparator(5);
+	comboAlgo->addItem("TAS: Cooper-Nathans (Pointlike)", static_cast<int>(ResoAlgo::CN));
+	comboAlgo->addItem("TAS: Popovici (Pointlike)", static_cast<int>(ResoAlgo::POP_CN));
+	comboAlgo->addItem("TAS: Popovici (Extended)", static_cast<int>(ResoAlgo::POP));
+	comboAlgo->addItem("TAS: Eckold-Sobolev (Extended)", static_cast<int>(ResoAlgo::ECK));
+	comboAlgo->insertSeparator(4);
+	comboAlgo->addItem("TOF: Violini", static_cast<int>(ResoAlgo::VIO));
+	comboAlgo->insertSeparator(6);
 	comboAlgo->addItem("Simple", static_cast<int>(ResoAlgo::SIMPLE));
 }
 
@@ -259,7 +287,7 @@ std::shared_ptr<ReflCurve<t_real_reso>> ResoDlg::load_cache_refl(const std::stri
 	if(strFile == "")
 		return pRefl;
 
-	std::vector<std::string> vecRelDirs = { m_strCurDir, "." };
+	std::vector<std::string> vecRelDirs = { m_strCurDir, "~", "." };
 	const std::vector<std::string>& vecGlobalPaths = get_global_paths();
 	for(const std::string& strGlobalPath : vecGlobalPaths)
 		vecRelDirs.push_back(strGlobalPath);
@@ -291,17 +319,20 @@ void ResoDlg::Calc()
 		if(m_bDontCalc) return;
 
 		EckParams &cn = m_tasparams;
-		ViolParams &tof = m_tofparams;
+		VioParams &tof = m_tofparams;
 		SimpleResoParams &simple = m_simpleparams;
 
 		ResoResults &res = m_res;
 
 		// CN
 		cn.mono_d = t_real_reso(spinMonod->value()) * angs;
-		cn.mono_mosaic = t_real_reso(tl::m2r(spinMonoMosaic->value())) * rads;
 		cn.ana_d = t_real_reso(spinAnad->value()) * angs;
-		cn.ana_mosaic = t_real_reso(tl::m2r(spinAnaMosaic->value())) * rads;
+		cn.mono_mosaic = t_real_reso(tl::m2r(spinMonoMosaic->value())) * rads;
 		cn.sample_mosaic = t_real_reso(tl::m2r(spinSampleMosaic->value())) * rads;
+		cn.ana_mosaic = t_real_reso(tl::m2r(spinAnaMosaic->value())) * rads;
+		cn.mono_mosaic_v = t_real_reso(tl::m2r(spinMonoMosaicV->value())) * rads;
+		cn.sample_mosaic_v = t_real_reso(tl::m2r(spinSampleMosaicV->value())) * rads;
+		cn.ana_mosaic_v = t_real_reso(tl::m2r(spinAnaMosaicV->value())) * rads;
 
 		cn.dmono_sense = (radioMonoScatterPlus->isChecked() ? +1. : -1.);
 		cn.dana_sense = (radioAnaScatterPlus->isChecked() ? +1. : -1.);
@@ -337,10 +368,6 @@ void ResoDlg::Calc()
 		}
 
 
-		if(checkUseR0->isChecked())
-			cn.flags |= CALC_R0;
-		else
-			cn.flags &= ~CALC_R0;
 		if(checkUseGeneralR0->isChecked())
 			cn.flags |= CALC_GENERAL_R0;
 		else
@@ -357,11 +384,14 @@ void ResoDlg::Calc()
 			cn.flags |= CALC_KFKI;
 		else
 			cn.flags &= ~CALC_KFKI;
-		//if(checkUseResVol->isChecked())
-		//	cn.flags |= CALC_RESVOL;
-		//else
-		//	cn.flags &= ~CALC_RESVOL;
-		cn.flags &= ~CALC_RESVOL;	// not used anymore
+		if(checkUseKi->isChecked())
+			cn.flags |= CALC_MONKI;
+		else
+			cn.flags &= ~CALC_MONKI;
+		if(checkUseMonitor->isChecked())
+			cn.flags |= CALC_MON;
+		else
+			cn.flags &= ~CALC_MON;
 
 
 		// Position
@@ -380,22 +410,18 @@ void ResoDlg::Calc()
 		cn.mono_curvv = t_real_reso(spinMonoCurvV->value()) * cm;
 		cn.bMonoIsCurvedH = cn.bMonoIsCurvedV = 0;
 		cn.bMonoIsOptimallyCurvedH = cn.bMonoIsOptimallyCurvedV = 0;
-		spinMonoCurvH->setEnabled(0); spinMonoCurvV->setEnabled(0);
 
-		if(comboMonoHori->currentIndex()==2)
-		{
+		spinMonoCurvH->setEnabled(comboMonoHori->currentIndex() == 2);
+		spinMonoCurvV->setEnabled(comboMonoVert->currentIndex() == 2);
+
+		if(comboMonoHori->currentIndex() == 2)
 			cn.bMonoIsCurvedH = 1;
-			spinMonoCurvH->setEnabled(1);
-		}
-		else if(comboMonoHori->currentIndex()==1)
+		else if(comboMonoHori->currentIndex() == 1)
 			cn.bMonoIsCurvedH = cn.bMonoIsOptimallyCurvedH = 1;
 
-		if(comboMonoVert->currentIndex()==2)
-		{
+		if(comboMonoVert->currentIndex() == 2)
 			cn.bMonoIsCurvedV = 1;
-			spinMonoCurvV->setEnabled(1);
-		}
-		else if(comboMonoVert->currentIndex()==1)
+		else if(comboMonoVert->currentIndex() == 1)
 			cn.bMonoIsCurvedV = cn.bMonoIsOptimallyCurvedV = 1;
 
 		cn.ana_w = t_real_reso(spinAnaW->value()) *cm;
@@ -405,21 +431,17 @@ void ResoDlg::Calc()
 		cn.ana_curvv = t_real_reso(spinAnaCurvV->value()) * cm;
 		cn.bAnaIsCurvedH = cn.bAnaIsCurvedV = 0;
 		cn.bAnaIsOptimallyCurvedH = cn.bAnaIsOptimallyCurvedV = 0;
-		spinAnaCurvH->setEnabled(0); spinAnaCurvV->setEnabled(0);
 
-		if(comboAnaHori->currentIndex()==2)
-		{
+		spinAnaCurvH->setEnabled(comboAnaHori->currentIndex() == 2);
+		spinAnaCurvV->setEnabled(comboAnaVert->currentIndex() == 2);
+
+		if(comboAnaHori->currentIndex() == 2)
 			cn.bAnaIsCurvedH = 1;
-			spinAnaCurvH->setEnabled(1);
-		}
 		else if(comboAnaHori->currentIndex()==1)
 			cn.bAnaIsCurvedH = cn.bAnaIsOptimallyCurvedH = 1;
 
-		if(comboAnaVert->currentIndex()==2)
-		{
+		if(comboAnaVert->currentIndex() == 2)
 			cn.bAnaIsCurvedV = 1;
-			spinAnaCurvV->setEnabled(1);
-		}
 		else if(comboAnaVert->currentIndex()==1)
 			cn.bAnaIsCurvedV = cn.bAnaIsOptimallyCurvedV = 1;
 
@@ -445,10 +467,12 @@ void ResoDlg::Calc()
 		cn.dist_ana_det = t_real_reso(spinDistAnaDet->value()) * cm;
 		cn.dist_src_mono = t_real_reso(spinDistSrcMono->value()) * cm;
 
+		cn.monitor_w = t_real_reso(spinMonitorW->value()) * cm;
+		cn.monitor_h = t_real_reso(spinMonitorH->value()) * cm;
+		cn.dist_mono_monitor = t_real_reso(spinDistMonoMonitor->value()) * cm;
 
-		// Eck
-		cn.mono_mosaic_v = t_real_reso(tl::m2r(spinMonoMosaicV->value())) * rads;
-		cn.ana_mosaic_v = t_real_reso(tl::m2r(spinAnaMosaicV->value())) * rads;
+
+		// eck
 		cn.pos_x = t_real_reso(spinSamplePosX->value()) * cm;
 		cn.pos_y = t_real_reso(spinSamplePosY->value()) * cm;
 		cn.pos_z = t_real_reso(spinSamplePosZ->value()) * cm;
@@ -499,9 +523,10 @@ void ResoDlg::Calc()
 		switch(ResoDlg::GetSelectedAlgo())
 		{
 			case ResoAlgo::CN: res = calc_cn(cn); break;
+			case ResoAlgo::POP_CN: res = calc_pop_cn(cn); break;
 			case ResoAlgo::POP: res = calc_pop(cn); break;
 			case ResoAlgo::ECK: res = calc_eck(cn); break;
-			case ResoAlgo::VIOL: res = calc_viol(tof); break;
+			case ResoAlgo::VIO: res = calc_vio(tof); break;
 			case ResoAlgo::SIMPLE: res = calc_simplereso(simple); break;
 			default: tl::log_err("Unknown resolution algorithm selected."); return;
 		}
@@ -990,7 +1015,7 @@ void ResoDlg::MCGenerate()
 	if(m_pSettings && !m_pSettings->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strLastDir = m_pSettings ? m_pSettings->value("reso/mc_dir", ".").toString() : ".";
+	QString strLastDir = m_pSettings ? m_pSettings->value("reso/mc_dir", "~").toString() : "~";
 	QString _strFile = QFileDialog::getSaveFileName(this, "Save MC neutron data...",
 		strLastDir, "Data files (*.dat *.DAT);;All files (*.*)", nullptr, fileopt);
 	if(_strFile == "")
@@ -1091,12 +1116,14 @@ void ResoDlg::AlgoChanged()
 	switch(GetSelectedAlgo())
 	{
 		case ResoAlgo::CN:
+		case ResoAlgo::POP_CN:
 		{
 			tabWidget->setTabEnabled(0,1);
 			tabWidget->setTabEnabled(1,0);
 			tabWidget->setTabEnabled(2,0);
 			tabWidget->setTabEnabled(3,0);
 			tabWidget->setTabEnabled(4,0);
+
 			strAlgo = "<b>M. J. Cooper and <br>R. Nathans</b><br>\n";
 			strAlgo += "<a href=http://dx.doi.org/10.1107/S0365110X67002816>"
 				"Acta Cryst. 23, <br>pp. 357-367</a><br>\n";
@@ -1112,9 +1139,10 @@ void ResoDlg::AlgoChanged()
 		{
 			tabWidget->setTabEnabled(0,1);
 			tabWidget->setTabEnabled(1,1);
-			tabWidget->setTabEnabled(2,0);
+			tabWidget->setTabEnabled(2,1);
 			tabWidget->setTabEnabled(3,0);
 			tabWidget->setTabEnabled(4,0);
+
 			strAlgo = "<b>M. Popovici</b><br>\n";
 			strAlgo += "<a href=http://dx.doi.org/10.1107/S0567739475001088>"
 				"Acta Cryst. A 31, <br>pp. 507-513</a><br>\n";
@@ -1128,19 +1156,21 @@ void ResoDlg::AlgoChanged()
 			tabWidget->setTabEnabled(2,1);
 			tabWidget->setTabEnabled(3,0);
 			tabWidget->setTabEnabled(4,0);
+
 			strAlgo = "<b>G. Eckold and <br>O. Sobolev</b><br>\n";
 			strAlgo += "<a href=http://dx.doi.org/10.1016/j.nima.2014.03.019>"
 				"NIM A 752, <br>pp. 54-64</a><br>\n";
 			strAlgo += "2014";
 			break;
 		}
-		case ResoAlgo::VIOL:
+		case ResoAlgo::VIO:
 		{
 			tabWidget->setTabEnabled(0,0);
 			tabWidget->setTabEnabled(1,0);
 			tabWidget->setTabEnabled(2,0);
 			tabWidget->setTabEnabled(3,1);
 			tabWidget->setTabEnabled(4,0);
+
 			strAlgo = "<b>N. Violini <i>et al.</i></b><br>\n";
 			strAlgo += "<a href=http://dx.doi.org/10.1016/j.nima.2013.10.042>"
 				"NIM A 736, <br>pp. 31-39</a><br>\n";
@@ -1154,6 +1184,7 @@ void ResoDlg::AlgoChanged()
 			tabWidget->setTabEnabled(2,0);
 			tabWidget->setTabEnabled(3,0);
 			tabWidget->setTabEnabled(4,1);
+
 			strAlgo = "<b>Simple</b><br>\n";
 			break;
 		}

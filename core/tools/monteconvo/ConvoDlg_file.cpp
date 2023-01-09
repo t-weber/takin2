@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2015, 2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ConvoDlg.h"
@@ -58,9 +79,9 @@ void ConvoDlg::Load()
 
 	QString strDirLast = "";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir", "~").toString();
 	QString _strFile = QFileDialog::getOpenFileName(this,
-		"Open Convolution Configuration...", strDirLast, "Takin files (*.taz *.TAZ)",
+		"Open Convolution Configuration", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
 
 	Load(_strFile);
@@ -122,7 +143,7 @@ void ConvoDlg::SaveAs()
 
 	QString strDirLast = "";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir", "~").toString();
 	QString _strFile = QFileDialog::getSaveFileName(this,
 		"Save Convolution Configuration", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
@@ -276,15 +297,32 @@ void ConvoDlg::Save(std::map<std::string, std::string>& mapConf, const std::stri
 	if(m_pSqw)
 	{
 		save_sqw_params(m_pSqw.get(), mapConf, strXmlRoot + "monteconvo/");
-		mapConf[strXmlRoot + "monteconvo/sqw"] = 
+		mapConf[strXmlRoot + "monteconvo/sqw"] =
 			comboSqw->itemData(comboSqw->currentIndex()).toString().toStdString();
 	}
+
+	// save reso algo name
+	int algo_idx = comboAlgo->currentIndex();
+	std::string algo_name = "unknown";
+	if(algo_idx == 0)
+		algo_name = "cn";
+	else if(algo_idx == 1)
+		algo_name = "pop_cn";
+	else if(algo_idx == 2)
+		algo_name = "pop";
+	else if(algo_idx == 3)
+		algo_name = "eck";
+	else if(algo_idx == 4)
+		algo_name = "vio";
+	mapConf[strXmlRoot + "monteconvo/algo"] = algo_name;
 
 	const char* pcUser = std::getenv("USER");
 	if(!pcUser) pcUser = "";
 	mapConf[strXmlRoot + "meta/timestamp"] = tl::var_to_str<t_real>(tl::epoch<t_real>());
 	mapConf[strXmlRoot + "meta/version"] = TAKIN_VER;
 	mapConf[strXmlRoot + "meta/info"] = "Created with Takin/Convo.";
+	mapConf[strXmlRoot + "meta/url"] = "https://code.ill.fr/scientific-software/takin";
+	mapConf[strXmlRoot + "meta/doi"] = "https://dx.doi.org/10.5281/zenodo.4117437";
 	mapConf[strXmlRoot + "meta/module"] = "takin/convo";
 	mapConf[strXmlRoot + "meta/user"] = pcUser;
 }
@@ -303,7 +341,7 @@ void ConvoDlg::SaveConvofit()
 
 	QString strDirLast = "";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_convofit", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir_convofit", "~").toString();
 	QString _strFile = QFileDialog::getSaveFileName(this,
 		"Export to Convofit", strDirLast, "Convofit files (*.job *.JOB)",
 		nullptr, fileopt);
@@ -337,32 +375,43 @@ void ConvoDlg::SaveConvofit()
 // -----------------------------------------------------------------------------
 
 
-void ConvoDlg::SaveResult()
+void ConvoDlg::SaveResult(const QString* outfile)
 {
-	QFileDialog::Option fileopt = QFileDialog::Option(0);
-	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
-		fileopt = QFileDialog::DontUseNativeDialog;
+	std::string strOutFile;
 
-	QString strDirLast = ".";
-	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_result", ".").toString();
+	if(outfile)
+	{
+		// a file is explicitely given
+		strOutFile = outfile->toStdString();
+	}
+	else
+	{
+		// ask for the output file
+		QFileDialog::Option fileopt = QFileDialog::Option(0);
+		if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
+			fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strFile = QFileDialog::getSaveFileName(this,
-		"Save Scan", strDirLast, "Data Files (*.dat *.DAT)", nullptr, fileopt);
+		QString strDirLast = "~";
+		if(m_pSett)
+			strDirLast = m_pSett->value("monteconvo/last_dir_result", "~").toString();
 
-	if(strFile == "")
-		return;
+		QString strFile = QFileDialog::getSaveFileName(this,
+			"Save Scan", strDirLast, "Data Files (*.dat *.DAT)", nullptr, fileopt);
 
-	std::string strFile1 = strFile.toStdString();
-	std::string strDir = tl::get_dir(strFile1);
-	if(tl::get_fileext(strFile1,1) != "dat")
-		strFile1 += ".dat";
+		if(strFile == "")
+			return;
 
+		strOutFile = strFile.toStdString();
+	}
 
-	std::ofstream ofstr(strFile1);
+	std::string strDir = tl::get_dir(strOutFile);
+	if(tl::get_fileext(strOutFile, 1) != "dat")
+		strOutFile += ".dat";
+
+	std::ofstream ofstr(strOutFile);
 	if(!ofstr)
 	{
-		QMessageBox::critical(this, "Error", "Could not open file.");
+		QMessageBox::critical(this, "Error", "Could not open file for writing.");
 		return;
 	}
 
@@ -470,11 +519,11 @@ void ConvoDlg::browseCrysFiles()
 	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_crys", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir_crys", "~").toString();
 	QString strFile = QFileDialog::getOpenFileName(this,
-		"Open Crystal File...", strDirLast, "Takin files (*.taz *.TAZ)",
+		"Open Crystal File", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
 	if(strFile == "")
 		return;
@@ -493,11 +542,11 @@ void ConvoDlg::browseResoFiles()
 	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_reso", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir_reso", "~").toString();
 	QString strFile = QFileDialog::getOpenFileName(this,
-		"Open Resolution File...", strDirLast, "Takin files (*.taz *.TAZ)",
+		"Open Resolution File", strDirLast, "Takin files (*.taz *.TAZ)",
 		nullptr, fileopt);
 	if(strFile == "")
 		return;
@@ -516,11 +565,11 @@ void ConvoDlg::browseSqwFiles()
 	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_sqw", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir_sqw", "~").toString();
 	QString strFile = QFileDialog::getOpenFileName(this,
-		"Open S(q,w) File...", strDirLast, "All S(q,w) files (*.dat *.DAT *.py *.PY *.jl *.JL)",
+		"Open S(q,w) File", strDirLast, "All S(q,w) files (*.dat *.DAT *.py *.PY *.jl *.JL *.XML *.xml)",
 		nullptr, fileopt);
 	if(strFile == "")
 		return;
@@ -539,18 +588,18 @@ void ConvoDlg::browseScanFiles()
 	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_scan", ".").toString();
-	QString strFile = QFileDialog::getOpenFileName(this,
-		"Open S(q,w) File...", strDirLast, "All scan files (*.dat *.DAT *.scn *.SCN);;All files (*.* *)",
+		strDirLast = m_pSett->value("monteconvo/last_dir_scan", "~").toString();
+	QStringList files = QFileDialog::getOpenFileNames(this,
+		"Open Scan File", strDirLast, "All scan files (*.dat *.DAT *.scn *.SCN);;All files (*.* *)",
 		nullptr, fileopt);
-	if(strFile == "")
+	if(!files.size())
 		return;
 
-	editScan->setText(strFile);
+	editScan->setText(files.join(";"));
 
-	std::string strDir = tl::get_dir(strFile.toStdString());
+	std::string strDir = tl::get_dir(files[0].toStdString());
 	if(m_pSett)
 		m_pSett->setValue("monteconvo/last_dir_scan", QString(strDir.c_str()));
 }
@@ -562,14 +611,14 @@ void ConvoDlg::browseAutosaveFile()
 	if(m_pSett && !m_pSett->value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = ".";
+	QString strDirLast = "~";
 	if(m_pSett)
-		strDirLast = m_pSett->value("monteconvo/last_dir_autosave", ".").toString();
+		strDirLast = m_pSett->value("monteconvo/last_dir_autosave", "~").toString();
 	QString strFile = QFileDialog::getSaveFileName(this,
-		"Open S(q,w) File...", strDirLast, "Data files (*.dat *.txt);;All files (*.*)",
+		"Save Results", strDirLast, "Data files (*.dat *.txt);;All files (*.*)",
 		nullptr, fileopt);
 
-	editScan->setText(strFile);
+	editAutosave->setText(strFile);
 
 	std::string strDir = tl::get_dir(strFile.toStdString());
 	if(m_pSett)

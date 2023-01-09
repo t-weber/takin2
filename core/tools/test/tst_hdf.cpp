@@ -3,8 +3,29 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 9-apr-17
  * @license GPLv2
- * 
- * gcc -lstdc++ -o tst_hdf tst_hdf.cpp -lstdc++ -lhdf5
+ *
+ * gcc -o tst_hdf tst_hdf.cpp -lstdc++ -lhdf5
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include <hdf5.h>
@@ -55,7 +76,7 @@ int main()
 
 
 	hid_t file2 = ::H5Fopen("tst.hdf", H5F_ACC_RDONLY, H5P_DEFAULT);
-	if(file1 < 0)
+	if(file2 < 0)
 	{
 		std::cerr << "Cannot open file." << std::endl;
 		return -1;

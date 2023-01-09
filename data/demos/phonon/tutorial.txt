@@ -1,0 +1,24 @@
+Running the demo convolution
+----------------------------
+
+A demonstration of a phonon convolution (and fit) can be found in this archive in the sub-directory demos/phonon:
+https://code.ill.fr/scientific-software/takin/data/-/archive/master/data-master.zip.
+
+After extracting the archive, one can test if convolutions work by choosing "Resolution" -> "Convolution..." in the Takin main menu and loading the file "phonon_simple_py.taz" from the "File" -> "Load..." menu of the convolution dialog (not the main Takin window).
+
+A click to "Start Sim." should show the scan and the convolution. 
+
+
+
+Convolution details
+-------------------
+
+The demo convolution uses the Python backend for creating S(Q, E) models. In the example, the model file can be found in the file "sqw_phonon.py". In there, the most important (and only mandatory) interface function for Takin is "TakinSqw(h, k, l, E)", which receives the (hkl) coordinates (in rlu) and the energy transfer E (in meV) of each random Monte-Carlo neutron events from Takin, and has to return the dynamical structure factor S(h, k, l, E) for the queried coordinate. How the structure factor is calculated is up to the user. In the example, a simple sinusoidal phonon dispersion branch with a DHO shape in energy is created.
+
+Each parameter in the Python S(Q, E) model script (here: "sqw_phonon.py") which is global and whose name begins with "g_" is a parameter that can be changed directly from Takin and that can also be defined as a fit parameter. In the convolution dialog, they can be inspected and modified by clicking on the "Parameters..." button.
+
+Fitting a parameter is done by checking the respective "Fit" column and giving the parameter a non-zero error. Initial values for fitting can be set via the "Value" column.
+
+If at least one parameter has been declared a fit parameter, the convolution fitting can be started by clicking "Start Fit".
+
+If in the plot window, the curve appears to be completely at zero, try increasing the "Scale" factor, for example to "1e4" or "1e5".

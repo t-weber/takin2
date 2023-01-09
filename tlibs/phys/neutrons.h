@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2012-2016
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS_NEUTRONS__
@@ -932,8 +953,9 @@ t_length<Sys, Y> focal_len(const t_length<Sys, Y>& lenBefore, const t_length<Sys
 /**
  * optimal mono/ana curvature,
  * @see e.g. (Shirane 2002) p. 66
- * @see e.g. nicos/nicos-core.git/tree/nicos/devices/tas/mono.py in nicos
  * @see e.g. McStas: https://github.com/McStasMcXtrace/McCode/blob/master/mcstas-comps/optics/Monochromator_curved.comp
+ * @see e.g. Nicos: https://forge.frm2.tum.de/cgit/cgit.cgi/frm2/nicos/nicos.git/tree/nicos/devices/tas/mono.py
+ * @see e.g. [eck14], equs. 59-61
  */
 template<class Sys, class Y=double>
 t_length<Sys, Y> foc_curv(const t_length<Sys, Y>& lenBefore, const t_length<Sys, Y>& lenAfter,

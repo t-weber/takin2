@@ -2,9 +2,29 @@
  * tlibs2
  * logger/debug library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2014-2020
+ * @date 2014-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_LOGGER_H__
@@ -43,6 +63,9 @@ std::string get_typename(bool bFull=1)
 }
 
 
+extern std::string get_stacktrace();
+
+
 enum class LogColor
 {
 	NONE,
@@ -57,12 +80,13 @@ class Log
 private:
 	int m_iDepth = 0;
 
+
 protected:
 	static std::recursive_mutex s_mtx;
 
 	// pair of ostream and colour flag
 	using t_pairOstr = std::pair<std::ostream*, bool>;
-	std::vector<t_pairOstr> m_vecOstrs;
+	std::vector<t_pairOstr> m_vecOstrs{};
 	using t_mapthreadOstrs = std::unordered_map<std::thread::id, std::vector<t_pairOstr>>;
 	t_mapthreadOstrs m_mapOstrsTh{};
 
@@ -77,6 +101,7 @@ protected:
 
 	static bool s_bTermCmds;
 
+
 protected:
 	static std::string get_timestamp();
 	static std::string get_thread_id();
@@ -89,6 +114,7 @@ protected:
 
 	void inc_depth();
 	void dec_depth();
+
 
 public:
 	Log();
@@ -104,7 +130,7 @@ public:
 		if(!m_bEnabled) return;
 		begin_log();
 
-		std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
+		const std::vector<t_pairOstr>& vecOstrsTh = GetThreadOstrs();
 		std::vector<t_pairOstr> vecOstrs = arrayunion({m_vecOstrs, vecOstrsTh});
 
 		for(t_pairOstr& pair : vecOstrs)
@@ -139,13 +165,13 @@ class Stopwatch
 		typedef std::chrono::system_clock::duration t_dur_sys;
 
 	protected:
-		t_tp_sys m_timeStart;
-		t_tp_st m_timeStart_st, m_timeStop_st;
+		t_tp_sys m_timeStart{};
+		t_tp_st m_timeStart_st{}, m_timeStop_st{};
 
-		t_dur m_dur;
-		t_dur_sys m_dur_sys;
+		t_dur m_dur{};
+		t_dur_sys m_dur_sys{};
 
-		T m_dDur = T(0);
+		T m_dDur = T{};
 
 	public:
 		Stopwatch() = default;

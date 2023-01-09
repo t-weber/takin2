@@ -43,6 +43,8 @@ class SqwMod : public SqwBase
 		t_real m_hmin=0., m_hmax=0., m_hstep=0.;
 		t_real m_kmin=0., m_kmax=0., m_kstep=0.;
 		t_real m_lmin=0., m_lmax=0., m_lstep=0.;
+		std::size_t m_hsize=0, m_ksize=0, m_lsize=0;
+
 
 
 	public:

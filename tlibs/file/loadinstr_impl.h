@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2015 - 2018
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS_LOADINST_IMPL_H__
@@ -17,6 +38,10 @@
 #endif
 #include "../math/math.h"
 #include "../phys/neutrons.h"
+
+#ifdef USE_HDF5
+	#include "../file/h5.h"
+#endif
 
 #ifndef USE_BOOST_REX
 	#include <regex>
@@ -63,69 +88,86 @@ FileInstrBase<t_real>* FileInstrBase<t_real>::LoadInstr(const char* pcFile)
 {
 	FileInstrBase<t_real>* pDat = nullptr;
 
-	std::ifstream ifstr(pcFile);
-	if(!ifstr.is_open())
+	std::string filename = pcFile;
+	std::string ext = tl::str_to_lower(tl::get_fileext(filename));
+
+	// binary hdf5 files
+	if(ext == "nxs" || ext == "hdf")
+	{
+#ifdef USE_HDF5
+		pDat = new FileH5<t_real>();
+#else
 		return nullptr;
+#endif
+	}
+
+	// text files
+	else
+	{
+		std::ifstream ifstr(pcFile);
+		if(!ifstr.is_open())
+			return nullptr;
 
 #if !defined NO_IOSTR
-	std::shared_ptr<std::istream> ptrIstr = create_autodecomp_istream(ifstr);
-	if(!ptrIstr) return nullptr;
-	std::istream* pIstr = ptrIstr.get();
+		std::shared_ptr<std::istream> ptrIstr = create_autodecomp_istream(ifstr);
+		if(!ptrIstr) return nullptr;
+		std::istream* pIstr = ptrIstr.get();
 #else
-	std::istream* pIstr = &ifstr;
+		std::istream* pIstr = &ifstr;
 #endif
 
-	std::string strLine, strLine2, strLine3;
-	std::getline(*pIstr, strLine);
-	std::getline(*pIstr, strLine2);
-	std::getline(*pIstr, strLine3);
-	//pIstr->close();
+		std::string strLine, strLine2, strLine3;
+		std::getline(*pIstr, strLine);
+		std::getline(*pIstr, strLine2);
+		std::getline(*pIstr, strLine3);
+		//pIstr->close();
 
 
-	trim(strLine);
-	trim(strLine2);
-	trim(strLine3);
-	strLine = str_to_lower(strLine);
-	strLine2 = str_to_lower(strLine2);
-	strLine3 = str_to_lower(strLine3);
+		trim(strLine);
+		trim(strLine2);
+		trim(strLine3);
+		strLine = str_to_lower(strLine);
+		strLine2 = str_to_lower(strLine2);
+		strLine3 = str_to_lower(strLine3);
 
-	if(strLine == "")
-		return nullptr;
+		if(strLine == "")
+			return nullptr;
 
-	const std::string strNicos("nicos data file");
-	const std::string strMacs("ice");
-	const std::string strPsi("tas data");
-	const std::string strPsiOld("instr:");
+		const std::string strNicos("nicos data file");
+		const std::string strMacs("ice");
+		const std::string strPsi("tas data");
+		const std::string strPsiOld("instr:");
 
-	if(strLine.find(strNicos) != std::string::npos)
-	{ // frm file
-		//log_debug(pcFile, " is an frm file.");
-		pDat = new FileFrm<t_real>();
-	}
-	else if(strLine.find('#') != std::string::npos &&
-		strLine.find(strMacs) != std::string::npos &&
-		strLine2.find('#') != std::string::npos)
-	{ // macs file
-		//log_debug(pcFile, " is a macs file.");
-		pDat = new FileMacs<t_real>();
-	}
-	else if(strLine2.find("scan start") != std::string::npos)
-	{ // trisp file
-		//log_debug(pcFile, " is a trisp file.");
-		pDat = new FileTrisp<t_real>();
-	}
-	else if(strLine.find('#') == std::string::npos &&
-		strLine2.find('#') == std::string::npos &&
-		(strLine3.find(strPsi) != std::string::npos ||
-		strLine.find(strPsiOld) != std::string::npos))
-	{ // psi or ill file
-		//log_debug(pcFile, " is an ill or psi file.");
-		pDat = new FilePsi<t_real>();
-	}
-	else
-	{ // raw file
-		log_warn("\"", pcFile, "\" is of unknown type, falling back to raw loader.");
-		pDat = new FileRaw<t_real>();
+		if(strLine.find(strNicos) != std::string::npos)
+		{ // frm file
+			//log_debug(pcFile, " is an frm file.");
+			pDat = new FileFrm<t_real>();
+		}
+		else if(strLine.find('#') != std::string::npos &&
+			strLine.find(strMacs) != std::string::npos &&
+			strLine2.find('#') != std::string::npos)
+		{ // macs file
+			//log_debug(pcFile, " is a macs file.");
+			pDat = new FileMacs<t_real>();
+		}
+		else if(strLine2.find("scan start") != std::string::npos)
+		{ // trisp file
+			//log_debug(pcFile, " is a trisp file.");
+			pDat = new FileTrisp<t_real>();
+		}
+		else if(strLine.find('#') == std::string::npos &&
+			strLine2.find('#') == std::string::npos &&
+			(strLine3.find(strPsi) != std::string::npos ||
+			strLine.find(strPsiOld) != std::string::npos))
+		{ // psi or ill file
+			//log_debug(pcFile, " is an ill or psi file.");
+			pDat = new FilePsi<t_real>();
+		}
+		else
+		{ // raw file
+			log_warn("\"", pcFile, "\" is of unknown type, falling back to raw loader.");
+			pDat = new FileRaw<t_real>();
+		}
 	}
 
 	if(pDat && !pDat->Load(pcFile))
@@ -316,7 +358,7 @@ const std::vector<std::array<t_real, 6>>& FileInstrBase<t_real>::GetPolStates() 
 
 
 template<class t_real>
-void FilePsi<t_real>::ReadData(std::istream& istr)
+std::string FilePsi<t_real>::ReadData(std::istream& istr)
 {
 	std::size_t iLine = 0;
 
@@ -325,6 +367,7 @@ void FilePsi<t_real>::ReadData(std::istream& istr)
 	std::getline(istr, strHdr);
 	tl::trim(strHdr);
 	++iLine;
+
 	get_tokens<std::string, std::string, t_vecColNames>(strHdr, " \t", m_vecColNames);
 	for(std::string& _str : m_vecColNames)
 	{
@@ -339,18 +382,26 @@ void FilePsi<t_real>::ReadData(std::istream& istr)
 	// data
 	while(!istr.eof())
 	{
-		std::string strLine;
-		std::getline(istr, strLine);
-		++iLine;
-		tl::trim(strLine);
+		// seekg/tellg doesn't work with compressed iostreams, return line instead!
+		//std::streampos pos = istr.tellg();
+		std::string line;
+		std::getline(istr, line);
 
-		if(strLine.length() == 0)
-			continue;
-		if(strLine[0] == '#')
+		// begin of another section (and end of data section)?
+		if(line.find(':') != std::string::npos)
+		{
+			//istr.seekg(pos);
+			return line;
+		}
+
+		tl::trim(line);
+		++iLine;
+
+		if(line.length() == 0 || line[0] == '#')
 			continue;
 
 		std::vector<t_real> vecToks;
-		get_tokens<t_real, std::string>(strLine, " \t", vecToks);
+		get_tokens<t_real, std::string>(line, " \t", vecToks);
 
 		if(vecToks.size() != m_vecColNames.size())
 		{
@@ -365,25 +416,86 @@ void FilePsi<t_real>::ReadData(std::istream& istr)
 		for(std::size_t iTok=0; iTok<vecToks.size(); ++iTok)
 			m_vecData[iTok].push_back(vecToks[iTok]);
 	}
+
+	// no leftover line
+	return "";
 }
 
 
 template<class t_real>
-void FilePsi<t_real>::GetInternalParams(const std::string& strAll, FilePsi<t_real>::t_mapIParams& mapPara)
+std::string FilePsi<t_real>::ReadMultiData(std::istream& istr)
+{
+	// skip over multi-analyser data for the moment
+
+	while(!istr.eof())
+	{
+		// seekg/tellg doesn't work with compressed iostreams, return line instead!
+		//std::streampos pos = istr.tellg();
+		std::string line;
+		std::getline(istr, line);
+
+		// begin of another section (and end of data section)?
+		if(line.find(':') != std::string::npos)
+		{
+			//istr.seekg(pos);
+			return line;
+		}
+	}
+
+	// no leftover line
+	return "";
+}
+
+
+template<class t_real>
+void FilePsi<t_real>::GetInternalParams(const std::string& strAll,
+	FilePsi<t_real>::t_mapIParams& mapPara, bool fix_broken)
 {
 	std::vector<std::string> vecToks;
 	get_tokens<std::string, std::string>(strAll, ",\n", vecToks);
 
 	for(const std::string& strTok : vecToks)
 	{
+		if(fix_broken)
+		{
+			// ignore broken parameter strings
+			if(std::count(strTok.begin(), strTok.end(), '=') > 1)
+				continue;
+		}
+
 		std::pair<std::string, std::string> pair =
-				split_first<std::string>(strTok, "=", 1);
+			split_first<std::string>(strTok, "=", 1);
 
 		if(pair.first == "")
 			continue;
 
 		t_real dVal = str_to_var<t_real>(pair.second);
 		mapPara.insert(typename t_mapIParams::value_type(pair.first, dVal));
+	}
+
+	// sometimes the "steps" parameters are written without commas
+	if(fix_broken)
+	{
+		const std::string strRegex = R"REX(([a-zA-Z0-9]+)[ \t]*\=[ \t]*([+\-]?[0-9\.]+))REX";
+		rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
+
+		rex::smatch m;
+		std::string data = strAll;
+		while(rex::regex_search(data, m, rx))
+		{
+			if(m.size() >= 3)
+			{
+				const std::string& strkey = m[1];
+				const std::string& strval = m[2];
+				if(strkey == "")
+					continue;
+
+				t_real val = str_to_var<t_real>(strval);
+				mapPara.insert(typename t_mapIParams::value_type(strkey, val));
+			}
+
+			data = m.suffix();
+		}
 	}
 }
 
@@ -601,18 +713,32 @@ bool FilePsi<t_real>::Load(const char* pcFile)
 	std::istream* pIstr = &ifstr;
 #endif
 
+	std::string nextLine;
 	while(!pIstr->eof())
 	{
 		std::string strLine;
-		std::getline(*pIstr, strLine);
+
+		// see if a line is left over from the previous loop
+		if(nextLine == "")
+		{
+			// read a new line
+			std::getline(*pIstr, strLine);
+		}
+		else
+		{
+			strLine = nextLine;
+			nextLine = "";
+		}
 
 		if(strLine.substr(0,4) == "RRRR")
 			skip_after_line<char>(*pIstr, "VVVV", true);
 
 		std::pair<std::string, std::string> pairLine =
-				split_first<std::string>(strLine, ":", 1);
+			split_first<std::string>(strLine, ":", 1);
 		if(pairLine.first == "DATA_")
-			ReadData(*pIstr);
+			nextLine = ReadData(*pIstr);
+		else if(pairLine.first == "MULTI")
+			nextLine = ReadMultiData(*pIstr);
 		else if(pairLine.first == "")
 			continue;
 		else
@@ -626,7 +752,8 @@ bool FilePsi<t_real>::Load(const char* pcFile)
 		}
 	}
 
-	typename t_mapParams::const_iterator iterParams = m_mapParams.find("PARAM"),
+	typename t_mapParams::const_iterator
+		iterParams = m_mapParams.find("PARAM"),
 		iterZeros = m_mapParams.find("ZEROS"),
 		iterVars = m_mapParams.find("VARIA"),
 		iterPos = m_mapParams.find("POSQE"),
@@ -636,7 +763,7 @@ bool FilePsi<t_real>::Load(const char* pcFile)
 	if(iterZeros!=m_mapParams.end()) GetInternalParams(iterZeros->second, m_mapZeros);
 	if(iterVars!=m_mapParams.end()) GetInternalParams(iterVars->second, m_mapVariables);
 	if(iterPos!=m_mapParams.end()) GetInternalParams(iterPos->second, m_mapPosHkl);
-	if(iterSteps!=m_mapParams.end()) GetInternalParams(iterSteps->second, m_mapScanSteps);
+	if(iterSteps!=m_mapParams.end()) GetInternalParams(iterSteps->second, m_mapScanSteps, true);
 
 	if(m_bAutoParsePol)
 		ParsePolData();
@@ -668,6 +795,18 @@ FilePsi<t_real>::GetCol(const std::string& strName, std::size_t *pIdx)
 
 	if(pIdx) *pIdx = m_vecColNames.size();
 	return vecNull;
+}
+
+template<class t_real>
+bool FilePsi<t_real>::HasCol(const std::string& strName) const
+{
+	for(std::size_t i=0; i<m_vecColNames.size(); ++i)
+	{
+		if(str_to_lower(m_vecColNames[i]) == str_to_lower(strName))
+			return true;
+	}
+
+	return false;
 }
 
 template<class t_real>
@@ -785,7 +924,7 @@ std::array<t_real, 4> FilePsi<t_real>::GetPosHKLE() const
 	t_real l = (iterL!=m_mapPosHkl.end() ? iterL->second : 0.);
 	t_real E = (iterE!=m_mapPosHkl.end() ? iterE->second : 0.);
 
-	return std::array<t_real,4>{{h,k,l,E}};
+	return std::array<t_real,4>{{ h, k, l, E }};
 }
 
 template<class t_real>
@@ -803,13 +942,12 @@ std::array<t_real, 4> FilePsi<t_real>::GetDeltaHKLE() const
 	typename t_mapIParams::const_iterator iterE = m_mapScanSteps.find("DEN");
 	if(iterE==m_mapScanSteps.end()) iterE = m_mapScanSteps.find("EN");
 
-
         t_real h = (iterH!=m_mapScanSteps.end() ? iterH->second : 0.);
         t_real k = (iterK!=m_mapScanSteps.end() ? iterK->second : 0.);
         t_real l = (iterL!=m_mapScanSteps.end() ? iterL->second : 0.);
         t_real E = (iterE!=m_mapScanSteps.end() ? iterE->second : 0.);
 
-        return std::array<t_real,4>{{h,k,l,E}};
+        return std::array<t_real,4>{{ h, k, l, E }};
 }
 
 template<class t_real>
@@ -830,11 +968,13 @@ bool FilePsi<t_real>::MergeWith(const FileInstrBase<t_real>* pDat)
 	return true;
 }
 
-// TODO
 template<class t_real>
 bool FilePsi<t_real>::IsKiFixed() const
 {
-	return 0;
+	typename t_mapIParams::const_iterator iter = m_mapParameters.find("FX");
+	t_real val = (iter!=m_mapParameters.end() ? iter->second : 2.);
+
+	return float_equal<t_real>(val, 1., 0.25);
 }
 
 template<class t_real>
@@ -848,9 +988,24 @@ std::size_t FilePsi<t_real>::GetScanCount() const
 template<class t_real>
 std::array<t_real, 5> FilePsi<t_real>::GetScanHKLKiKf(std::size_t i) const
 {
-	return FileInstrBase<t_real>::GetScanHKLKiKf("QH", "QK", "QL", "EN", i);
-}
+	// default column names
+	const char *h = "QH";
+	const char *k = "QK";
+	const char *l = "QL";
+	const char *E = "EN";
 
+	// alternate column names
+	if(!HasCol("QH") && HasCol("H"))
+		h = "H";
+	if(!HasCol("QK") && HasCol("K"))
+		k = "K";
+	if(!HasCol("QL") && HasCol("L"))
+		l = "L";
+	if(!HasCol("EN") && HasCol("E"))
+		E = "E";
+
+	return FileInstrBase<t_real>::GetScanHKLKiKf(h, k, l, E, i);
+}
 
 template<class t_real>
 std::string FilePsi<t_real>::GetTitle() const
@@ -922,7 +1077,6 @@ std::vector<std::string> FilePsi<t_real>::GetScannedVars() const
 		}
 	}
 
-
 	// nothing found yet -> try scan command instead
 	if(!vecVars.size())
 	{
@@ -958,7 +1112,7 @@ std::vector<std::string> FilePsi<t_real>::GetScannedVars() const
 				const std::string strRegex = R"REX((sc|scan)[ \t]+([a-z0-9]+)[ \t]+[0-9\.-]+[ \t]+[d|D]([a-z0-9]+).*)REX";
 				rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
 				rex::smatch m;
-				if(rex::regex_search(iter->second, m, rx) && m.size()>3)
+				if(rex::regex_search(iter->second, m, rx) && m.size() > 3)
 				{
 					const std::string& strSteps = m[3];
 					vecVars.push_back(str_to_upper(strSteps));
@@ -1078,11 +1232,18 @@ void FileFrm<t_real>::ReadHeader(std::istream& istr)
 			// try to find instrument name
 			if(m_strInstrIdent == "")
 			{
-				const std::string strRegex = R"REX(([a-z0-9]+)\_responsible)REX";
-				rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
-				rex::smatch m;
-				if(rex::regex_search(pairLine.first, m, rx) && m.size()>=2)
-					m_strInstrIdent = m[1];
+				try
+				{
+					const std::string strRegex = R"REX(([a-z0-9]+)_responsible)REX";
+					rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
+					rex::smatch m;
+					if(rex::regex_search(pairLine.first, m, rx) && m.size()>=2)
+						m_strInstrIdent = m[1];
+				}
+				catch(const std::exception& ex)
+				{
+					log_warn(ex.what());
+				}
 			}
 		}
 	}
@@ -1341,8 +1502,8 @@ bool FileFrm<t_real>::IsKiFixed() const
 	}
 
 	if(strScanMode == "cki")
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 template<class t_real>
@@ -2259,7 +2420,7 @@ t_real FileTrisp<t_real>::GetKFix() const
 template<class t_real>
 bool FileTrisp<t_real>::IsKiFixed() const
 {
-	return 0;		// assume ckf
+	return false;		// assume ckf
 }
 
 template<class t_real>
@@ -2716,6 +2877,331 @@ template<class t_real> std::string FileRaw<t_real>::GetSampleName() const { retu
 template<class t_real> std::string FileRaw<t_real>::GetSpacegroup() const { return ""; }
 template<class t_real> std::string FileRaw<t_real>::GetScanCommand() const { return ""; }
 template<class t_real> std::string FileRaw<t_real>::GetTimestamp() const { return ""; }
+
+
+
+// -----------------------------------------------------------------------------
+
+
+#ifdef USE_HDF5
+
+template<class t_real>
+bool FileH5<t_real>::Load(const char* pcFile)
+{
+	try
+	{
+		std::cout << pcFile << std::endl;
+		H5::H5File h5file = H5::H5File(pcFile, H5F_ACC_RDONLY);
+
+		m_data.clear();
+		m_vecCols.clear();
+		m_params.clear();
+		m_scanned_vars.clear();
+
+		std::vector<std::string> entries;
+		if(!get_h5_entries(h5file, "/", entries) || entries.size() == 0)
+		{
+			tl::log_err("No entries in hdf5 file.");
+			return false;
+		}
+
+		if(entries.size() > 1)
+			tl::log_warn(entries.size(), " root entries in hdf5 file, expected a single one.");
+
+		const std::string& entry = entries[0];
+
+		// get data matrix
+		if(!tl::get_h5_matrix(h5file, entry + "/data_scan/scanned_variables/data", m_data))
+		{
+			tl::log_err("Cannot load count data.");
+			return false;
+		}
+
+		// get column names
+		if(!tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/label", m_vecCols))
+		{
+			tl::log_err("Cannot load column names.");
+			return false;
+
+			/*std::vector<int> axes;
+			std::vector<std::string> names, props;
+
+			bool ok1 = tl::get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", axes);
+			bool ok2 = tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", names);
+			bool ok3 = tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/property", props);
+
+			if(!ok1 || !ok2 || !ok3)
+			{
+				tl::log_err("Cannot load column names in old format.");
+				return false;
+			}
+
+			m_vecCols.resize(axes.size());
+			for(std::size_t col=0; col<axes.size(); ++col)
+				m_vecCols[col] = axes[col] ? names[col] : props[col];*/
+		}
+
+		// get scanned variables
+		std::vector<int> scanned;
+		if(!tl::get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/scanned", scanned))
+		{
+			tl::log_err("Cannot load scanned variables.");
+			return false;
+		}
+
+		for(std::size_t idx = 0; idx<std::min(m_vecCols.size(), scanned.size()); ++idx)
+		{
+			if(scanned[idx])
+				m_scanned_vars.push_back(m_vecCols[idx]);
+		}
+
+		// if Q, E coordinates are among the scan variables, move them to the front
+		auto iterQL = std::find(m_scanned_vars.begin(), m_scanned_vars.end(), "QL");
+		if(iterQL != m_scanned_vars.end())
+		{
+			m_scanned_vars.erase(iterQL);
+			m_scanned_vars.insert(m_scanned_vars.begin(), "QL");
+		}
+		auto iterQK = std::find(m_scanned_vars.begin(), m_scanned_vars.end(), "QK");
+		if(iterQK != m_scanned_vars.end())
+		{
+			m_scanned_vars.erase(iterQK);
+			m_scanned_vars.insert(m_scanned_vars.begin(), "QK");
+		}
+		auto iterQH = std::find(m_scanned_vars.begin(), m_scanned_vars.end(), "QH");
+		if(iterQH != m_scanned_vars.end())
+		{
+			m_scanned_vars.erase(iterQH);
+			m_scanned_vars.insert(m_scanned_vars.begin(), "QH");
+		}
+		auto iterEN = std::find(m_scanned_vars.begin(), m_scanned_vars.end(), "EN");
+		if(iterEN != m_scanned_vars.end())
+		{
+			m_scanned_vars.erase(iterEN);
+			m_scanned_vars.insert(m_scanned_vars.begin(), "EN");
+		}
+
+		// get experiment infos
+		tl::get_h5_string(h5file, entry + "/title", m_title);
+		tl::get_h5_string(h5file, entry + "/start_time", m_timestamp);
+		tl::get_h5_scalar(h5file, entry + "/run_number", m_scannumber);
+		tl::get_h5_string(h5file, entry + "/instrument/command_line/actual_command", m_scancommand);
+
+		// get user infos
+		tl::get_h5_string(h5file, entry + "/user/name", m_username);
+		tl::get_h5_string(h5file, entry + "/user/namelocalcontact", m_localname);
+
+		// get instrument infos
+		t_real mono_sense = -1., ana_sense = -1., sample_sense = 1.;
+		t_real ki = 0., kf = 0.;
+
+		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/d_spacing", m_dspacings[0]);
+		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/sens", mono_sense);
+		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/ki", ki);
+		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/d_spacing", m_dspacings[1]);
+		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/sens", ana_sense);
+		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/kf", kf);
+		tl::get_h5_scalar(h5file, entry + "/sample/sens", sample_sense);
+
+		m_senses[0] = mono_sense > 0.;
+		m_senses[1] = sample_sense > 0.;
+		m_senses[2] = ana_sense > 0.;
+
+		// TODO
+		m_kfix = kf;
+		m_iskifixed = false;
+
+		// get sample infos
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_a", m_lattice[0]);
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_b", m_lattice[1]);
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_c", m_lattice[2]);
+
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_alpha", m_angles[0]);
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_beta", m_angles[1]);
+		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_gamma", m_angles[2]);
+
+		tl::get_h5_scalar(h5file, entry + "/sample/ax", m_plane[0][0]);
+		tl::get_h5_scalar(h5file, entry + "/sample/ay", m_plane[0][1]);
+		tl::get_h5_scalar(h5file, entry + "/sample/az", m_plane[0][2]);
+
+		tl::get_h5_scalar(h5file, entry + "/sample/bx", m_plane[1][0]);
+		tl::get_h5_scalar(h5file, entry + "/sample/by", m_plane[1][1]);
+		tl::get_h5_scalar(h5file, entry + "/sample/bz", m_plane[1][2]);
+
+		tl::get_h5_scalar(h5file, entry + "/sample/qh", m_initialpos[0]);
+		tl::get_h5_scalar(h5file, entry + "/sample/qk", m_initialpos[1]);
+		tl::get_h5_scalar(h5file, entry + "/sample/ql", m_initialpos[2]);
+		tl::get_h5_scalar(h5file, entry + "/sample/en", m_initialpos[3]);
+
+		m_angles[0] = tl::d2r(m_angles[0]);
+		m_angles[1] = tl::d2r(m_angles[1]);
+		m_angles[2] = tl::d2r(m_angles[2]);
+
+		h5file.close();
+	}
+	catch(const H5::Exception& ex)
+	{
+		tl::log_err(ex.getDetailMsg());
+		return false;
+	}
+	catch(const std::exception& ex)
+	{
+		tl::log_err(ex.what());
+		return false;
+	}
+
+	return true;
+}
+
+template<class t_real>
+const typename FileInstrBase<t_real>::t_vecVals&
+FileH5<t_real>::GetCol(const std::string& strName, std::size_t *pIdx) const
+{
+	return const_cast<FileH5*>(this)->GetCol(strName, pIdx);
+}
+
+template<class t_real>
+typename FileInstrBase<t_real>::t_vecVals&
+FileH5<t_real>::GetCol(const std::string& strName, std::size_t *pIdx)
+{
+	static std::vector<t_real> vecNull;
+
+	for(std::size_t i=0; i<m_vecCols.size(); ++i)
+	{
+		if(str_to_lower(m_vecCols[i]) == str_to_lower(strName))
+		{
+			if(pIdx) *pIdx = i;
+			return m_data[i];
+		}
+	}
+
+	if(pIdx) *pIdx = m_vecCols.size();
+	return vecNull;
+}
+
+template<class t_real>
+const typename FileInstrBase<t_real>::t_vecDat&
+FileH5<t_real>::GetData() const
+{
+	return m_data;
+}
+
+template<class t_real>
+typename FileInstrBase<t_real>::t_vecDat&
+FileH5<t_real>::GetData()
+{
+	return m_data;
+}
+
+template<class t_real>
+const typename FileInstrBase<t_real>::t_vecColNames&
+FileH5<t_real>::GetColNames() const
+{
+	return m_vecCols;
+}
+
+template<class t_real>
+const typename FileInstrBase<t_real>::t_mapParams&
+FileH5<t_real>::GetAllParams() const
+{
+	return m_params;
+}
+
+template<class t_real>
+std::array<t_real,3> FileH5<t_real>::GetSampleLattice() const
+{
+	return m_lattice;
+}
+
+template<class t_real>
+std::array<t_real,3> FileH5<t_real>::GetSampleAngles() const
+{
+	return m_angles;
+}
+
+template<class t_real>
+std::array<t_real,2> FileH5<t_real>::GetMonoAnaD() const
+{
+	return m_dspacings;
+}
+
+template<class t_real>
+std::array<bool, 3> FileH5<t_real>::GetScatterSenses() const
+{
+	return m_senses;
+}
+
+template<class t_real>
+std::array<t_real, 3> FileH5<t_real>::GetScatterPlane0() const
+{
+	return m_plane[0];
+}
+
+template<class t_real>
+std::array<t_real, 3> FileH5<t_real>::GetScatterPlane1() const
+{
+	return m_plane[1];
+}
+
+template<class t_real>
+std::array<t_real, 4> FileH5<t_real>::GetPosHKLE() const
+{
+	return m_initialpos;
+}
+
+template<class t_real>
+t_real FileH5<t_real>::GetKFix() const
+{
+	return m_kfix;
+}
+
+template<class t_real>
+bool FileH5<t_real>::IsKiFixed() const
+{
+	return m_iskifixed;
+}
+
+template<class t_real>
+std::size_t FileH5<t_real>::GetScanCount() const
+{
+	if(m_data.size() != 0)
+		return m_data[0].size();
+	return 0;
+}
+
+template<class t_real>
+std::array<t_real, 5> FileH5<t_real>::GetScanHKLKiKf(std::size_t i) const
+{
+	using t_map = typename FileInstrBase<t_real>::t_mapParams;
+	const t_map& params = GetAllParams();
+
+	return FileInstrBase<t_real>::GetScanHKLKiKf("QH", "QK", "QL", "EN", i);
+}
+
+template<class t_real> std::vector<std::string> FileH5<t_real>::GetScannedVars() const
+{
+	return m_scanned_vars;
+}
+
+template<class t_real>
+bool FileH5<t_real>::MergeWith(const FileInstrBase<t_real>* pDat)
+{
+	return FileInstrBase<t_real>::MergeWith(pDat);
+}
+
+template<class t_real> std::string FileH5<t_real>::GetCountVar() const { return "Detector"; }
+template<class t_real> std::string FileH5<t_real>::GetMonVar() const { return "Monitor1"; }
+template<class t_real> std::string FileH5<t_real>::GetTitle() const { return m_title; }
+template<class t_real> std::string FileH5<t_real>::GetUser() const { return m_username; }
+template<class t_real> std::string FileH5<t_real>::GetLocalContact() const { return m_localname; }
+template<class t_real> std::string FileH5<t_real>::GetScanNumber() const { return tl::var_to_str(m_scannumber); }
+template<class t_real> std::string FileH5<t_real>::GetSampleName() const { return ""; }
+template<class t_real> std::string FileH5<t_real>::GetSpacegroup() const { return ""; }
+template<class t_real> std::string FileH5<t_real>::GetScanCommand() const { return m_scancommand; }
+template<class t_real> std::string FileH5<t_real>::GetTimestamp() const { return m_timestamp; }
+
+#endif
+
 
 }
 

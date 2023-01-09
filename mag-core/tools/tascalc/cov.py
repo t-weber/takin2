@@ -37,6 +37,7 @@ options = {
 	"ellipse_points" : 128,		# number of points to draw ellipses
 	"symsize" : 32.,
 	"dpi" : 600,
+	"use_tex" : False,
 
 	# column indices in ki,kf files
 	"ki_start_idx" : 0,		# start index of ki 3-vector
@@ -48,6 +49,8 @@ options = {
 	"Q_start_idx" : 0,
 	"E_idx" : 3,
 	"w_idx" : 4,
+
+	"filter_eps" : 1e-4,
 }
 
 
@@ -61,19 +64,25 @@ sig2fwhm = 2.*sig2hwhm
 # normalises events and filters out too low probabilities
 #
 def filter_events(Q, E, w):
-	# normalise intensity/probability
-	w /= np.max(w)
+	if w.size == 0:
+		raise ValueError("No neutron events available.")
 
+	# normalise intensity/probability
+	maxw = np.max(w)
+	if np.abs(maxw) < np.finfo(w[0].__class__).eps:
+		raise ValueError("Neutron probability factors are zero.")
+	w /= maxw
 
 	# filter out too low probabilities
-	theeps = 1e-4
-	beloweps = lambda d: np.abs(d) <= theeps
+	beloweps = lambda d: np.abs(d) <= options["filter_eps"]
 	nonzero_idx = [i for i in range(len(w)) if not beloweps(w[i])]
 
 	Q = Q[nonzero_idx]
 	E = E[nonzero_idx]
 	w = w[nonzero_idx]
 
+	if w.size == 0:
+		raise ValueError("No neutron events left after filtering.")
 
 	return [Q, E, w]
 
@@ -193,11 +202,10 @@ def calc_covar(Q, E, w, Qpara, Qperp):
 #
 def descr_ellipse(quadric):
 	[ evals, evecs ] = la.eig(quadric)
-	#print("Evals: %s" % evals)
 
 	fwhms = 1./np.sqrt(np.abs(evals)) * sig2fwhm
-
 	angles = np.array([])
+
 	if len(quadric) == 2:
 		angles = np.array([ np.arctan2(evecs[1][0], evecs[0][0]) ])
 
@@ -217,9 +225,8 @@ def proj_quad(_E, idx):
 	v = (_E[idx,:] + _E[:,idx]) * 0.5
 	vv = np.outer(v, v) / _E[idx, idx]
 	vv = np.delete(np.delete(vv, idx, axis=0), idx, axis=1)
-	proj = E - vv
 
-	return proj
+	return E - vv
 
 
 
@@ -281,7 +288,7 @@ def calc_ellipses(Qres_Q):
 #
 # shows the 2d ellipses
 #
-def plot_ellipses(file, Q4, w, Qmean, ellis, use_tex=False):
+def plot_ellipses(file, Q4, w, Qmean, ellis):
 	try:
 		import mpl_toolkits.mplot3d as mplot3d
 		import matplotlib
@@ -290,7 +297,7 @@ def plot_ellipses(file, Q4, w, Qmean, ellis, use_tex=False):
 		print("Matplotlib could not be imported!")
 		exit(-1)
 
-	matplotlib.rc("text", usetex=use_tex)
+	matplotlib.rc("text", usetex=options["use_tex"])
 
 	thesymsize = options["symsize"] * w
 	themarker = "."
@@ -307,7 +314,7 @@ def plot_ellipses(file, Q4, w, Qmean, ellis, use_tex=False):
 	coord_axes = [[0,3], [1,3], [2,3], [0,1]]
 	coord_names = ["Qpara (1/A)", "Qperp (1/A)", "Qup (1/A)", "E (meV)"]
 
-	if use_tex:
+	if options["use_tex"]:
 		coord_names[0] = "$Q_{\parallel}$ (\AA$^{-1}$)"
 		coord_names[1] = "$Q_{\perp}$ (\AA$^{-1}$)"
 		coord_names[2] = "$Q_{up}$ (\AA$^{-1}$)"
@@ -348,7 +355,8 @@ def plot_ellipses(file, Q4, w, Qmean, ellis, use_tex=False):
 	subplot3d.set_ylabel(coord_names[1])
 	subplot3d.set_zlabel(coord_names[3])
 
-	subplot3d.scatter(Q4[:,0], Q4[:,1], Q4[:,3], marker=themarker, s=thesymsize)
+	if len(Q4.shape)==2 and len(Q4)>0 and len(Q4[0])==4:
+		subplot3d.scatter(Q4[:,0], Q4[:,1], Q4[:,3], marker=themarker, s=thesymsize)
 	# xE
 	subplot3d.plot(ellplots[0]["sliced"][0], ellplots[0]["sliced"][1], zs=0., zdir="y", c="black", linestyle="dashed")
 	subplot3d.plot(ellplots[0]["proj"][0], ellplots[0]["proj"][1], zs=0., zdir="y", c="black", linestyle="solid")
@@ -430,7 +438,9 @@ def run_cov():
 	args.add_argument("--aa", "--alpha", default=90., type=float, nargs="?", help="lattice angle alpha (only needed in case data is in rlu)")
 	args.add_argument("--bb", "--beta", default=90., type=float, nargs="?", help="lattice angle beta (only needed in case data is in rlu)")
 	args.add_argument("--cc", "--gamma", default=90., type=float, nargs="?", help="lattice angle gamma (only needed in case data is in rlu)")
+	args.add_argument("--filtereps", default=options["filter_eps"], type=float, nargs="?", help="epsilon probability below which neutron events are filtered out")
 	args.add_argument("--dpi", default=options["dpi"], type=int, nargs="?", help="DPI of output plot file")
+	args.add_argument("--tex", action="store_true", help="use tex in plots")
 	argv = args.parse_args()
 
 	options["verbose"] = (argv.noverbose==False)
@@ -438,6 +448,7 @@ def run_cov():
 	options["plot_neutrons"] = (argv.noneutrons==False)
 	options["centre_on_Q"] = argv.centreonQ
 	options["dpi"] = argv.dpi
+	options["use_tex"] = argv.tex
 
 	B = []
 	if argv.a!=None and argv.b!=None and argv.c!=None and argv.aa!=None and argv.bb!=None and argv.cc!=None:
@@ -457,6 +468,7 @@ def run_cov():
 	options["kf_start_idx"] = argv.kf
 	options["wi_idx"] = argv.wi
 	options["wf_idx"] = argv.wf
+	options["filter_eps"] = argv.filtereps
 	options["symsize"] = argv.symsize
 	avec = [ argv.az, argv.ay, argv.az ]
 	bvec = [ argv.bx, argv.by, argv.bz ]
@@ -505,14 +517,3 @@ def run_cov():
 #
 if __name__ == "__main__":
 	run_cov()
-
-	# test
-	#calc_covar([
-	#	[1., 2., 3.],
-	#	[0.8, 2.2, 3.1],
-	#	[1.2, 2.5, 2.9],
-	#	[0.9, 1.9, 3.7],
-	#	[1.2, 1.9, 4.2]],
-	#
-	#	[4., 3.5, 4.1, 4.1, 3.9],
-	#	[1., 1., 0.5, 0.5, 0.5], [], [])
