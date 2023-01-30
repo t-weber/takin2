@@ -94,6 +94,16 @@ pushd paths
 ln -sf ../tlibs2
 popd
 
+pushd plugins
+pushd magnons
+pushd ext
+ln -sf ../../../tlibs2
+ln -sf ../../../tlibs
+ln -sf ../../../core takin
+ln -sf ../../../mag-core takin2
+popd
+popd
+popd
 
 
 echo -e "\n--------------------------------------------------------------------------------"

@@ -2,8 +2,30 @@
  * runtime library using the tlibs2 math library
  * @author Tobias Weber <tweber@ill.fr>
  * @date 17-apr-20
- * @license see 'LICENSE' file
+ * @license GPLv3, see 'LICENSE' file
  * @desc Forked on 18/July/2020 from my privately developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ * matrix_calc
+ * Copyright (C) 2020       Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include <cstdint>
@@ -12,7 +34,7 @@
 #include <unordered_set>
 #include <iostream>
 
-#include "math20.h"
+#include "maths.h"
 using namespace tl2_ops;
 
 
@@ -139,7 +161,7 @@ int ext_equals(t_real x, t_real y, t_real eps)
 void ext_submat(const t_real* M, t_int N, t_real* M_new, t_int iremove, t_int jremove)
 {
 	t_vec mat(N*N, M);
-	t_vec submat = tl2::flat_submat(mat, N, N, iremove, jremove);
+	t_vec submat = tl2::flat_submat<t_vec>(mat, N, N, iremove, jremove);
 	submat.to_array(M_new);
 }
 

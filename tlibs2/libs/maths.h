@@ -2413,7 +2413,7 @@ requires is_basic_mat<t_mat>
 template<class t_mat, class t_elem = typename t_mat::value_type, class t_real = double>
 std::ostream& niceprint(std::ostream& ostr, const t_mat& mat,
 	t_real eps = 1e-6, unsigned int prec = 6)
-requires tl2::is_basic_mat<t_mat> && tl2::is_dyn_mat<t_mat>
+requires tl2::is_basic_mat<t_mat> /*&& tl2::is_dyn_mat<t_mat>*/
 {
 	ostr.precision(prec);
 
@@ -2446,7 +2446,7 @@ requires tl2::is_basic_mat<t_mat> && tl2::is_dyn_mat<t_mat>
 template<class t_vec, class t_elem = typename t_vec::value_type, class t_real = double>
 std::ostream& niceprint(std::ostream& ostr, const t_vec& vec,
 	t_real eps = 1e-6, unsigned int prec = 6)
-requires tl2::is_basic_vec<t_vec> && tl2::is_dyn_vec<t_vec>
+requires tl2::is_basic_vec<t_vec> /*&& tl2::is_dyn_vec<t_vec>*/
 {
 	ostr.precision(prec);
 

@@ -65,6 +65,51 @@ bool get_h5_entries(H5::H5File& file, const std::string& path, std::vector<t_str
 
 
 /**
+ * get an entry's attribute
+ */
+template<class t_str = std::string>
+t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, bool only_group = false)
+{
+	H5::H5Object *obj = nullptr;
+	H5::DataSet set;
+	H5::Group grp;
+
+	// get entry's type
+	H5G_stat_t stat;
+	file.getObjinfo(path, true, stat);
+	if(stat.type == H5G_GROUP)
+	{
+		grp = file.openGroup(path);
+		obj = &grp;
+	}
+	else if(!only_group && stat.type == H5G_DATASET)
+	{
+		set = file.openDataSet(path);
+		obj = &set;
+	}
+
+	if(!obj)
+		return "";
+
+	// get entry's attribute
+	t_str attr_val;
+	try
+	{
+		H5::Attribute attr = obj->openAttribute(attr_name);
+
+		hsize_t len = attr.getStorageSize();
+		attr.read(attr.getStrType(), attr_val);
+		attr.close();
+	}
+	catch(const H5::AttributeIException&)
+	{}
+
+	obj->close();
+	return attr_val;
+}
+
+
+/**
  * get a scalar value from an hdf5 file
  */
 template<class T>

@@ -1485,6 +1485,7 @@ void MagDynDlg::CreateInfoDlg()
 	m_info_dlg = new QDialog(this);
 	m_info_dlg->setWindowTitle("About");
 	m_info_dlg->setSizeGripEnabled(true);
+	m_info_dlg->setFont(this->font());
 
 	QPushButton *infoDlgOk = new QPushButton("OK", m_info_dlg);
 	connect(infoDlgOk, &QAbstractButton::clicked,
@@ -1519,6 +1520,10 @@ void MagDynDlg::CreateMenuBar()
 
 	// dispersion menu
 	m_menuDisp = new QMenu("Dispersion", m_menu);
+	m_plot_channels = new QAction("Plot Channels", m_menuDisp);
+	m_plot_channels->setToolTip("Plot individual channels.");
+	m_plot_channels->setCheckable(true);
+	m_plot_channels->setChecked(false);
 	auto acRescalePlot = new QAction("Rescale Axes", m_menuDisp);
 	auto acSaveFigure = new QAction("Save Figure...", m_menuDisp);
 	auto acSaveDisp = new QAction("Save Data...", m_menuDisp);
@@ -1585,6 +1590,10 @@ void MagDynDlg::CreateMenuBar()
 	m_ignore_annihilation->setToolTip("Calculate only magnon creation..");
 	m_ignore_annihilation->setCheckable(true);
 	m_ignore_annihilation->setChecked(false);
+	m_force_incommensurate = new QAction("Force Incommensurate", menuCalc);
+	m_force_incommensurate->setToolTip("Enforce incommensurate calculation even for commensurate magnetic structures..");
+	m_force_incommensurate->setCheckable(true);
+	m_force_incommensurate->setChecked(false);
 
 	// help menu
 	auto menuHelp = new QMenu("Help", m_menu);
@@ -1613,6 +1622,8 @@ void MagDynDlg::CreateMenuBar()
 	menuStruct->addSeparator();
 	menuStruct->addAction(acStructView);
 
+	m_menuDisp->addAction(m_plot_channels);
+	m_menuDisp->addSeparator();
 	m_menuDisp->addAction(acRescalePlot);
 	m_menuDisp->addSeparator();
 	m_menuDisp->addAction(acSaveFigure);
@@ -1630,6 +1641,7 @@ void MagDynDlg::CreateMenuBar()
 	menuCalc->addSeparator();
 	menuCalc->addAction(m_unite_degeneracies);
 	menuCalc->addAction(m_ignore_annihilation);
+	menuCalc->addAction(m_force_incommensurate);
 
 	menuHelp->addAction(acAboutQt);
 	menuHelp->addAction(acAbout);
@@ -1679,10 +1691,16 @@ void MagDynDlg::CreateMenuBar()
 	connect(m_use_projector, &QAction::toggled, calc_all_dyn);
 	connect(m_unite_degeneracies, &QAction::toggled, calc_all_dyn);
 	connect(m_ignore_annihilation, &QAction::toggled, calc_all_dyn);
+	connect(m_force_incommensurate, &QAction::toggled, calc_all_dyn);
 	connect(m_autocalc, &QAction::toggled, [this](bool checked)
 	{
 		if(checked)
 			this->CalcAll();
+	});
+
+	connect(m_plot_channels, &QAction::toggled, [this](bool)
+	{
+		this->PlotDispersion();
 	});
 
 	connect(acCalc, &QAction::triggered, [this]()

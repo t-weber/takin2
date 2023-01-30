@@ -29,6 +29,8 @@
 #
 
 PRG="takin.app"
+aggressive_cleaning=1
+
 
 # remove cache, object and hidden files
 find ${PRG}/Contents/Frameworks/Python.framework -type d -name "__pycache__" -exec rm -rfv {} \;
@@ -48,14 +50,14 @@ rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/tcl*
 rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/tcl*
 rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/tk*
 rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/pkgconfig/tk.pc
-rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.9/tkinter
-rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.9/lib-dynload/_tkinter*.so
+rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.11/tkinter
+rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.11/lib-dynload/_tkinter*.so
 rm -fv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/Tk*
 
 
 # remove non-needed site packages
 pushd ${PRG}/Contents
-ln -sf Frameworks/Python.framework/Versions/Current/lib/python3.9/site-packages
+ln -sf Frameworks/Python.framework/Versions/Current/lib/python3.11/site-packages
 popd
 
 rm -rfv ${PRG}/Contents/site-packages/setuptools*
@@ -73,11 +75,28 @@ find ${PRG}/Contents/Frameworks/Python.framework -name "*.dylib" -exec strip -v 
 rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/Resources/Python.app
 
 # remove tests
-rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.9/test
+rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.11/test
 
-# remove headers
-rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/include
-rm -fv ${PRG}/Contents/Frameworks/Python.framework/Headers
 
-# remove binaries
-#rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/bin
+if [ $aggressive_cleaning -ne 0 ]; then
+	# remove everything except Python and lib
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/bin
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/etc
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/share
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/include
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/Headers
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/_CodeSignature
+	rm -rfv ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/Resources
+	rm -fv ${PRG}/Contents/Frameworks/Python.framework/Resources
+	rm -fv ${PRG}/Contents/Frameworks/Python.framework/Headers
+
+	for file in ${PRG}/Contents/Frameworks/Python.framework/Versions/Current/lib/*; do
+		# remove everything except file libpython3.11.dylib and dir python3.11
+		if [[ $file =~ [a-zA-Z0-9\./]*python[a-zA-Z0-9\./]* ]]; then
+			echo -e "Keeping \"${file}\"."
+			continue
+		fi
+
+		rm -rfv $file
+	done
+fi

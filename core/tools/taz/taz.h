@@ -266,6 +266,7 @@ class TazDlg : public QMainWindow, Ui::TazDlg
 		void ShowWebsite();
 		void ReportBug();
 		void ShowLog();
+		void ShowExternalLicenses();
 		void ShowAbout();
 
 		void New();

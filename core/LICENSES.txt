@@ -433,6 +433,18 @@ License URL: https://support.hdfgroup.org/ftp/HDF5/releases/COPYING
 
 
 --------------------------------------------------------------------------------
+Libaec
+URL: https://gitlab.dkrz.de/k202009/libaec/
+
+Copyright (c) 2021 by Mathis Rosenhauer, Moritz Hanke, Joerg Behrens,
+                      Luis Kornblueh.
+
+License URL: https://gitlab.dkrz.de/k202009/libaec/-/blob/master/LICENSE.txt
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
 Tango Icons
 URL: http://tango.freedesktop.org/Tango_Icon_Library
 License: Public Domain

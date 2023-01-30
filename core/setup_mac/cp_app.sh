@@ -67,7 +67,7 @@ declare -a SRC_LIBS=(
 	"/usr/local/opt/boost/lib/libboost_atomic-mt.dylib"
 	"/usr/local/opt/boost/lib/libboost_iostreams-mt.dylib"
 	"/usr/local/opt/boost/lib/libboost_program_options-mt.dylib"
-	"/usr/local/opt/boost-python3/lib/libboost_python310-mt.dylib"
+	"/usr/local/opt/boost-python3/lib/libboost_python311-mt.dylib"
 	"/usr/local/opt/freetype/lib/libfreetype.6.dylib"
 	"/usr/local/opt/libpng/lib/libpng16.16.dylib"
 	"/usr/local/opt/libjpeg/lib/libjpeg.9.dylib"
@@ -83,12 +83,16 @@ declare -a SRC_LIBS=(
 	"/usr/local/opt/glib/lib/libglib-2.0.0.dylib"
 	"/usr/local/opt/pcre/lib/libpcre.1.dylib"
 	"/usr/local/opt/pcre2/lib/libpcre2-16.0.dylib"
+	"/usr/local/opt/pcre2/lib/libpcre2-8.0.dylib"
 	"/usr/local/opt/gettext/lib/libintl.8.dylib"
 	"/usr/local/opt/zstd/lib/libzstd.1.dylib"
 	"/usr/local/opt/xz/lib/liblzma.5.dylib"
 	"/usr/local/opt/qhull/lib/libqhull_r.8.0.dylib"
+	"/usr/local/opt/hdf5/lib/libhdf5_cpp.200.dylib"
+	"/usr/local/opt/hdf5/lib/libhdf5.200.dylib"
+	"/usr/local/opt/libaec/lib/libsz.2.dylib"
+	"/usr/local/lib/libqcustomplot.dylib"
 )
-
 #	"/usr/local/opt/openblas/lib/libopenblas.0.dylib"
 
 
@@ -176,6 +180,9 @@ cp -v bin/takin_moldyn "${BIN_DIR}"
 cp -v bin/takin_convofit "${BIN_DIR}"
 cp -v bin/takin_convoseries "${BIN_DIR}"
 cp -v bin/takin_polextract "${BIN_DIR}"
+
+# copy plugin modules
+cp -v plugins/*.dylib "${DST_PLUGIN_DIR}"
 
 
 # data files

@@ -792,6 +792,11 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	//pAboutQt->setIcon(QIcon::fromTheme("help-about"));
 	pMenuHelp->addAction(pAboutQt);
 
+	QAction *pExtLicenses = new QAction("Show 3rd Party Licenses...", this);
+	pMenuHelp->addAction(pExtLicenses);
+
+	pMenuHelp->addSeparator();
+
 	//pMenuHelp->addSeparator();
 	QAction *pAbout = new QAction("About Takin...", this);
 	pAbout->setMenuRole(QAction::AboutRole);
@@ -895,6 +900,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	QObject::connect(pBugReport, &QAction::triggered, this, &TazDlg::ReportBug);
 	QObject::connect(pAbout, &QAction::triggered, this, &TazDlg::ShowAbout);
 	QObject::connect(pAboutQt, &QAction::triggered, qApp, &QApplication::aboutQt);
+	QObject::connect(pExtLicenses, &QAction::triggered, this, &TazDlg::ShowExternalLicenses);
 
 
 	setMenuBar(pMenuBar);
@@ -1636,6 +1642,20 @@ void TazDlg::ApplyDeadAngles(const std::vector<DeadAngle<t_real>>& vecAngles)
 
 //--------------------------------------------------------------------------------
 // about, log & help dialogs
+
+void TazDlg::ShowExternalLicenses()
+{
+	std::vector<std::string> license_dirs = find_resource_dirs("3rdparty_licenses");
+	if(license_dirs.size() == 0)
+	{
+		QMessageBox::critical(this, "Error", "3rd party license directory could not be found.");
+		return;
+	}
+
+	std::string file = "file:///" + fs::absolute(*license_dirs.begin()).string();
+	QDesktopServices::openUrl(QUrl(file.c_str()));
+}
+
 
 void TazDlg::ShowAbout()
 {

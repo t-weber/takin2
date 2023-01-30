@@ -55,8 +55,7 @@ namespace tl2_mag {
 template<class t_mat, class t_vec, class t_real = typename t_mat::value_type>
 requires tl2::is_mat<t_mat> && tl2::is_vec<t_vec>
 void rotate_spin_incommensurate(t_vec& spin_vec,
-	const t_vec& sc_vec, const t_vec& ordering,
-	const t_vec& rotaxis,
+	const t_vec& sc_vec, const t_vec& ordering, const t_vec& rotaxis,
 	t_real eps = std::numeric_limits<t_real>::epsilon())
 {
 	t_real sc_angle = t_real(2) * tl2::pi<t_real> *
@@ -162,12 +161,16 @@ public:
 	struct EnergyAndWeight
 	{
 		t_real E{};
+
+		// full dynamical structure factor
 		t_mat S{};
-		t_mat S_p{}, S_m;
+		t_real weight_full{};
+		t_real weight_channel_full[3] = {0., 0., 0.};
+
+		// projected dynamical structure factor for neutron scattering
 		t_mat S_perp{};
 		t_real weight{};
-		t_real weight_spinflip[2] = {0., 0.};
-		t_real weight_nonspinflip{};
+		t_real weight_channel[3] = {0., 0., 0.};
 	};
 
 
@@ -331,7 +334,7 @@ public:
 
 	bool IsIncommensurate() const
 	{
-		return m_is_incommensurate;
+		return m_is_incommensurate || m_force_incommensurate;
 	}
 
 
@@ -421,6 +424,12 @@ public:
 	void SetUniteDegenerateEnergies(bool b)
 	{
 		m_unite_degenerate_energies = b;
+	}
+
+
+	void SetForceIncommensurate(bool b)
+	{
+		m_force_incommensurate = b;
 	}
 	// --------------------------------------------------------------------
 
@@ -686,17 +695,15 @@ public:
 			}
 
 			// incommensurate case: rotation wrt magnetic unit cell
-			// equations (21), (6) and (2) from (Toth 2015)
-			if(m_is_incommensurate)
+			// equations (21), (6), (2) as well as section 10 from (Toth 2015)
+			if(IsIncommensurate())
 			{
-				t_real rot_UC_angle = s_twopi * tl2::inner<t_vec_real>(
-					m_ordering, term.dist);
+				t_real rot_UC_angle = s_twopi * tl2::inner<t_vec_real>(m_ordering, term.dist);
 				if(!tl2::equals_0<t_real>(rot_UC_angle, m_eps))
 				{
 					t_mat rot_UC = tl2::convert<t_mat>(
 						 tl2::rotation<t_mat_real, t_vec_real>(
 							m_rotaxis, rot_UC_angle));
-
 					J = J * rot_UC;
 				}
 			}
@@ -713,20 +720,14 @@ public:
 
 			// include these two terms to fulfill
 			// equation (11) from (Toth 2015)
-			tl2::add_submat<t_mat>(J_Q, factor * J * phase_Q,
-				term.atom1*3, term.atom2*3);
-			tl2::add_submat<t_mat>(J_Q, factor * J_T * phase_mQ,
-				term.atom2*3, term.atom1*3);
+			tl2::add_submat<t_mat>(J_Q, factor * J * phase_Q, term.atom1*3, term.atom2*3);
+			tl2::add_submat<t_mat>(J_Q, factor * J_T * phase_mQ, term.atom2*3, term.atom1*3);
 
-			tl2::add_submat<t_mat>(J_mQ, factor * J * phase_mQ,
-				term.atom1*3, term.atom2*3);
-			tl2::add_submat<t_mat>(J_mQ, factor * J_T * phase_Q,
-				term.atom2*3, term.atom1*3);
+			tl2::add_submat<t_mat>(J_mQ, factor * J * phase_mQ, term.atom1*3, term.atom2*3);
+			tl2::add_submat<t_mat>(J_mQ, factor * J_T * phase_Q, term.atom2*3, term.atom1*3);
 
-			tl2::add_submat<t_mat>(J_Q0, factor * J,
-				term.atom1*3, term.atom2*3);
-			tl2::add_submat<t_mat>(J_Q0, factor * J_T,
-				term.atom2*3, term.atom1*3);
+			tl2::add_submat<t_mat>(J_Q0, factor * J, term.atom1*3, term.atom2*3);
+			tl2::add_submat<t_mat>(J_Q0, factor * J_T, term.atom2*3, term.atom1*3);
 		}
 
 
@@ -749,13 +750,13 @@ public:
 			t_real S_i = m_sites[i].spin_mag;
 			t_real S_j = m_sites[j].spin_mag;
 
-			// get the precalculated u and v vectors
-			// for the commensurate case
+			// get the precalculated u and v vectors for the commensurate case
 			const t_vec* u_i = &m_sites_calc[i].u;
 			const t_vec* u_j = &m_sites_calc[j].u;
 			const t_vec* u_conj_j = &m_sites_calc[j].u_conj;
 			const t_vec* v_i = &m_sites_calc[i].v;
 
+			// equation (26) from (Toth 2015)
 			t_real SiSj = 0.5 * std::sqrt(S_i*S_j);
 			A(i, j) = SiSj * tl2::inner_noconj<t_vec>(*u_i, J_sub_Q * *u_conj_j);
 			A_mQ(i, j) = SiSj * tl2::inner_noconj<t_vec>(*u_i, J_sub_mQ * *u_conj_j);
@@ -771,6 +772,7 @@ public:
 					// for the commensurate case
 					const t_vec *v_k = &m_sites_calc[k].v;
 
+					// equation (26) from (Toth 2015)
 					t_mat J_sub_Q0 = tl2::submat<t_mat>(
 						J_Q0, i*3, k*3, 3, 3);
 					C(i, j) += S_k * tl2::inner_noconj<t_vec>(
@@ -793,9 +795,7 @@ public:
 			}
 		}
 
-		// test matrix block
-		//return A_conj - C;
-
+		// equation (25) from (Toth 2015)
 		t_mat H = tl2::zero<t_mat>(num_sites*2, num_sites*2);
 		tl2::set_submat(H, A - C, 0, 0);
 		tl2::set_submat(H, B, 0, num_sites);
@@ -807,18 +807,12 @@ public:
 
 
 	/**
-	 * get the energies and the spin-correlation at the given momentum
+	 * get the energies and the dynamical structure factor from a hamiltonian
 	 * @note implements the formalism given by (Toth 2015)
 	 */
 	std::vector<EnergyAndWeight> GetEnergiesFromHamiltonian(t_mat _H, const t_vec_real& Qvec,
 		bool only_energies = false) const
 	{
-		// orthogonal projector for magnetic neutron scattering,
-		// see (Shirane 2002), p. 37, eq. (2.64)
-		//t_vec bragg_rot = use_field ? m_rot_field * m_bragg : m_bragg;
-		//proj_neutron = tl2::ortho_projector<t_mat, t_vec>(bragg_rot, false);
-		t_mat proj_neutron = tl2::ortho_projector<t_mat, t_vec>(Qvec, false);
-
 		const t_size num_sites = m_sites.size();
 		if(num_sites == 0 || _H.size1() == 0)
 			return {};
@@ -901,11 +895,7 @@ public:
 		// register energies
 		for(const auto& eval : evals)
 		{
-			EnergyAndWeight EandS
-			{
-				.E = eval.real(),
-			};
-
+			EnergyAndWeight EandS { .E = eval.real(), };
 			energies_and_correlations.emplace_back(std::move(EandS));
 		}
 
@@ -957,8 +947,6 @@ public:
 				{
 					.E = L_mat(i, i).real(),
 					.S = tl2::zero<t_mat>(3, 3),
-					.S_p = tl2::zero<t_mat>(3, 3),
-					.S_m = tl2::zero<t_mat>(3, 3),
 					.S_perp = tl2::zero<t_mat>(3, 3),
 				};
 
@@ -993,262 +981,107 @@ public:
 			for(int y_idx=0; y_idx<3; ++y_idx)
 			{
 				// equations (44) from (Toth 2015)
-				t_mat V = tl2::create<t_mat>(num_sites, num_sites);
-				t_mat W = tl2::create<t_mat>(num_sites, num_sites);
-				t_mat Y = tl2::create<t_mat>(num_sites, num_sites);
-				t_mat Z = tl2::create<t_mat>(num_sites, num_sites);
-
-				// incommensurate case
-				t_mat V_p, W_p, Y_p, Z_p;
-				t_mat V_m, W_m, Y_m, Z_m;
-				if(m_is_incommensurate)
+				auto create_matrices = [num_sites](
+					t_mat& V, t_mat& W, t_mat& Y, t_mat& Z)
 				{
-					V_p = tl2::create<t_mat>(num_sites, num_sites);
-					W_p = tl2::create<t_mat>(num_sites, num_sites);
-					Y_p = tl2::create<t_mat>(num_sites, num_sites);
-					Z_p = tl2::create<t_mat>(num_sites, num_sites);
+					V = tl2::create<t_mat>(num_sites, num_sites);
+					W = tl2::create<t_mat>(num_sites, num_sites);
+					Y = tl2::create<t_mat>(num_sites, num_sites);
+					Z = tl2::create<t_mat>(num_sites, num_sites);
+				};
 
-					V_m = tl2::create<t_mat>(num_sites, num_sites);
-					W_m = tl2::create<t_mat>(num_sites, num_sites);
-					Y_m = tl2::create<t_mat>(num_sites, num_sites);
-					Z_m = tl2::create<t_mat>(num_sites, num_sites);
-				}
+				t_mat V, W, Y, Z;
+				create_matrices(V, W, Y, Z);
 
 				for(t_size i=0; i<num_sites; ++i)
 				for(t_size j=0; j<num_sites; ++j)
 				{
-					const t_vec_real& pos_i = m_sites[i].pos;
-					const t_vec_real& pos_j = m_sites[j].pos;
-
-					t_real S_i = m_sites[i].spin_mag;
-					t_real S_j = m_sites[j].spin_mag;
-
-					// get the precalculated u vectors
-					// for the commensurate case
-					const t_vec *u_i = &m_sites_calc[i].u;
-					const t_vec *u_j = &m_sites_calc[j].u;
-					const t_vec *u_conj_i = &m_sites_calc[i].u_conj;
-					const t_vec *u_conj_j = &m_sites_calc[j].u_conj;
-
-					// TODO: check these
-					t_real SiSj = 4. * std::sqrt(S_i*S_j);
-					t_real phase_sign = 1.;
-
-					t_cplx phase = std::exp(phase_sign * s_imag * s_twopi *
-						tl2::inner<t_vec_real>(pos_j - pos_i, Qvec));
-					phase *= SiSj;
-
-					// matrix elements of equ. (44) from (Toth 2015)
-					Y(i, j) = phase * (*u_i)[x_idx] * (*u_conj_j)[y_idx];
-					V(i, j) = phase * (*u_conj_i)[x_idx] * (*u_conj_j)[y_idx];
-					Z(i, j) = phase * (*u_i)[x_idx] * (*u_j)[y_idx];
-					W(i, j) = phase * (*u_conj_i)[x_idx] * (*u_j)[y_idx];
-
-					// incommensurate case
-					if(m_is_incommensurate)
+					auto calc_mat_elems = [this, i, j, x_idx, y_idx]
+						(const t_vec_real& Qvec,
+						 t_mat& Y, t_mat& V, t_mat& Z, t_mat& W)
 					{
-						t_cplx phase_p = std::exp(phase_sign * s_imag * s_twopi *
-							tl2::inner<t_vec_real>(pos_j - pos_i,
-								Qvec + m_ordering));
-						t_cplx phase_m = std::exp(phase_sign * s_imag * s_twopi *
-							tl2::inner<t_vec_real>(pos_j - pos_i,
-								Qvec - m_ordering));
-						phase_p *= SiSj;
-						phase_m *= SiSj;
+						const t_vec_real& pos_i = m_sites[i].pos;
+						const t_vec_real& pos_j = m_sites[j].pos;
 
-						Y_p(i, j) = phase_p * (*u_i)[x_idx] * (*u_conj_j)[y_idx];
-						V_p(i, j) = phase_p * (*u_conj_i)[x_idx] * (*u_conj_j)[y_idx];
-						Z_p(i, j) = phase_p * (*u_i)[x_idx] * (*u_j)[y_idx];
-						W_p(i, j) = phase_p * (*u_conj_i)[x_idx] * (*u_j)[y_idx];
+						t_real S_i = m_sites[i].spin_mag;
+						t_real S_j = m_sites[j].spin_mag;
 
-						Y_m(i, j) = phase_m * (*u_i)[x_idx] * (*u_conj_j)[y_idx];
-						V_m(i, j) = phase_m * (*u_conj_i)[x_idx] * (*u_conj_j)[y_idx];
-						Z_m(i, j) = phase_m * (*u_i)[x_idx] * (*u_j)[y_idx];
-						W_m(i, j) = phase_m * (*u_conj_i)[x_idx] * (*u_j)[y_idx];
-					}
+						// get the precalculated u vectors
+						const t_vec *u_i = &m_sites_calc[i].u;
+						const t_vec *u_j = &m_sites_calc[j].u;
+						const t_vec *u_conj_i = &m_sites_calc[i].u_conj;
+						const t_vec *u_conj_j = &m_sites_calc[j].u_conj;
 
-					/*std::cout
-						<< "Y[" << i << ", " << j << ", "
-						<< x_idx << ", " << y_idx << "] = "
-						<< Y(i, j).real() << " + " << Y(i, j).imag() << "j"
-						<< std::endl;
-					std::cout
-						<< "V[" << i << ", " << j << ", "
-						<< x_idx << ", " << y_idx << "] = "
-						<< V(i, j).real() << " + " << V(i, j).imag() << "j"
-						<< std::endl;
-					std::cout
-						<< "Z[" << i << ", " << j << ", "
-						<< x_idx << ", " << y_idx << "] = "
-						<< Z(i, j).real() << " + " << Z(i, j).imag() << "j"
-						<< std::endl;
-					std::cout
-						<< "W[" << i << ", " << j << ", "
-						<< x_idx << ", " << y_idx << "] = "
-						<< W(i, j).real() << " + " << W(i, j).imag() << "j"
-						<< std::endl;*/
+						// TODO: check these
+						t_real SiSj = 4. * std::sqrt(S_i*S_j);
+						t_real phase_sign = 1.;
+
+						t_cplx phase = std::exp(phase_sign * s_imag * s_twopi *
+							tl2::inner<t_vec_real>(pos_j - pos_i, Qvec));
+						phase *= SiSj;
+
+						// matrix elements of equ. (44) from (Toth 2015)
+						Y(i, j) = phase * (*u_i)[x_idx] * (*u_conj_j)[y_idx];
+						V(i, j) = phase * (*u_conj_i)[x_idx] * (*u_conj_j)[y_idx];
+						Z(i, j) = phase * (*u_i)[x_idx] * (*u_j)[y_idx];
+						W(i, j) = phase * (*u_conj_i)[x_idx] * (*u_j)[y_idx];
+
+						/*std::cout
+							<< "Y[" << i << ", " << j << ", "
+							<< x_idx << ", " << y_idx << "] = "
+							<< Y(i, j).real() << " + " << Y(i, j).imag() << "j"
+							<< std::endl;
+						std::cout
+							<< "V[" << i << ", " << j << ", "
+							<< x_idx << ", " << y_idx << "] = "
+							<< V(i, j).real() << " + " << V(i, j).imag() << "j"
+							<< std::endl;
+						std::cout
+							<< "Z[" << i << ", " << j << ", "
+							<< x_idx << ", " << y_idx << "] = "
+							<< Z(i, j).real() << " + " << Z(i, j).imag() << "j"
+							<< std::endl;
+						std::cout
+							<< "W[" << i << ", " << j << ", "
+							<< x_idx << ", " << y_idx << "] = "
+							<< W(i, j).real() << " + " << W(i, j).imag() << "j"
+							<< std::endl;*/
+					};
+
+					calc_mat_elems(Qvec, Y, V, Z, W);
 				} // end of iteration over sites
 
-				// equation (47) from (Toth 2015)
-				t_mat M = tl2::create<t_mat>(num_sites*2, num_sites*2);
-				tl2::set_submat(M, Y, 0, 0);
-				tl2::set_submat(M, V, num_sites, 0);
-				tl2::set_submat(M, Z, 0, num_sites);
-				tl2::set_submat(M, W, num_sites, num_sites);
 
-				t_mat M_trafo = trafo_herm * M * trafo;
-
-				// incommensurate case
-				t_mat M_p, M_m;
-				t_mat M_trafo_p, M_trafo_m;
-				if(m_is_incommensurate)
+				auto calc_S = [this, num_sites, x_idx, y_idx, &trafo, &trafo_herm, &energies_and_correlations]
+					(t_mat EnergyAndWeight::*S, const t_mat& Y, const t_mat& V, const t_mat& Z, const t_mat& W)
 				{
-					M_p = tl2::create<t_mat>(num_sites*2, num_sites*2);
-					tl2::set_submat(M_p, Y_p, 0, 0);
-					tl2::set_submat(M_p, V_p, num_sites, 0);
-					tl2::set_submat(M_p, Z_p, 0, num_sites);
-					tl2::set_submat(M_p, W_p, num_sites, num_sites);
+					// equation (47) from (Toth 2015)
+					t_mat M = tl2::create<t_mat>(num_sites*2, num_sites*2);
+					tl2::set_submat(M, Y, 0, 0);
+					tl2::set_submat(M, V, num_sites, 0);
+					tl2::set_submat(M, Z, 0, num_sites);
+					tl2::set_submat(M, W, num_sites, num_sites);
 
-					M_m = tl2::create<t_mat>(num_sites*2, num_sites*2);
-					tl2::set_submat(M_m, Y_m, 0, 0);
-					tl2::set_submat(M_m, V_m, num_sites, 0);
-					tl2::set_submat(M_m, Z_m, 0, num_sites);
-					tl2::set_submat(M_m, W_m, num_sites, num_sites);
+					/*using namespace tl2_ops;
+					tl2::set_eps_0<t_mat, t_real>(V, m_eps);
+					tl2::set_eps_0<t_mat, t_real>(W, m_eps);
+					tl2::set_eps_0<t_mat, t_real>(Y, m_eps);
+					tl2::set_eps_0<t_mat, t_real>(Z, m_eps);
+					std::cout << "x_idx=" << x_idx << ", y_idx=" << y_idx;
+					std::cout << ", Q = (" << h << ", " << k << ", " << l << ")." << std::endl;
+					std::cout << "V=" << V << std::endl;
+					std::cout << "W=" << W << std::endl;
+					std::cout << "Y=" << Y << std::endl;
+					std::cout << "Z=" << Z << std::endl;*/
 
-					M_trafo_p = trafo_herm * M_p * trafo;
-					M_trafo_m = trafo_herm * M_m * trafo;
-				}
+					t_mat M_trafo = trafo_herm * M * trafo;
 
-				for(t_size i=0; i<energies_and_correlations.size(); ++i)
-				{
-					t_mat& S = energies_and_correlations[i].S;
-					S(x_idx, y_idx) += M_trafo(i, i) / t_real(2*num_sites);
+					for(t_size i=0; i<energies_and_correlations.size(); ++i)
+						(energies_and_correlations[i].*S)(x_idx, y_idx) += M_trafo(i, i) / t_real(2*num_sites);
+				};
 
-					if(m_is_incommensurate)
-					{
-						// TODO: check order
-						t_mat& S_p = energies_and_correlations[i].S_p;
-						t_mat& S_m = energies_and_correlations[i].S_m;
-
-						S_p(x_idx, y_idx) += M_trafo_p(i, i) / t_real(2*num_sites);
-						S_m(x_idx, y_idx) += M_trafo_m(i, i) / t_real(2*num_sites);
-					}
-				}
-
-				/*using namespace tl2_ops;
-				tl2::set_eps_0<t_mat, t_real>(V, m_eps);
-				tl2::set_eps_0<t_mat, t_real>(W, m_eps);
-				tl2::set_eps_0<t_mat, t_real>(Y, m_eps);
-				tl2::set_eps_0<t_mat, t_real>(Z, m_eps);
-				std::cout << "x_idx=" << x_idx << ", y_idx=" << y_idx;
-				std::cout << ", Q = (" << h << ", " << k << ", " << l << ")." << std::endl;
-				std::cout << "V=" << V << std::endl;
-				std::cout << "W=" << W << std::endl;
-				std::cout << "Y=" << Y << std::endl;
-				std::cout << "Z=" << Z << std::endl;*/
+				calc_S(&EnergyAndWeight::S, Y, V, Z, W);
 			} // end of coordinate iteration
-
-
-			t_mat proj_norm, rot_incomm, rot_incomm_conj;
-			if(m_is_incommensurate)
-			{
-				// equations (39) and (40) from (Toth 2015)
-				proj_norm = tl2::convert<t_mat>(
-					tl2::projector<t_mat_real, t_vec_real>(
-						m_rotaxis, true));
-
-				rot_incomm = tl2::unit<t_mat>(3);
-				rot_incomm -= s_imag * tl2::skewsymmetric<t_mat, t_vec>(m_rotaxis);
-				rot_incomm -= proj_norm;
-				rot_incomm *= 0.5;
-
-				rot_incomm_conj = tl2::conj(rot_incomm);
-			}
-
-
-			for(t_size i=0; i<energies_and_correlations.size(); ++i)
-			{
-				auto& E_and_S = energies_and_correlations[i];
-				const t_real& E = E_and_S.E;
-				t_mat& S = E_and_S.S;
-				t_mat& S_p = E_and_S.S_p;
-				t_mat& S_m = E_and_S.S_m;
-				t_mat& S_perp = E_and_S.S_perp;
-				t_real& w = E_and_S.weight;
-				t_real& w_SF1 = E_and_S.weight_spinflip[0];
-				t_real& w_SF2 = E_and_S.weight_spinflip[1];
-				t_real& w_NSF = E_and_S.weight_nonspinflip;
-
-				if(m_is_incommensurate)
-				{
-					// formula 40 from (Toth 2015)
-					S = S * proj_norm +
-						S_p * rot_incomm +
-						S_m * rot_incomm_conj;
-				}
-
-				if(m_temperature >= 0.)
-				{
-					// apply bose factor
-					S *= tl2::bose_cutoff(E, m_temperature,
-						m_bose_cutoff);
-				}
-
-				// apply the orthogonal projector for magnetic neutron scattering
-				//S_perp = (proj_neutron * tl2::herm(S)) * (S * proj_neutron);
-				S_perp = proj_neutron * S * proj_neutron;
-
-				// weights
-				w_SF1 = std::abs(S_perp(0, 0).real());
-				w_SF2 = std::abs(S_perp(1, 1).real());
-				w_NSF = std::abs(S_perp(2, 2).real());
-				//w = tl2::trace<t_mat>(S_perp).real();
-				w = w_SF1 + w_SF2 + w_NSF;
-			}
-		}
-
-
-		// unite degenerate energies and their corresponding eigenstates
-		if(m_unite_degenerate_energies)
-		{
-			std::vector<EnergyAndWeight> new_energies_and_correlations{};
-			new_energies_and_correlations.reserve(energies_and_correlations.size());
-
-			for(const auto& curState : energies_and_correlations)
-			{
-				t_real curE = curState.E;
-
-				auto iter = std::find_if(
-					new_energies_and_correlations.begin(),
-					new_energies_and_correlations.end(),
-					[curE, this](const auto& E_and_S) -> bool
-				{
-					t_real E = E_and_S.E;
-					return tl2::equals<t_real>(E, curE, m_eps);
-				});
-
-				// energy not yet seen
-				if(iter == new_energies_and_correlations.end())
-				{
-					new_energies_and_correlations.push_back(curState);
-				}
-
-				// energy already seen
-				else
-				{
-					// add correlation matrices and weights
-					iter->S += curState.S;
-					iter->S_p += curState.S_p;
-					iter->S_m += curState.S_m;;
-					iter->S_perp += curState.S_perp;
-					iter->weight += curState.weight;
-					iter->weight_spinflip[0] += curState.weight_spinflip[0];
-					iter->weight_spinflip[1] += curState.weight_spinflip[1];
-					iter->weight_nonspinflip += curState.weight_nonspinflip;
-				}
-			}
-
-			energies_and_correlations = std::move(new_energies_and_correlations);
 		}
 
 		return energies_and_correlations;
@@ -1256,19 +1089,147 @@ public:
 
 
 	/**
+	 * applies projectors and weight factors to get neutron intensities
+	 * @note implements the formalism given by (Toth 2015)
+	 */
+	void GetIntensities(const t_vec_real& Qvec, std::vector<EnergyAndWeight>& energies_and_correlations) const
+	{
+		for(EnergyAndWeight& E_and_S : energies_and_correlations)
+		{
+			// apply bose factor
+			if(m_temperature >= 0.)
+				E_and_S.S *= tl2::bose_cutoff(E_and_S.E, m_temperature, m_bose_cutoff);
+
+			// apply orthogonal projector for magnetic neutron scattering,
+			// see (Shirane 2002), p. 37, eq. (2.64)
+			//t_vec bragg_rot = use_field ? m_rot_field * m_bragg : m_bragg;
+			//proj_neutron = tl2::ortho_projector<t_mat, t_vec>(bragg_rot, false);
+			t_mat proj_neutron = tl2::ortho_projector<t_mat, t_vec>(Qvec, false);
+			E_and_S.S_perp = proj_neutron * E_and_S.S * proj_neutron;
+
+			// weights
+			E_and_S.weight = std::abs(tl2::trace<t_mat>(E_and_S.S_perp).real());
+			E_and_S.weight_full = std::abs(tl2::trace<t_mat>(E_and_S.S).real());
+
+			// TODO: polarisation channels
+			for(int i=0; i<3; ++i)
+			{
+				E_and_S.weight_channel[i] = std::abs(E_and_S.S_perp(i, i).real());
+				E_and_S.weight_channel_full[i] = std::abs(E_and_S.S(i, i).real());
+			}
+		}
+	}
+
+
+	/**
+	 * unite degenerate energies and their corresponding eigenstates
+	 */
+	std::vector<EnergyAndWeight> UniteEnergies(const std::vector<EnergyAndWeight>& energies_and_correlations) const
+	{
+		std::vector<EnergyAndWeight> new_energies_and_correlations{};
+		new_energies_and_correlations.reserve(energies_and_correlations.size());
+
+		for(const auto& curState : energies_and_correlations)
+		{
+			t_real curE = curState.E;
+
+			auto iter = std::find_if(
+				new_energies_and_correlations.begin(),
+					new_energies_and_correlations.end(),
+					[curE, this](const auto& E_and_S) -> bool
+					{
+						t_real E = E_and_S.E;
+						return tl2::equals<t_real>(E, curE, m_eps);
+					});
+
+			if(iter == new_energies_and_correlations.end())
+			{
+				// energy not yet seen
+				new_energies_and_correlations.push_back(curState);
+			}
+			else
+			{
+				// energy already seen: add correlation matrices and weights
+				iter->S += curState.S;
+				iter->S_perp += curState.S_perp;
+
+				iter->weight += curState.weight;
+				iter->weight_full += curState.weight_full;
+
+				for(int i=0; i<3; ++i)
+				{
+					iter->weight_channel[i] += curState.weight_channel[i];
+					iter->weight_channel_full[i] += curState.weight_channel_full[i];
+				}
+			}
+		}
+
+		return new_energies_and_correlations;
+	}
+
+
+	/**
 	 * get the energies and the spin-correlation at the given momentum
+	 * (also calculates incommensurate contributions and applies weight factors)
 	 * @note implements the formalism given by (Toth 2015)
 	 */
 	std::vector<EnergyAndWeight> GetEnergies(const t_vec_real& Qvec,
 		bool only_energies = false) const
 	{
 		t_mat H = GetHamiltonian(Qvec);
-		return GetEnergiesFromHamiltonian(H, Qvec, only_energies);
+		std::vector<EnergyAndWeight> EandWs = GetEnergiesFromHamiltonian(H, Qvec, only_energies);
+
+		if(IsIncommensurate())
+		{
+			// equations 39 and 40 from (Toth 2015)
+			t_mat proj_norm = tl2::convert<t_mat>(
+				tl2::projector<t_mat_real, t_vec_real>(
+					m_rotaxis, true));
+
+			t_mat rot_incomm = tl2::unit<t_mat>(3);
+			rot_incomm -= s_imag * tl2::skewsymmetric<t_mat, t_vec>(m_rotaxis);
+			rot_incomm -= proj_norm;
+			rot_incomm *= 0.5;
+
+			t_mat rot_incomm_conj = tl2::conj(rot_incomm);
+
+			t_mat H_p = GetHamiltonian(Qvec + m_ordering);
+			t_mat H_m = GetHamiltonian(Qvec - m_ordering);
+
+			std::vector<EnergyAndWeight> EandWs_p = GetEnergiesFromHamiltonian(
+				H_p, Qvec + m_ordering, only_energies);
+			std::vector<EnergyAndWeight> EandWs_m = GetEnergiesFromHamiltonian(
+				H_p, Qvec - m_ordering, only_energies);
+
+			if(!only_energies)
+			{
+				// formula 40 from (Toth 2015)
+				for(EnergyAndWeight& EandW : EandWs)
+					EandW.S = EandW.S * proj_norm;
+				for(EnergyAndWeight& EandW : EandWs_p)
+					EandW.S = EandW.S * rot_incomm;
+				for(EnergyAndWeight& EandW : EandWs_m)
+					EandW.S = EandW.S * rot_incomm_conj;
+			}
+
+			// unite energies and weights
+			for(EnergyAndWeight& EandW : EandWs_p)
+				EandWs.emplace_back(std::move(EandW));
+			for(EnergyAndWeight& EandW : EandWs_m)
+				EandWs.emplace_back(std::move(EandW));
+		}
+
+		if(!only_energies)
+			GetIntensities(Qvec, EandWs);
+
+		if(m_unite_degenerate_energies)
+			EandWs = UniteEnergies(EandWs);
+
+		return EandWs;
 	}
 
 
-	std::vector<EnergyAndWeight> GetEnergies(
-		t_real h, t_real k, t_real l,
+	std::vector<EnergyAndWeight> GetEnergies(t_real h, t_real k, t_real l,
 		bool only_energies = false) const
 	{
 		// momentum transfer
@@ -1332,9 +1293,9 @@ public:
 			{
 				t_real E = E_and_S.E;
 				t_real w = E_and_S.weight;
-				t_real w_sf1 = E_and_S.weight_spinflip[0];
-				t_real w_sf2 = E_and_S.weight_spinflip[1];
-				t_real w_nsf = E_and_S.weight_nonspinflip;
+				t_real w_sf1 = E_and_S.weight_channel[0];
+				t_real w_sf2 = E_and_S.weight_channel[1];
+				t_real w_nsf = E_and_S.weight_channel[2];
 
 				ofstr
 					<< std::setw(m_prec*2) << std::left << h
@@ -1675,12 +1636,15 @@ protected:
 
 
 private:
+	// atom sites
 	std::vector<AtomSite> m_sites{};
 	std::vector<AtomSiteCalc> m_sites_calc{};
 
+	// magnetic couplings
 	std::vector<ExchangeTerm> m_exchange_terms{};
 	std::vector<ExchangeTermCalc> m_exchange_terms_calc{};
 
+	// open variables
 	std::vector<Variable> m_variables{};
 
 	// external field
@@ -1695,18 +1659,22 @@ private:
 	// direction to rotation spins into, usually [001]
 	t_vec_real m_zdir = tl2::create<t_vec_real>({0., 0., 1.});
 
-	bool m_is_incommensurate{false};
-	bool m_unite_degenerate_energies{true};
-
 	// temperature (-1: disable bose factor)
 	t_real m_temperature{-1};
 
 	// bose cutoff energy to avoid infinities
 	t_real m_bose_cutoff{0.025};
 
+	// settings
+	bool m_is_incommensurate{false};
+	bool m_force_incommensurate{false};
+	bool m_unite_degenerate_energies{true};
+
+	// settings for cholesky decomposition
 	t_size m_tries_chol{50};
 	t_real m_delta_chol{0.01};
 
+	// precisions
 	t_real m_eps{1e-6};
 	int m_prec{6};
 

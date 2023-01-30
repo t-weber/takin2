@@ -37,11 +37,19 @@ class H5Loader:
 		self.zeros = {}
 		self.targets = {}
 
-		instr = entry["instrument"]
+		# find the instrument group
+		instr_name = "instrument"
+		for cur_entry in entry:
+			nx_cls = entry[cur_entry].attrs.get("NX_class")
+			if nx_cls != None and nx_cls.decode("utf-8") == "NXinstrument":
+				instr_name = cur_entry
+				break
+
+		instr = entry[instr_name]
 		self.instrname = instr["name"][0].decode("utf-8")
 		self.commandline = instr["command_line/actual_command"][0].decode("utf-8")
 		self.palcmd = instr["pal/pal_contents"][0].decode("utf-8")
-		self.instrmode = instr["instrument_mode/description"][0].decode("utf-8")
+		self.instrmode = entry["instrument_mode"][0].decode("utf-8")
 		self.mono_d = instr["Monochromator/d_spacing"][0]
 		self.mono_k = instr["Monochromator/ki"][0]
 		self.mono_sense = instr["Monochromator/sens"][0]
@@ -70,24 +78,18 @@ class H5Loader:
 			if target_path in instr:
 				self.targets[key] = instr[target_path][0]
 
-		self.kfix_which = 2   # TODO: get from file
-		if self.kfix_which == 2:
-			self.kfix = self.ana_k
-		else:
-			self.kfix = self.mono_k
-
 		self.colli_h = [
-			instr["SourceToMonochromator/divergence_x"][0],
-			instr["MonochromatorToSample/divergence_x"][0],
-			instr["SampleToAnalyser/divergence_x"][0],
-			instr["AnalyserToDetector/divergence_x"][0],
+			instr["Distance/alf1"][0],
+			instr["Distance/alf2"][0],
+			instr["Distance/alf3"][0],
+			instr["Distance/alf4"][0],
 		]
 
 		self.colli_v = [
-			instr["SourceToMonochromator/divergence_y"][0],
-			instr["MonochromatorToSample/divergence_y"][0],
-			instr["SampleToAnalyser/divergence_y"][0],
-			instr["AnalyserToDetector/divergence_y"][0],
+			instr["Distance/bet1"][0],
+			instr["Distance/bet2"][0],
+			instr["Distance/bet3"][0],
+			instr["Distance/bet4"][0],
 		]
 
 		# get user infos
@@ -120,6 +122,12 @@ class H5Loader:
 		self.plane1 = ( sample["bx"][0], sample["by"][0], sample["bz"][0] )
 		self.sample_sense = sample["sens"][0]
 		self.sample_mosaic = sample["mosaic"][0]
+
+		self.kfix_which = sample["fx"][0]
+		if self.kfix_which == 2:
+			self.kfix = self.ana_k
+		else:
+			self.kfix = self.mono_k
 
 
 	#

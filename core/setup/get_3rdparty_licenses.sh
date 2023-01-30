@@ -152,3 +152,13 @@ fi
 if ! wget https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME -O ${LICDIR}/gcc_runtime_license.txt; then
 	echo -e "Error: Cannot download gcc_runtime license.";
 fi
+
+# hdf5
+if ! wget https://raw.githubusercontent.com/HDFGroup/hdf5/develop/COPYING -O ${LICDIR}/hdf5_license.txt; then
+	echo -e "Error: Cannot download hdf5 license.";
+fi
+
+# libaec / libsz2
+if ! wget https://gitlab.dkrz.de/k202009/libaec/-/raw/master/LICENSE.txt -O ${LICDIR}/libaec_license.txt; then
+	echo -e "Error: Cannot download libaec license.";
+fi

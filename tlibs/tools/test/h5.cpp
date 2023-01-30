@@ -34,12 +34,15 @@
 
 int main()
 {
-	H5::H5File h5file("/users/tw/Downloads/mail_tmp/065006.nxs", H5F_ACC_RDONLY);
+	H5::H5File h5file("/users/tw/Downloads/mail_tmp/thales.nxs", H5F_ACC_RDONLY);
 
 	std::vector<std::string> entries;
 	tl::get_h5_entries(h5file, "/", entries);
 	for(const std::string& entry : entries)
-		std::cout << entry << " ";
+	{
+		std::string nx_class = tl::get_h5_attr<std::string>(h5file, "/" + entry, "NX_class");
+		std::cout << entry << " -- " << nx_class << std::endl;
+	}
 	std::cout << std::endl;
 
 	std::cout << std::endl;

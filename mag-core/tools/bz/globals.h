@@ -35,6 +35,7 @@ namespace math = boost::math;
 #include "tlibs2/libs/maths.h"
 #include "tlibs2/libs/qt/gl.h"
 
+
 using t_real = double;
 using t_vec = tl2::vec<t_real, std::vector>;
 using t_mat = tl2::mat<t_real, std::vector>;
@@ -47,9 +48,9 @@ using t_vec_gl = tl2::t_vec_gl;
 using t_mat_gl = tl2::t_mat_gl;
 
 
-constexpr t_real g_eps = 1e-6;
-constexpr int g_prec = 6;
-constexpr int g_prec_gui = 4;
+extern t_real g_eps;
+extern int g_prec;
+extern int g_prec_gui;
 
 
 #endif

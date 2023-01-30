@@ -2890,7 +2890,6 @@ bool FileH5<t_real>::Load(const char* pcFile)
 {
 	try
 	{
-		std::cout << pcFile << std::endl;
 		H5::H5File h5file = H5::H5File(pcFile, H5F_ACC_RDONLY);
 
 		m_data.clear();
@@ -2981,11 +2980,31 @@ bool FileH5<t_real>::Load(const char* pcFile)
 			m_scanned_vars.insert(m_scanned_vars.begin(), "EN");
 		}
 
+		// find the instrument directory
+		std::string instr_dir = "instrument";
+		std::vector<std::string> main_entries;
+		tl::get_h5_entries(h5file, entry, main_entries);
+		bool instr_found = false;
+		for(const std::string& main_entry : main_entries)
+		{
+			std::string nx_class = tl::get_h5_attr<std::string>(h5file, entry + "/" + main_entry, "NX_class", true);
+			if(nx_class == "NXinstrument")
+			{
+				// found an instrument entry
+				instr_dir = main_entry;
+				instr_found = true;
+				break;
+			}
+		}
+
+		if(!instr_found)
+			tl::log_err("No instrument group found, defaulting to \"", instr_dir, "\".");
+
 		// get experiment infos
 		tl::get_h5_string(h5file, entry + "/title", m_title);
 		tl::get_h5_string(h5file, entry + "/start_time", m_timestamp);
 		tl::get_h5_scalar(h5file, entry + "/run_number", m_scannumber);
-		tl::get_h5_string(h5file, entry + "/instrument/command_line/actual_command", m_scancommand);
+		tl::get_h5_string(h5file, entry + "/" + instr_dir + "/command_line/actual_command", m_scancommand);
 
 		// get user infos
 		tl::get_h5_string(h5file, entry + "/user/name", m_username);
@@ -2994,22 +3013,23 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		// get instrument infos
 		t_real mono_sense = -1., ana_sense = -1., sample_sense = 1.;
 		t_real ki = 0., kf = 0.;
+		int fx = 2;
 
-		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/d_spacing", m_dspacings[0]);
-		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/sens", mono_sense);
-		tl::get_h5_scalar(h5file, entry + "/instrument/Monochromator/ki", ki);
-		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/d_spacing", m_dspacings[1]);
-		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/sens", ana_sense);
-		tl::get_h5_scalar(h5file, entry + "/instrument/Analyser/kf", kf);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/d_spacing", m_dspacings[0]);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/sens", mono_sense);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/ki", ki);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/d_spacing", m_dspacings[1]);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/sens", ana_sense);
+		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/kf", kf);
 		tl::get_h5_scalar(h5file, entry + "/sample/sens", sample_sense);
+		tl::get_h5_scalar(h5file, entry + "/sample/fx", fx);
 
 		m_senses[0] = mono_sense > 0.;
 		m_senses[1] = sample_sense > 0.;
 		m_senses[2] = ana_sense > 0.;
 
-		// TODO
-		m_kfix = kf;
-		m_iskifixed = false;
+		m_iskifixed = (fx == 1);
+		m_kfix = (m_iskifixed ? ki : kf);
 
 		// get sample infos
 		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_a", m_lattice[0]);

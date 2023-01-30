@@ -1,15 +1,15 @@
 /**
- * tlibs2
- * @author Tobias Weber <tobias.weber@tum.de>
- * @date 2012-2022
+ * brillouin zone tool
+ * @author Tobias Weber <tweber@ill.fr>
+ * @date Maz-2022
  * @license GPLv3, see 'LICENSE' file
  *
  * ----------------------------------------------------------------------------
- * tlibs
- * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
- * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
- *                          (TUM), Garching, Germany).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef __TLIBS2_VER_H__
-#define __TLIBS2_VER_H__
+#include "globals.h"
 
-#define TLIBS2_VER "2.5"
 
-#endif
+t_real g_eps = 1e-6;
+int g_prec = 6;
+int g_prec_gui = 4;

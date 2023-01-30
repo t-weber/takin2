@@ -35,7 +35,7 @@ fix_libs=1
 NAME_TOOL=install_name_tool
 STRIP=strip
 
-PY_VER=3.10
+PY_VER=3.11
 echo -e "Py version: ${PY_VER}"
 
 # files whose linkage is to be changed
@@ -68,6 +68,7 @@ declare -a filestochange=(
 	"${PRG}/Contents/MacOS/takin_convoseries"
 	"${PRG}/Contents/MacOS/takin_polextract"
 )
+#	"${PRG}/Contents/PlugIns/libmagnonmod.dylib"
 
 
 # original symbols, pattern-matched
@@ -89,7 +90,7 @@ declare -a changefrom=(
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libboost_atomic-mt.dylib\""
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libboost_iostreams-mt.dylib\""
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libboost_program_options-mt.dylib\""
-	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libboost_python310-mt.dylib\""
+	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libboost_python311-mt.dylib\""
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libMinuit2.0.dylib\""
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libjpeg.9.dylib\""
 	"otool -L __BIN_FILE__ | grep -o -m1 \"/[-_/@.a-zA-Z0-9]*/libpng16.16.dylib\""
@@ -107,10 +108,15 @@ declare -a changefrom=(
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libglib-2.0.0.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libpcre.1.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libpcre2-16.0.dylib\""
+	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libpcre2-8.0.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libintl.8.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libzstd.1.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/liblzma.5.dylib\""
 	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libqhull_r.8.0.dylib\""
+	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libhdf5_cpp.200.dylib\""
+	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libhdf5.200.dylib\""
+	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libsz.2.dylib\""
+	"otool -L __BIN_FILE__ | grep -E -o -m1 \"(/|@rpath)[-_/@.a-zA-Z0-9]*/libqcustomplot.dylib\""
 )
 
 # symbols to change into
@@ -132,7 +138,7 @@ declare -a changeto=(
 	"@executable_path/../Libraries/libboost_atomic-mt.dylib"
 	"@executable_path/../Libraries/libboost_iostreams-mt.dylib"
 	"@executable_path/../Libraries/libboost_program_options-mt.dylib"
-	"@executable_path/../Libraries/libboost_python310-mt.dylib"
+	"@executable_path/../Libraries/libboost_python311-mt.dylib"
 	"@executable_path/../Libraries/libMinuit2.0.dylib"
 	"@executable_path/../Libraries/libjpeg.9.dylib"
 	"@executable_path/../Libraries/libpng16.16.dylib"
@@ -150,10 +156,15 @@ declare -a changeto=(
 	"@executable_path/../Libraries/libglib-2.0.0.dylib"
 	"@executable_path/../Libraries//libpcre.1.dylib"
 	"@executable_path/../Libraries/libpcre2-16.0.dylib"
+	"@executable_path/../Libraries/libpcre2-8.0.dylib"
 	"@executable_path/../Libraries/libintl.8.dylib"
 	"@executable_path/../Libraries/libzstd.1.dylib"
 	"@executable_path/../Libraries/liblzma.5.dylib"
 	"@executable_path/../Libraries/libqhull_r.8.0.dylib"
+	"@executable_path/../Libraries/libhdf5_cpp.200.dylib"
+	"@executable_path/../Libraries/libhdf5.200.dylib"
+	"@executable_path/../Libraries/libsz.2.dylib"
+	"@executable_path/../Libraries/libqcustomplot.dylib"
 )
 
 CNT=$(expr ${#changefrom[*]} - 1)

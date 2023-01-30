@@ -46,7 +46,7 @@ mkdir -p ${INSTDIR}/DEBIAN
 
 
 # control file
-echo -e "Package: takin\nVersion: 2.4.0" > ${INSTDIR}/DEBIAN/control
+echo -e "Package: takin\nVersion: 2.5.0" > ${INSTDIR}/DEBIAN/control
 echo -e "Description: inelastic neutron scattering software" >> ${INSTDIR}/DEBIAN/control
 echo -e "Maintainer: n/a" >> ${INSTDIR}/DEBIAN/control
 echo -e "Architecture: $(dpkg --print-architecture)" >> ${INSTDIR}/DEBIAN/control
@@ -135,7 +135,7 @@ chmod a+x ${INSTDIR}/usr/local/bin/*
 # stripping
 strip -v ${INSTDIR}/usr/local/bin/*
 strip -v ${INSTDIR}/usr/local/lib/*
-strip -v ${INSTDIR}/usr/local/lib/plugins/*
+strip -v ${INSTDIR}/usr/local/lib/takin_plugins/*
 
 
 # startup script

@@ -2,13 +2,14 @@
 # crystallographic A & B matrices, B = 2pi * A^(-T)
 # @author Tobias Weber <tweber@ill.fr>
 # @date jul-2020
-# @license see 'LICENSE' file
+# @license GPLv3, see 'LICENSE' file
 # @desc Forked on 18/July/2020 from my privately developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
 #
 
 
 #
-# from: https://en.wikipedia.org/wiki/Fractional_coordinates
+# fractional crystal coordinates
+# @see https://en.wikipedia.org/wiki/Fractional_coordinates
 #
 func mat 3 3 B_matrix(scalar a, scalar b, scalar c, scalar alpha, scalar beta, scalar gamma)
 {
@@ -83,12 +84,20 @@ func mat 3 3 A_matrix(scalar a, scalar b, scalar c, scalar alpha, scalar beta, s
 }
 
 
+#
+# length of a vector under a given metric
+# @see (Arens 2015), p. 808
+#
 func scalar calc_len(mat 3 3 G, vec 3 v)
 {
 	ret sqrt(v * (G * v));
 }
 
 
+#
+# angle between vectors under a given metric
+# @see (Arens 2015), p. 808
+#
 func scalar calc_angle(mat 3 3 G, vec 3 v1, vec 3 v2)
 {
 	scalar d = v1 * (G * v2);
@@ -99,6 +108,10 @@ func scalar calc_angle(mat 3 3 G, vec 3 v1, vec 3 v2)
 }
 
 
+#
+# levi-civita symbol in fractional coordinates
+# @see (Arens 2015), p. 815
+#
 func scalar calc_levi(mat 3 3 B, int i, int j, int k)
 {
 	mat 3 3 M;
@@ -112,6 +125,7 @@ func scalar calc_levi(mat 3 3 B, int i, int j, int k)
 
 #
 # v3_l = v1_j v2_k Ginv_li eps_ijk
+# @see (Arens 2015), p. 815
 #
 func vec 3 calc_cross(mat 3 3 B, vec 3 v1, vec 3 v2)
 {

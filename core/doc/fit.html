@@ -49,7 +49,13 @@
 		input
 		{
 		    ; file with the TAS scan
+		    ; multiple files can be entered with a ';' separator
 		    scan_file       "my_measurement.dat"
+
+		    ; fitting to the data of multiple scan files can be done by defining
+		    ;scan_file_0     "my_measurement_0.dat"
+		    ;scan_file_1     "my_measurement_1.dat"
+		    ; ...
 
 		    ; temperature column in the scan file
 		    temp_col        "Ts"
@@ -66,8 +72,13 @@
 		    ; normalise detector counts to monitor counts
 		    norm_to_monitor 1
 
-		    ; manually set scan variable
-		    ;scan_axis      "E"
+		    ; manually set scan variable (0=auto, 1=h, 2=k, 3=l, 4=E)
+		    ;scan_axis      0
+
+		    ; for multipe data files, individual axes can be selected using
+		    ;scan_axis_0    0
+		    ;scan_axis_1    0
+		    ; ...
 
 		    ; overrides
 		    ;temp_override   "25"
@@ -105,7 +116,7 @@
 		    ; a simplified copy of the original scan file for easier reading
 		    ; in an external plot program
 		    scan_file        "my_scan.dat"
-			
+
 		    ; a file describing the fit results
 		    model_file       "my_model.dat"
 
