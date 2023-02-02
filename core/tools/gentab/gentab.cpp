@@ -37,7 +37,7 @@
 #include "tlibs/log/log.h"
 #include "tlibs/math/linalg.h"
 #include "libs/spacegroups/sghelper.h"
-#ifndef NO_CLP
+#if !defined(NO_CLP) && defined(USE_CLP_SPACEGROUPS)
 	#include "libs/spacegroups/spacegroup_clp.h"
 #endif
 
@@ -686,7 +686,7 @@ int main()
 	else
 	{
 		std::cout << "FAILED.\n";
-#ifndef NO_CLP
+#if !defined(NO_CLP) && defined(USE_CLP_SPACEGROUPS)
 		std::cout << "Generating space group type table (alternative) ... ";
 		if(gen_spacegroups_clp()) std::cout << "OK" << std::endl;
 #endif

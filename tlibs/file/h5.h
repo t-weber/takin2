@@ -59,6 +59,9 @@ bool get_h5_entries(H5::H5File& file, const std::string& path, std::vector<t_str
 		return 0;
 	};
 
+	if(!file.nameExists(path))
+		return false;
+
 	file.iterateElems(path, 0, collect_elems, &entries);
 	return true;
 }
@@ -70,6 +73,9 @@ bool get_h5_entries(H5::H5File& file, const std::string& path, std::vector<t_str
 template<class t_str = std::string>
 t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, bool only_group = false)
 {
+	if(!file.nameExists(path))
+		return "";
+
 	H5::H5Object *obj = nullptr;
 	H5::DataSet set;
 	H5::Group grp;
@@ -88,7 +94,7 @@ t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, b
 		obj = &set;
 	}
 
-	if(!obj)
+	if(!obj || !obj->attrExists(attr_name))
 		return "";
 
 	// get entry's attribute
@@ -115,6 +121,9 @@ t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, b
 template<class T>
 bool get_h5_scalar(H5::H5File& file, const std::string& path, T& val)
 {
+	if(!file.nameExists(path))
+		return false;
+
 	H5::DataSet dset = file.openDataSet(path);
 	H5::DataSpace dspace = dset.getSpace();
 
@@ -149,6 +158,9 @@ bool get_h5_scalar(H5::H5File& file, const std::string& path, T& val)
 template<class t_str = std::string>
 bool get_h5_string(H5::H5File& file, const std::string& path, t_str& val)
 {
+	if(!file.nameExists(path))
+		return false;
+
 	H5::DataSet dset = file.openDataSet(path);
 	H5::DataSpace dspace = dset.getSpace();
 
@@ -175,6 +187,9 @@ bool get_h5_string(H5::H5File& file, const std::string& path, t_str& val)
 template<class T>
 bool get_h5_vector(H5::H5File& file, const std::string& path, std::vector<T>& vals)
 {
+	if(!file.nameExists(path))
+		return false;
+
 	H5::DataSet dset = file.openDataSet(path);
 	H5::DataSpace dspace = dset.getSpace();
 
@@ -208,6 +223,9 @@ bool get_h5_vector(H5::H5File& file, const std::string& path, std::vector<T>& va
 template<class t_str = std::string>
 bool get_h5_string_vector(H5::H5File& file, const std::string& path, std::vector<t_str>& vals)
 {
+	if(!file.nameExists(path))
+		return false;
+
 	H5::DataSet dset = file.openDataSet(path);
 	H5::DataSpace dspace = dset.getSpace();
 
@@ -239,6 +257,9 @@ bool get_h5_string_vector(H5::H5File& file, const std::string& path, std::vector
 template<class T>
 bool get_h5_matrix(H5::H5File& file, const std::string& path, std::vector<std::vector<T>>& vals)
 {
+	if(!file.nameExists(path))
+		return false;
+
 	H5::DataSet dset = file.openDataSet(path);
 	H5::DataSpace dspace = dset.getSpace();
 

@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #include <string>
 #include <tuple>
 
-using t_real_dat = double;
+#include "types.h"
 
 
 class Data;
@@ -61,6 +61,7 @@ public:
 	std::size_t GetNumCounters() const { return m_counts.size(); }
 	std::size_t GetNumMonitors() const { return m_monitors.size(); }
 	std::size_t GetNumAxes() const { return m_x.size(); }
+	std::size_t GetNumCounts() const { return m_counts.size()==0 ? 0 : m_counts[0].size(); }
 
 
 	// counters
@@ -139,6 +140,7 @@ public:
 	// different ways of uniting data containers
 	static Data add_pointwise(const Data& dat1, const Data& dat2);
 	static Data append(const Data& dat1, const Data& dat2);
+	static Data merge(const Data& dat1, const Data& dat2);
 };
 
 
@@ -161,8 +163,9 @@ public:
 	Dataset norm(std::size_t mon = 0) const;
 	void clear();
 
-	// export to gnuplot
+	// export to gnuplot or data file
 	bool SaveGpl(const std::string& file) const;
+	bool Save(const std::string& file) const;
 
 
 	// binary operators
@@ -184,6 +187,7 @@ public:
 	static Dataset add_pointwise(const Dataset& dat1, const Dataset& dat2);
 	static Dataset append(const Dataset& dat1, const Dataset& dat2);
 	static Dataset append_channels(const Dataset& dat1, const Dataset& dat2);
+	static Dataset merge(const Dataset& dat1, const Dataset& dat2);
 
 	static std::tuple<bool, Dataset> convert_instr_file(const char* pcFile);
 };

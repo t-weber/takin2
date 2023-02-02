@@ -90,6 +90,7 @@ bool gen_formfacts_clp()
 // ============================================================================
 
 
+#ifdef USE_CLP_SPACEGROUPS
 bool gen_spacegroups_clp()
 {
 	tl::Prop<std::string> prop;
@@ -155,8 +156,7 @@ bool gen_spacegroups_clp()
 
 	return true;
 }
-
-
+#endif
 
 
 // ============================================================================

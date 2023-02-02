@@ -1,7 +1,7 @@
 /**
- * globals
+ * about dialog
  * @author Tobias Weber <tweber@ill.fr>
- * @date 19-Jun-2018
+ * @date 2-Feb-2023
  * @license see 'LICENSE' file
  *
  * ----------------------------------------------------------------------------
@@ -23,10 +23,14 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "globals.h"
+#ifndef __SCANBROWSER_ABOUT_H__
+#define __SCANBROWSER_ABOUT_H__
+
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QDialog>
 
 
-CommandLine *g_pCLI = nullptr;
+extern QDialog* create_about_dialog(QWidget* parent);
 
-std::size_t g_prec = 8;
-t_real_dat g_eps_merge = 0.01;
+
+#endif

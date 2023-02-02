@@ -72,6 +72,7 @@ else()
 	#set(Boost_USE_STATIC_LIBS TRUE)
 
 	add_definitions(-DNDEBUG -DQT_NO_DEBUG)
+	#add_compile_options(-Wno-narrowing)
 	#add_compile_options(-march=native -s)
 endif()
 
@@ -205,9 +206,9 @@ else()
 endif()
 #list(APPEND Dl_LIBRARIES -ldl_test)
 
-if(USE_GENTAB)
-	find_package(Clipper REQUIRED)
-endif()
+#if(USE_GENTAB)
+#	find_package(Clipper REQUIRED)
+#endif()
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)
@@ -290,6 +291,9 @@ include_directories("${QWT_INCLUDE_DIRS}")
 include_directories("${ZLIB_INCLUDE_DIRS}")
 include_directories("${BZIP2_INCLUDE_DIR}")
 include_directories("${Minuit2_INCLUDE_DIRS}")
+if(USE_GENTAB)
+	include_directories("./3rdparty/clipper-master/clipper")
+endif()
 
 set(LIBS_FIT ${Minuit2_LIBRARIES})
 
@@ -381,15 +385,25 @@ set(CMAKE_AUTORCC FALSE)
 if(USE_GENTAB)
 	add_executable(gentab
 		tools/gentab/gentab.cpp
-		libs/spacegroups/spacegroup_clp.cpp libs/spacegroups/crystalsys.cpp
+		#libs/spacegroups/spacegroup_clp.cpp libs/spacegroups/crystalsys.cpp
 		tlibs/log/log.cpp
+
+		# clipper library
+		3rdparty/clipper-master/clipper/core/atomsf.cpp
+		3rdparty/clipper-master/clipper/core/coords.cpp
+		3rdparty/clipper-master/clipper/core/cell.cpp
+		3rdparty/clipper-master/clipper/core/rotation.cpp
+		3rdparty/clipper-master/clipper/core/symop.cpp
+		3rdparty/clipper-master/clipper/core/clipper_types.cpp
+		3rdparty/clipper-master/clipper/core/clipper_util.cpp
+		3rdparty/clipper-master/clipper/core/clipper_message.cpp
 	)
 
 	target_link_libraries(gentab
-		${Clipper_LIBRARIES}
 		Qt5::Core Qt5::Gui Qt5::Widgets
 		Boost::iostreams${BOOST_SUFFIX} Boost::system${BOOST_SUFFIX} Boost::filesystem${BOOST_SUFFIX} Boost::program_options${BOOST_SUFFIX}
 		${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
+		#${Clipper_LIBRARIES}
 	)
 
 	add_custom_command(TARGET gentab POST_BUILD

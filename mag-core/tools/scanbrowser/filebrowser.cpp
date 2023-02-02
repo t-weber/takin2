@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,8 +32,6 @@
 #include <QtWidgets/QFileDialog>
 
 #include "tlibs2/libs/instr.h"
-
-using t_real = t_real_dat;
 
 
 // ----------------------------------------------------------------------------
@@ -164,7 +162,7 @@ void FileBrowserWidget::SetFolder(const QString& dir)
 		QString fileFull = dir + QDir::separator() + strFile;
 
 		// load file to get a description
-		std::unique_ptr<tl2::FileInstrBase<t_real>> pInstr(tl2::FileInstrBase<t_real>::LoadInstr(fileFull.toStdString().c_str()));
+		std::shared_ptr<tl2::FileInstrBase<t_real>> pInstr = tl2::FileInstrBase<t_real>::LoadInstr(fileFull.toStdString().c_str());
 		if(pInstr && pInstr->GetColNames().size())	// only valid files with a non-zero column count
 		{
 			QString strDescr;

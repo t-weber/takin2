@@ -277,6 +277,7 @@ License URL: https://root.cern/about/license/
 --------------------------------------------------------------------------------
 Clipper
 URL: http://www.ysbl.york.ac.uk/~cowtan/clipper/
+URL: https://github.com/cctbx/clipper
 
 Copyright (c) 2000-2006 by Kevin Cowtan.
 

@@ -106,6 +106,9 @@ bool get_h5_entries(H5::H5File& file, const std::string& path, t_strvec& entries
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		// H5G_iterate_t callback, see: /usr/include/hdf5/serial/H5Dpublic.h
 		H5G_iterate_t collect_elems = [](hid_t /*group*/, const char* name, void* _vec) -> herr_t
 		{
@@ -129,6 +132,9 @@ bool get_h5_entries(H5::H5File& file, const std::string& path, t_strvec& entries
 template<class t_str = std::string>
 t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, bool only_group = false)
 {
+	if(!file.nameExists(path))
+		return "";
+
 	H5::H5Object *obj = nullptr;
 	H5::DataSet set;
 	H5::Group grp;
@@ -147,7 +153,7 @@ t_str get_h5_attr(H5::H5File& file, const t_str& path, const t_str& attr_name, b
 		obj = &set;
 	}
 
-	if(!obj)
+	if(!obj || !obj->attrExists(attr_name))
 		return "";
 
 	// get entry's attribute
@@ -179,6 +185,9 @@ bool get_h5_scalar(H5::H5File& file, const std::string& path, T& val)
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::DataSet dset = file.openDataSet(path);
 		H5::DataSpace dspace = dset.getSpace();
 
@@ -245,6 +254,9 @@ bool get_h5_string(H5::H5File& file, const std::string& path, t_str& val)
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::DataSet dset = file.openDataSet(path);
 		H5::DataSpace dspace = dset.getSpace();
 
@@ -308,6 +320,9 @@ bool get_h5_vector(H5::H5File& file, const std::string& path, t_vec<T>& vals)
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::DataSet dset = file.openDataSet(path);
 		H5::DataSpace dspace = dset.getSpace();
 
@@ -372,6 +387,9 @@ bool get_h5_string_vector(H5::H5File& file, const std::string& path, t_str_vec& 
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::DataSet dset = file.openDataSet(path);
 		H5::DataSpace dspace = dset.getSpace();
 
@@ -444,6 +462,9 @@ bool get_h5_matrix(H5::H5File& file, const std::string& path, t_vec<t_vec<T>>& v
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::DataSet dset = file.openDataSet(path);
 		H5::DataSpace dspace = dset.getSpace();
 
@@ -527,6 +548,9 @@ bool get_h5_multidim(H5::H5File& file, const std::string& path,
 {
 	try
 	{
+		if(!file.nameExists(path))
+			return false;
+
 		H5::PredType ty = get_h5_type<T>();
 
 		H5::DataSet dset = file.openDataSet(path);

@@ -31,6 +31,7 @@
 
 #include <map>
 #include <clipper/clipper.h>
+
 #include "crystalsys.h"
 #include "tlibs/string/string.h"
 #include "sghelper.h"

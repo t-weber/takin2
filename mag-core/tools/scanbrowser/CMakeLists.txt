@@ -5,7 +5,7 @@
 #
 # ----------------------------------------------------------------------------
 # mag-core (part of the Takin software suite)
-# Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+# Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
 #                          Grenoble, France).
 #
 # This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ find_package(QCP REQUIRED)
 # Minuit
 find_package(Minuit2 REQUIRED)
 find_package(Threads REQUIRED)
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 # -----------------------------------------------------------------------------
 
 
@@ -105,6 +105,7 @@ add_executable(takin_scanbrowser
 	workspace.cpp workspace.h
 	data.cpp data.h plot.cpp plot.h
 	command.cpp command.h
+	about.cpp about.h
 	globals.cpp globals.h
 	hacks.cpp hacks.h
 
@@ -118,11 +119,12 @@ add_executable(takin_scanbrowser
 #	../../ext/qcp/qcustomplot.cpp ../../ext/qcp/qcustomplot.h
 )
 
-qt5_use_modules(takin_scanbrowser Core Gui Widgets OpenGL)
+#qt5_use_modules(takin_scanbrowser Core Gui Widgets)
 
 target_link_libraries(takin_scanbrowser
 	${Boost_LIBRARIES}
+	Qt5::Core Qt5::Gui Qt5::Widgets
 	${QCP_LIBRARIES}
-	${Minuit2_LIBRARIES} Threads::Threads OpenMP::OpenMP_CXX
+	${Minuit2_LIBRARIES} Threads::Threads #OpenMP::OpenMP_CXX
 	-ldl
 )

@@ -34,6 +34,7 @@
 #include <map>
 #include <vector>
 #include <array>
+#include <memory>
 #include <regex>
 #include <numeric>
 #include <fstream>
@@ -306,7 +307,7 @@ class FileInstrBase
 		virtual bool MatchColumn(const std::string& strRegex,
 			std::string& strColName, bool bSortByCounts=0, bool bFilterEmpty=1) const;
 
-		static FileInstrBase<t_real>* LoadInstr(const char* pcFile);
+		static std::shared_ptr<FileInstrBase<t_real>> LoadInstr(const char* pcFile);
 };
 
 
@@ -724,9 +725,9 @@ void FileInstrBase<t_real>::RenameDuplicateCols()
 
 // automatically choose correct instrument
 template<class t_real>
-FileInstrBase<t_real>* FileInstrBase<t_real>::LoadInstr(const char* pcFile)
+std::shared_ptr<FileInstrBase<t_real>> FileInstrBase<t_real>::LoadInstr(const char* pcFile)
 {
-	FileInstrBase<t_real>* pDat = nullptr;
+	std::shared_ptr<FileInstrBase<t_real>> pDat;
 
 	std::ifstream ifstr(pcFile);
 	if(!ifstr.is_open())
@@ -756,19 +757,19 @@ FileInstrBase<t_real>* FileInstrBase<t_real>::LoadInstr(const char* pcFile)
 	if(strLine.find(strNicos) != std::string::npos)
 	{ // frm file
 		//log_debug(pcFile, " is an frm file.");
-		pDat = new FileFrm<t_real>();
+		pDat = std::make_shared<FileFrm<t_real>>();
 	}
 	else if(strLine.find('#') != std::string::npos &&
 		strLine.find(strMacs) != std::string::npos &&
 		strLine2.find('#') != std::string::npos)
 	{ // macs file
 		//log_debug(pcFile, " is a macs file.");
-		pDat = new FileMacs<t_real>();
+		pDat = std::make_shared<FileMacs<t_real>>();
 	}
 	else if(strLine2.find("scan start") != std::string::npos)
 	{ // trisp file
 		//log_debug(pcFile, " is a trisp file.");
-		pDat = new FileTrisp<t_real>();
+		pDat = std::make_shared<FileTrisp<t_real>>();
 	}
 	else if(strLine.find('#') == std::string::npos &&
 		strLine2.find('#') == std::string::npos &&
@@ -776,19 +777,16 @@ FileInstrBase<t_real>* FileInstrBase<t_real>::LoadInstr(const char* pcFile)
 		strLine.find(strPsiOld) != std::string::npos))
 	{ // psi or ill file
 		//log_debug(pcFile, " is an ill or psi file.");
-		pDat = new FilePsi<t_real>();
+		pDat = std::make_shared<FilePsi<t_real>>();
 	}
 	else
 	{ // raw file
 		log_warn("\"", pcFile, "\" is of unknown type, falling back to raw loader.");
-		pDat = new FileRaw<t_real>();
+		pDat = std::make_shared<FileRaw<t_real>>();
 	}
 
 	if(pDat && !pDat->Load(pcFile))
-	{
-		delete pDat;
-		return nullptr;
-	}
+		pDat = nullptr;
 
 	return pDat;
 }

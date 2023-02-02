@@ -207,13 +207,13 @@ t_cont_perm get_perm(const t_cont& cont)
 template<class t_vec, class t_perm = std::vector<std::size_t>>
 t_vec reorder(const t_vec& vec, const t_perm& perm)
 {
-        t_vec vec_new;
-        vec_new.reserve(vec.size());
+	t_vec vec_new;
+	vec_new.reserve(vec.size());
 
-        for(std::size_t i=0; i<vec.size(); ++i)
-                vec_new.push_back(vec[perm[i]]);
+	for(decltype(vec.size()) i=0; i<vec.size(); ++i)
+		vec_new.push_back(vec[perm[i]]);
 
-        return vec_new;
+	return vec_new;
 }
 
 }

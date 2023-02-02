@@ -39,11 +39,15 @@ class H5Loader:
 
 		# find the instrument group
 		instr_name = "instrument"
-		for cur_entry in entry:
-			nx_cls = entry[cur_entry].attrs.get("NX_class")
-			if nx_cls != None and nx_cls.decode("utf-8") == "NXinstrument":
-				instr_name = cur_entry
-				break
+		if "instrument_name" in entry:
+			instr_name = entry["instrument_name"][0].decode("utf-8")
+		else:
+			# get first group that is marked with "NXinstrument"
+			for cur_entry in entry:
+				nx_cls = entry[cur_entry].attrs.get("NX_class")
+				if nx_cls != None and nx_cls.decode("utf-8") == "NXinstrument":
+					instr_name = cur_entry
+					break
 
 		instr = entry[instr_name]
 		self.instrname = instr["name"][0].decode("utf-8")
