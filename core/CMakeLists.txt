@@ -4,6 +4,27 @@
 # @date 2013-2020
 # @license GPLv2
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
 project(takin)
 cmake_minimum_required(VERSION 3.0)
@@ -19,6 +40,8 @@ option(USE_RtMp "use auxilliary libraries" TRUE)
 option(USE_Dl "use dl libraries" TRUE)
 option(USE_Py "search for python" TRUE)
 option(USE_CUSTOM_THREADPOOL "use custom threadpool implementation" FALSE)
+option(USE_INTERPROC_EMUL "force shared memory emulation mode" FALSE)
+option(DISABLE_INTERPROC_XSI "disable xsi shared memory syscalls" FALSE)
 
 set(USE_TR1_FUNCS FALSE)
 set(BUILD_EXT_TOOLS FALSE)
@@ -31,8 +54,8 @@ if(DEBUG)
 	set(CMAKE_BUILD_TYPE Debug)
 
 	set(Boost_DEBUG TRUE)
-	set(Boost_USE_DEBUG_LIBS TRUE)
-	set(Boost_USE_RELEASE_LIBS FALSE)
+	#set(Boost_USE_DEBUG_LIBS TRUE)
+	#set(Boost_USE_RELEASE_LIBS FALSE)
 
 	add_definitions(-DDEBUG)
 	add_compile_options(-ggdb -rdynamic)
@@ -49,14 +72,16 @@ else()
 	#set(Boost_USE_STATIC_LIBS TRUE)
 
 	add_definitions(-DNDEBUG -DQT_NO_DEBUG)
+	#add_compile_options(-Wno-narrowing)
 	#add_compile_options(-march=native -s)
 endif()
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_CXX_STANDARD 14)
-add_compile_options(-std=c++14 -D_GLIBCXX_USE_CXX11_ABI)
+add_compile_options(-std=c++14)
 #add_compile_options(-fPIC)
+add_compile_options(-fvisibility=hidden)
 
 # for application plugins
 add_definitions(-DBUILD_APPLI)
@@ -89,6 +114,18 @@ endif()
 if(USE_CUSTOM_THREADPOOL)
 	message("Using custom threadpool implementation.")
 	add_definitions(-DUSE_OWN_THREADPOOL)
+endif()
+
+
+if(USE_INTERPROC_EMUL)
+	message("Using interprocess shared memory emulation mode.")
+	add_definitions(-D__USE_SQW_INTERPROC_EMUL__)
+endif()
+
+
+if(DISABLE_INTERPROC_XSI)
+	message("Disabling xsi shared memory syscalls.")
+	add_definitions(-D__DISABLE_SQW_INTERPROC_XSI__)
 endif()
 
 
@@ -129,13 +166,14 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPS} OPTIONAL_COMPONENTS ${BOOST_OPT_COMPS})
 find_package(Threads REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui OpenGL Svg)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui Svg) #OpenGL)
 find_package(Qwt REQUIRED)
 find_package(Minuit2 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Julia)
 find_package(ZLIB)
 find_package(BZip2)
+find_package(HDF5 COMPONENTS CXX)
 
 if(Py_FOUND)
 	if(TARGET Boost::python3)
@@ -154,7 +192,6 @@ if(Py_FOUND)
 	endif()
 endif()
 
-
 if(USE_RtMp)
 	find_package(RtMp REQUIRED)
 else()
@@ -167,10 +204,11 @@ if(USE_PLUGINS AND USE_Dl AND NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
 else()
 	set(Dl_LIBRARIES "")
 endif()
+#list(APPEND Dl_LIBRARIES -ldl_test)
 
-if(USE_GENTAB)
-	find_package(Clipper REQUIRED)
-endif()
+#if(USE_GENTAB)
+#	find_package(Clipper REQUIRED)
+#endif()
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)
@@ -253,8 +291,21 @@ include_directories("${QWT_INCLUDE_DIRS}")
 include_directories("${ZLIB_INCLUDE_DIRS}")
 include_directories("${BZIP2_INCLUDE_DIR}")
 include_directories("${Minuit2_INCLUDE_DIRS}")
+if(USE_GENTAB)
+	include_directories("./3rdparty/clipper-master/clipper")
+endif()
 
 set(LIBS_FIT ${Minuit2_LIBRARIES})
+
+
+if(HDF5_FOUND)
+	message("Using HDF5 version ${HDF5_VERSION}.")
+	include_directories("${HDF5_CXX_INCLUDE_DIRS}")
+	add_definitions(-DUSE_HDF5)
+else()
+	message("Disabling HDF5 file support.")
+	set(HDF5_CXX_LIBRARIES "")
+endif()
 
 
 
@@ -311,12 +362,11 @@ if(OPENGL_FOUND AND FREETYPE_FOUND)
 
 	set(LIBS_3D
 		${FREETYPE_LIBRARY}
-		Qt5::OpenGL ${OPENGL_LIBRARIES}
+		${OPENGL_LIBRARIES}  # Qt5::OpenGL
 		#${X11_X11_LIB}
 	)
 else()
 	message("Disabling 3D support: OGL: ${OPENGL_FOUND}, FT: ${FREETYPE_FOUND}")
-
 	add_definitions(-DNO_3D)
 endif()
 
@@ -335,15 +385,25 @@ set(CMAKE_AUTORCC FALSE)
 if(USE_GENTAB)
 	add_executable(gentab
 		tools/gentab/gentab.cpp
-		libs/spacegroups/spacegroup_clp.cpp libs/spacegroups/crystalsys.cpp
+		#libs/spacegroups/spacegroup_clp.cpp libs/spacegroups/crystalsys.cpp
 		tlibs/log/log.cpp
+
+		# clipper library
+		3rdparty/clipper-master/clipper/core/atomsf.cpp
+		3rdparty/clipper-master/clipper/core/coords.cpp
+		3rdparty/clipper-master/clipper/core/cell.cpp
+		3rdparty/clipper-master/clipper/core/rotation.cpp
+		3rdparty/clipper-master/clipper/core/symop.cpp
+		3rdparty/clipper-master/clipper/core/clipper_types.cpp
+		3rdparty/clipper-master/clipper/core/clipper_util.cpp
+		3rdparty/clipper-master/clipper/core/clipper_message.cpp
 	)
 
 	target_link_libraries(gentab
-		${Clipper_LIBRARIES}
 		Qt5::Core Qt5::Gui Qt5::Widgets
 		Boost::iostreams${BOOST_SUFFIX} Boost::system${BOOST_SUFFIX} Boost::filesystem${BOOST_SUFFIX} Boost::program_options${BOOST_SUFFIX}
 		${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
+		#${Clipper_LIBRARIES}
 	)
 
 	add_custom_command(TARGET gentab POST_BUILD
@@ -366,14 +426,19 @@ add_executable(takin
 	tools/taz/real_lattice.cpp tools/taz/proj_lattice.cpp
 	tools/taz/nicos.cpp tools/taz/sics.cpp tools/taz/taz_net.cpp
 
-	tools/res/r0.cpp
-	tools/res/cn.cpp tools/res/pop.cpp tools/res/eck.cpp tools/res/viol.cpp tools/res/simple.cpp
+	tools/res/cn.cpp tools/res/pop.cpp tools/res/pop_cn.cpp
+	tools/res/eck.cpp tools/res/vio.cpp tools/res/simple.cpp
 	tools/res/ResoDlg.cpp tools/res/ResoDlg_file.cpp
 
 	tools/monteconvo/ConvoDlg.cpp tools/monteconvo/ConvoDlg_file.cpp
 	tools/monteconvo/ConvoDlg_sim.cpp tools/monteconvo/ConvoDlg_fit.cpp
 	tools/monteconvo/SqwParamDlg.cpp tools/monteconvo/TASReso.cpp
-	tools/monteconvo/sqw.cpp tools/monteconvo/sqw_uniform_grid.cpp
+	tools/monteconvo/modules/elast.cpp
+	tools/monteconvo/modules/kdtree.cpp
+	tools/monteconvo/modules/simple_magnon.cpp
+	tools/monteconvo/modules/simple_phonon.cpp
+	tools/monteconvo/modules/table1d.cpp
+	tools/monteconvo/modules/uniform_grid.cpp
 	tools/monteconvo/sqwbase.cpp tools/monteconvo/sqwfactory.cpp
 	tools/monteconvo/monteconvo_cli.cpp tools/monteconvo/monteconvo_common.cpp
 
@@ -422,6 +487,7 @@ target_link_libraries(takin
 	${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
 	Boost::iostreams${BOOST_SUFFIX} Boost::system${BOOST_SUFFIX} Boost::filesystem${BOOST_SUFFIX} Boost::program_options${BOOST_SUFFIX}
 	Threads::Threads ${Mp_LIBRARIES} ${Rt_LIBRARIES} ${Dl_LIBRARIES}
+	${HDF5_CXX_LIBRARIES}
 )
 
 
@@ -461,7 +527,8 @@ endif()
 if(Py_FOUND)
 #add_library(takinmod_py SHARED
 add_executable(takinmod_py
-	tools/monteconvo/sqw_py.cpp tools/monteconvo/sqwbase.cpp
+	tools/monteconvo/script_modules/sqw_py.cpp
+	tools/monteconvo/sqwbase.cpp
 	tlibs/log/log.cpp
 	tlibs/math/rand.cpp
 )
@@ -470,7 +537,7 @@ add_executable(takinmod_py
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	target_link_options(takinmod_py
 		# create an __info_plist section in the binary
-		PRIVATE LINKER:-sectcreate,__TEXT,__info_plist,${PROJECT_SOURCE_DIR}/setup_mac/InfoBundle.plist
+		PRIVATE LINKER:-sectcreate,__TEXT,__info_plist,${PROJECT_SOURCE_DIR}/setup_mac/InfoModPy.plist
 	)
 endif()
 
@@ -494,7 +561,8 @@ endif()
 if(Julia_FOUND)
 #add_library(takinmod_jl SHARED
 add_executable(takinmod_jl
-	tools/monteconvo/sqw_jl.cpp tools/monteconvo/sqwbase.cpp
+	tools/monteconvo/script_modules/sqw_jl.cpp
+	tools/monteconvo/sqwbase.cpp
 	tlibs/log/log.cpp
 	tlibs/math/rand.cpp
 )
@@ -524,12 +592,16 @@ if(BUILD_EXT_TOOLS)
 	# convofit, convoseries
 	# -----------------------------------------------------------------------------
 	add_executable(convofit
-		tools/res/r0.cpp
-		tools/res/cn.cpp tools/res/pop.cpp tools/res/eck.cpp tools/res/viol.cpp
+		tools/res/cn.cpp tools/res/pop.cpp tools/res/pop_cn.cpp
+		tools/res/eck.cpp tools/res/vio.cpp
 		#tools/res/simple.cpp
 
 		tools/monteconvo/TASReso.cpp
-		tools/monteconvo/sqw.cpp tools/monteconvo/sqw_uniform_grid.cpp
+		tools/monteconvo/modules/kdtree.cpp
+		tools/monteconvo/modules/simple_magnon.cpp
+		tools/monteconvo/modules/simple_phonon.cpp
+		tools/monteconvo/modules/table1d.cpp
+		tools/monteconvo/modules/uniform_grid.cpp
 		tools/monteconvo/sqwbase.cpp tools/monteconvo/sqwfactory.cpp
 
 		tools/convofit/convofit.cpp tools/convofit/convofit_import.cpp

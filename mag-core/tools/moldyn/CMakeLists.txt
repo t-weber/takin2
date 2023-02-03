@@ -6,6 +6,24 @@
 # cmake -DCMAKE_BUILD_TYPE=Release ..
 # mingw64-cmake -DCMAKE_BUILD_TYPE=Release ..
 #
+# ----------------------------------------------------------------------------
+# mag-core (part of the Takin software suite)
+# Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 
 project(moldyn)
 cmake_minimum_required(VERSION 3.0)
@@ -16,7 +34,7 @@ set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 #find_package(Boost REQUIRED COMPONENTS system REQUIRED)
 find_package(Boost REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 #find_package(Qhull)	# TODO
 
 
@@ -38,13 +56,13 @@ endif()
 
 include_directories(
 	"${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/.." "${PROJECT_SOURCE_DIR}/../.."
-	"${Boost_INCLUDE_DIRS}/.." "ext"
+	"${Boost_INCLUDE_DIRS}" "${Boost_INCLUDE_DIRS}/.." "ext"
 )
 
 
 add_executable(takin_moldyn
 	moldyn.cpp moldyn.h
-	../../tlibs2/libs/glplot.cpp ../../tlibs2/libs/glplot.h)
+	../../tlibs2/libs/qt/gl.cpp ../../tlibs2/libs/qt/gl.h
+	../../tlibs2/libs/qt/glplot.cpp ../../tlibs2/libs/qt/glplot.h)
 
-target_link_libraries(takin_moldyn ${Boost_LIBRARIES} ${Qhull_LIBRARIES})
-qt5_use_modules(takin_moldyn Core Gui Widgets OpenGL)
+target_link_libraries(takin_moldyn ${Boost_LIBRARIES} ${Qhull_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets)

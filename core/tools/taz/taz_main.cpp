@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "taz.h"
@@ -74,7 +95,8 @@ static bool add_logfile(std::ofstream* postrLog, bool bAdd=1)
 		return 0;
 	}
 
-	for(tl::Log* plog : { &tl::log_info, &tl::log_warn, &tl::log_err, &tl::log_crit, &tl::log_debug })
+	for(tl::Log* plog : { &tl::log_info, &tl::log_warn,
+		&tl::log_err, &tl::log_crit, &tl::log_debug })
 	{
 		if(bAdd)
 			plog->AddOstr(postrLog, 0, 0);
@@ -96,12 +118,13 @@ static inline void sys_err(const SysErr& err)
 }
 
 
-static void show_splash_msg(QApplication *pApp, QSplashScreen *pSplash, const std::string &strMsg)
+static void show_splash_msg(QApplication *pApp, QSplashScreen *pSplash,
+	const std::string &strMsg)
 {
 	if(!pApp || !pSplash)
 		return;
 
-	QColor colSplash(0xff, 0xcc, 0x00);
+	QColor colSplash(0xff, 0x55, 0x00);
 	pSplash->showMessage(strMsg.c_str(), Qt::AlignCenter, colSplash);
 	pApp->processEvents();
 }
@@ -222,7 +245,10 @@ int main(int argc, char** argv)
 
 
 		// only for non-standalone minuit
-		SetErrorHandler([](int, bool, const char*, const char* pcMsg) { tl::log_err(pcMsg); });
+		SetErrorHandler([](int, bool, const char*, const char* pcMsg)
+		{
+			tl::log_err(pcMsg);
+		});
 
 
 
@@ -269,6 +295,8 @@ int main(int argc, char** argv)
 		opts::basic_command_line_parser<char> clparser(argc, argv);
 		clparser.options(args);
 		clparser.positional(args_pos);
+		// allow unregistered args, because these may need to be passed on to one of the sub-programs
+		clparser.allow_unregistered();
 		opts::basic_parsed_options<char> parsedopts = clparser.run();
 
 		opts::variables_map opts_map;
@@ -298,7 +326,7 @@ int main(int argc, char** argv)
 
 		tl::log_info("--------------------------------------------------------------------------------");
 		tl::log_info("This is Takin version " TAKIN_VER ".");
-		tl::log_info("Author: Tobias Weber <tweber@ill.fr>, 2014 - 2021.");
+		tl::log_info("Author: Tobias Weber <tweber@ill.fr>, 2014 - 2023.");
 		tl::log_info("Licensed under GPLv2, see the about dialog.");
 		tl::log_info("--------------------------------------------------------------------------------");
 
@@ -360,7 +388,8 @@ int main(int argc, char** argv)
 		add_resource_path(g_strApp + "/resources");
 		add_resource_path(g_strApp + "/Resources");
 		add_resource_path(g_strApp + "/../resources");
-		add_resource_path(g_strApp + "/../Resources");
+		add_resource_path(g_strApp + "/../lib");
+		add_resource_path(g_strApp + "/lib");
 
 		QCoreApplication::addLibraryPath((g_strApp + "/../lib/plugins").c_str());
 		QCoreApplication::addLibraryPath((g_strApp + "/lib/plugins").c_str());
@@ -492,16 +521,23 @@ int main(int argc, char** argv)
 
 
 		// ------------------------------------------------------------
+		// NOTE: If the program crashes after the splash screen, this
+		// is most likely due to linking different libraries depending
+		// on mismatching qt versions (e.g. a qt6 qwt with a qt5 main
+		// program).
+
 		std::shared_ptr<TazDlg> pTakDlg;
 		std::shared_ptr<ConvoDlg> pConvoDlg;
 		std::shared_ptr<ScanViewerDlg> pScanViewerDlg;
 
 		if(bStartTakinMain)
 		{
-			show_splash_msg(app_gui, pSplash.get(), strStarting + "\nLoading 1/2 ...");
+			show_splash_msg(app_gui, pSplash.get(),
+				strStarting + "\nLoading 1/2 ...");
 			pTakDlg.reset(new TazDlg{nullptr, strLog});
 			app_gui->SetTakDlg(pTakDlg);
-			show_splash_msg(app_gui, pSplash.get(), strStarting + "\nLoading 2/2 ...");
+			show_splash_msg(app_gui, pSplash.get(),
+				strStarting + "\nLoading 2/2 ...");
 			app_gui->DoPendingRequests();
 
 			if(pSplash) pSplash->finish(pTakDlg.get());
@@ -510,6 +546,7 @@ int main(int argc, char** argv)
 				tl::log_info("Loading \"", vecTazFiles[0], "\"...");
 				pTakDlg->Load(vecTazFiles[0].c_str());
 			}
+
 			pTakDlg->show();
 		}
 		if(bStartMonteconvo)
@@ -550,8 +587,14 @@ int main(int argc, char** argv)
 
 		return iRet;
 	}
-	catch(const std::system_error& err) { sys_err(err); }
-	catch(const boost::system::system_error& err) { sys_err(err); }
+	catch(const std::system_error& err)
+	{
+		sys_err(err);
+	}
+	catch(const boost::system::system_error& err)
+	{
+		sys_err(err);
+	}
 	catch(const std::exception& ex)
 	{
 		tl::log_crit("Exception: ", ex.what());

@@ -2,13 +2,35 @@
  * llvm three-address code generator
  * @author Tobias Weber <tweber@ill.fr>
  * @date 11-apr-20
- * @license see 'LICENSE' file
- * @desc Forked on 18/July/2020 from my privatly developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ * @license GPLv3, see 'LICENSE' file
+ * @desc Forked on 18/July/2020 from my privately developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
  *
  * References:
  *   - https://llvm.org/docs/LangRef.html
  *   - https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html
  *   - https://llvm.org/docs/GettingStarted.html
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ * matrix_calc
+ * Copyright (C) 2020       Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __LLASM_H__
@@ -16,7 +38,9 @@
 
 #include "ast.h"
 #include "sym.h"
+
 #include <stack>
+#include <optional>
 
 
 /**
@@ -255,6 +279,7 @@ void LLAsm::generate_loop(t_funcCond funcCond, t_funcBody funcBody, std::optiona
 	std::string labelStart = get_label();
 	std::string labelBegin = get_label();
 	std::string labelEnd = get_label();
+	std::string block = get_label();
 	std::string labelFooter{};
 
 	Func& actfunc = m_funcstack.top();
@@ -270,6 +295,7 @@ void LLAsm::generate_loop(t_funcCond funcCond, t_funcBody funcBody, std::optiona
 	(*m_ostr) << ";-------------------------------------------------------------\n";
 	(*m_ostr) << "br label %" << labelStart << "\n";
 	(*m_ostr) << labelStart << ":\n";
+	(*m_ostr) << "%" << block << " = call i8* @llvm.stacksave()\n";
 	t_astret cond = funcCond();
 	(*m_ostr) << "br i1 %" << cond->name << ", label %" << labelBegin << ", label %" << labelEnd << "\n";
 
@@ -278,6 +304,7 @@ void LLAsm::generate_loop(t_funcCond funcCond, t_funcBody funcBody, std::optiona
 	(*m_ostr) << ";-------------------------------------------------------------\n";
 	(*m_ostr) << labelBegin << ":\n";
 	funcBody();
+	(*m_ostr) << "call void @llvm.stackrestore(i8* %" << block << ")\n";
 	(*m_ostr) << ";-------------------------------------------------------------\n";
 
 	if(funcFooter)
@@ -293,6 +320,7 @@ void LLAsm::generate_loop(t_funcCond funcCond, t_funcBody funcBody, std::optiona
 
 	(*m_ostr) << "br label %" << labelStart << "\n";
 	(*m_ostr) << labelEnd << ":\n";
+	(*m_ostr) << "call void @llvm.stackrestore(i8* %" << block << ")\n";
 	(*m_ostr) << ";-------------------------------------------------------------\n\n";
 
 	if(funcFooter)

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2015
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __LOADINSTR_H__
@@ -15,6 +36,7 @@
 #include <iostream>
 #include "../string/string.h"
 #include "loaddat.h"
+
 
 namespace tl{
 
@@ -134,8 +156,9 @@ class FilePsi : public FileInstrBase<_t_real>
 
 
 	protected:
-		void ReadData(std::istream& istr);
-		void GetInternalParams(const std::string& strAll, t_mapIParams& mapPara);
+		std::string ReadData(std::istream& istr);
+		std::string ReadMultiData(std::istream& istr);
+		void GetInternalParams(const std::string& strAll, t_mapIParams& mapPara, bool fix_broken = false);
 
 	public:
 		FilePsi() = default;
@@ -149,6 +172,7 @@ class FilePsi : public FileInstrBase<_t_real>
 		const std::string& GetColName(std::size_t iCol) const { return m_vecColNames[iCol]; }
 		std::size_t GetColCount() const { return m_vecColNames.size(); }
 
+		bool HasCol(const std::string& strName) const;
 		const t_vecVals& GetCol(std::size_t iCol) const { return m_vecData[iCol]; }
 		virtual const t_vecVals& GetCol(const std::string& strName, std::size_t *pIdx=0) const override;
 		virtual t_vecVals& GetCol(const std::string& strName, std::size_t *pIdx=0) override;
@@ -484,6 +508,88 @@ class FileRaw : public FileInstrBase<_t_real>
 
 		virtual std::string GetScanCommand() const override;
 };
+
+
+#ifdef USE_HDF5
+// hdf5 data files
+template<class _t_real = double>
+class FileH5 : public FileInstrBase<_t_real>
+{
+public:
+	using t_real = _t_real;
+	using t_mapParams = typename FileInstrBase<t_real>::t_mapParams;
+	using t_vecColNames = typename FileInstrBase<t_real>::t_vecColNames;
+	using t_vecVals = typename FileInstrBase<t_real>::t_vecVals;
+	using t_vecDat = typename FileInstrBase<t_real>::t_vecDat;
+
+protected:
+	t_vecDat m_data;
+	t_vecColNames m_vecCols;
+	t_mapParams m_params;
+
+	std::string m_title, m_username, m_localname, m_timestamp;
+	int m_scannumber = 0;
+	std::string m_scancommand;
+
+	std::array<t_real, 3> m_lattice, m_angles, m_plane[2];
+	std::array<t_real, 4> m_initialpos;
+
+	std::array<t_real, 2> m_dspacings;
+	std::array<bool, 3> m_senses;
+
+	t_real m_kfix = 0.;
+	bool m_iskifixed = false;
+
+	std::vector<std::string> m_scanned_vars;
+
+public:
+	FileH5() = default;
+	virtual ~FileH5() = default;
+
+public:
+	virtual bool Load(const char* pcFile) override;
+
+	virtual std::array<t_real, 3> GetSampleLattice() const override;
+	virtual std::array<t_real, 3> GetSampleAngles() const override;
+	virtual std::array<t_real, 2> GetMonoAnaD() const override;
+
+	virtual std::array<bool, 3> GetScatterSenses() const override;
+	virtual std::array<t_real, 3> GetScatterPlane0() const override;
+	virtual std::array<t_real, 3> GetScatterPlane1() const override;
+
+	virtual std::array<t_real, 4> GetPosHKLE() const override;
+
+	virtual t_real GetKFix() const override;
+	virtual bool IsKiFixed() const override;
+
+	virtual std::size_t GetScanCount() const override;
+	virtual std::array<t_real, 5> GetScanHKLKiKf(std::size_t i) const override;
+	virtual bool MergeWith(const FileInstrBase<t_real>* pDat) override;
+
+	std::size_t GetColCount() const { return m_vecCols.size(); }
+	virtual const t_vecVals& GetCol(const std::string& strName, std::size_t *pIdx=0) const override;
+	virtual t_vecVals& GetCol(const std::string& strName, std::size_t *pIdx=0) override;
+
+	virtual std::string GetTitle() const override;
+	virtual std::string GetUser() const override;
+	virtual std::string GetLocalContact() const override;
+	virtual std::string GetScanNumber() const override;
+	virtual std::string GetSampleName() const override;
+	virtual std::string GetSpacegroup() const override;
+	virtual std::string GetTimestamp() const override;
+
+	virtual const t_vecDat& GetData() const override;
+	virtual t_vecDat& GetData() override;
+	virtual const t_vecColNames& GetColNames() const override;
+	virtual const t_mapParams& GetAllParams() const override;
+
+	virtual std::vector<std::string> GetScannedVars() const override;
+	virtual std::string GetCountVar() const override;
+	virtual std::string GetMonVar() const override;
+
+	virtual std::string GetScanCommand() const override;
+};
+#endif
 
 }
 

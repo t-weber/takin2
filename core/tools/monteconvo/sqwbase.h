@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2015, 2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __MCONV_SQW_BASE_H__
@@ -32,7 +53,7 @@ public:
 
 protected:
 	bool m_bOk = false;
-	std::vector<t_var_fit> m_vecFit;
+	std::vector<t_var_fit> m_vecFit{};
 
 
 public:
@@ -41,11 +62,16 @@ public:
 	 * return [energies, weights]
 	 */
 	virtual std::tuple<std::vector<t_real_reso>, std::vector<t_real_reso>>
-		disp(t_real_reso dh, t_real_reso dk, t_real_reso dl) const
+		disp(t_real_reso /*dh*/, t_real_reso /*dk*/, t_real_reso /*dl*/) const
 	{ return std::tuple<std::vector<t_real_reso>, std::vector<t_real_reso>>({}, {}); }
 
-	// S(Q,E) dynamical structure factor function
+	// S(Q,E) dynamical structure factor function which is queried for every mc point
 	virtual t_real_reso operator()(t_real_reso dh, t_real_reso dk, t_real_reso dl, t_real_reso dE) const = 0;
+
+	// background which is queried for every nominal (Q, E) point
+	virtual t_real_reso GetBackground(t_real_reso /*dh*/, t_real_reso /*dk*/, t_real_reso /*dl*/, t_real_reso /*dE*/) const
+	{ return 0.; }
+
 	virtual bool IsOk() const { return m_bOk; }
 
 	// return model variables
@@ -76,7 +102,7 @@ public:
 // ----------------------------------------------------------------------------
 
 
-template<class t_vec>
+template<class t_vec = std::vector<double>>
 std::string vec_to_str(const t_vec& vec)
 {
 	std::ostringstream ostr;
@@ -86,7 +112,7 @@ std::string vec_to_str(const t_vec& vec)
 }
 
 
-template<class t_vec>
+template<class t_vec = std::vector<double>>
 t_vec str_to_vec(const std::string& str)
 {
 	typedef typename t_vec::value_type T;

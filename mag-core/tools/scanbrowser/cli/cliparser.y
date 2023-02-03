@@ -3,6 +3,32 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 28-may-18
  * @license see 'LICENSE' file
+ * @desc Originally forked from: https://github.com/t-weber/misc/tree/master/parser
+ *
+ * References:
+ *	https://github.com/westes/flex/tree/master/examples/manual
+ *	http://www.gnu.org/software/bison/manual/html_node/index.html
+ *	http://git.savannah.gnu.org/cgit/bison.git/tree/examples
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 %define parser_class_name { CliParser }
@@ -18,7 +44,7 @@
 
 
 // terminals
-%token<t_real_cli> TOK_REAL
+%token<t_real> TOK_REAL
 %token<std::string> TOK_STRING TOK_IDENT
 %token TOK_BRACKET_OPEN TOK_BRACKET_CLOSE
 %token TOK_SQBRACKET_OPEN TOK_SQBRACKET_CLOSE

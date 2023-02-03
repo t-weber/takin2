@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date feb-2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "qwthelper.h"
@@ -22,9 +43,13 @@
 #include <qwt_picker_machine.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_renderer.h>
-#include <qwt_curve_fitter.h>
+#include <qwt_scale_map.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_engine.h>
+#include <qwt_curve_fitter.h>
+#if QWT_VERSION >= 0x060200
+	#include <qwt_spline_curve_fitter.h>
+#endif
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -165,8 +190,10 @@ QwtPlotWrapper::QwtPlotWrapper(QwtPlot *pPlot,
 			if(bUseSpline)
 			{
 				pCurve->setCurveFitter(new QwtSplineCurveFitter());
+#if QWT_VERSION < 0x060200
 				((QwtSplineCurveFitter*)pCurve->curveFitter())->setFitMode(
-					QwtSplineCurveFitter::/*Parametric*/Spline);
+					QwtSplineCurveFitter::Spline);
+#endif
 				pCurve->setCurveAttribute(QwtPlotCurve::Fitted);
 			}
 
@@ -316,7 +343,7 @@ void QwtPlotWrapper::SavePlot() const
 
 	ofstrDat.precision(g_iPrec);
 	ofstrDat << "#\n";
-	ofstrDat << "# comment: Created with Takin.\n";
+	ofstrDat << "# comment: Created with Takin (https://dx.doi.org/10.5281/zenodo.4117437).\n";
 	ofstrDat << "# timestamp: " << tl::var_to_str<t_real_qwt>(dEpoch)
 		<< " (" << tl::epoch_to_str<t_real_qwt>(dEpoch) << ").\n";
 	ofstrDat << "# title: " << m_pPlot->title().text().toStdString() << "\n";
@@ -415,7 +442,7 @@ void QwtPlotWrapper::ExportGpl() const
 
 	ofstrDat.precision(g_iPrec);
 	ofstrDat << "#\n";
-	ofstrDat << "# comment: Created with Takin.\n";
+	ofstrDat << "# comment: Created with Takin (https://dx.doi.org/10.5281/zenodo.4117437).\n";
 	ofstrDat << "# timestamp: " << tl::var_to_str<t_real_qwt>(dEpoch)
 		<< " (" << tl::epoch_to_str<t_real_qwt>(dEpoch) << ").\n";
 	ofstrDat << "#\n";
@@ -602,7 +629,9 @@ void MyQwtRasterData::SetXRange(t_real_qwt dMin, t_real_qwt dMax)
 	dMin -= dOffs; dMax -= dOffs;
 
 	m_dXRange[0] = dMin; m_dXRange[1] = dMax;
+#if QWT_VERSION < 0x060200
 	setInterval(Qt::XAxis, QwtInterval(dMin, dMax, QwtInterval::ExcludeMaximum));
+#endif
 }
 
 void MyQwtRasterData::SetYRange(t_real_qwt dMin, t_real_qwt dMax)
@@ -611,13 +640,17 @@ void MyQwtRasterData::SetYRange(t_real_qwt dMin, t_real_qwt dMax)
 	dMin -= dOffs; dMax -= dOffs;
 
 	m_dYRange[0] = dMin; m_dYRange[1] = dMax;
+#if QWT_VERSION < 0x060200
 	setInterval(Qt::YAxis, QwtInterval(dMin, dMax, QwtInterval::ExcludeMaximum));
+#endif
 }
 
 void MyQwtRasterData::SetZRange(t_real_qwt dMin, t_real_qwt dMax)
 {
 	m_dZRange[0] = dMin; m_dZRange[1] = dMax;
+#if QWT_VERSION < 0x060200
 	setInterval(Qt::ZAxis, QwtInterval(dMin, dMax));
+#endif
 }
 
 void MyQwtRasterData::SetZRange()	// automatically determined range
@@ -626,7 +659,9 @@ void MyQwtRasterData::SetZRange()	// automatically determined range
 
 	auto minmax = std::minmax_element(m_pData.get(), m_pData.get()+m_iW*m_iH);
 	m_dZRange[0] = *minmax.first; m_dZRange[1] = *minmax.second;
+#if QWT_VERSION < 0x060200
 	setInterval(Qt::ZAxis, QwtInterval(m_dZRange[0], m_dZRange[1]));
+#endif
 }
 
 
@@ -649,7 +684,8 @@ t_real_qwt MyQwtRasterData::value(t_real_qwt dx, t_real_qwt dy) const
 MyQwtRasterData::~MyQwtRasterData()
 {}
 
-MyQwtRasterData::MyQwtRasterData(const MyQwtRasterData& dat) : QwtRasterData()
+MyQwtRasterData::MyQwtRasterData(const MyQwtRasterData& dat)
+	: QwtRasterData()
 {
 	this->operator=(dat);
 }
@@ -697,6 +733,20 @@ QwtInterval MyQwtRasterData::range() const
 {
 	return QwtInterval(GetZMin(), GetZMax());
 }
+
+#if QWT_VERSION >= 0x060200
+QwtInterval MyQwtRasterData::interval(Qt::Axis ax) const
+{
+	if(ax == Qt::XAxis)
+		return QwtInterval(GetXMin(), GetXMax(), QwtInterval::ExcludeMaximum);
+	if(ax == Qt::XAxis)
+		return QwtInterval(GetYMin(), GetYMax(), QwtInterval::ExcludeMaximum);
+	else if(ax == Qt::ZAxis)
+		return range();
+
+	return QwtInterval(0, 0);
+}
+#endif
 
 
 

@@ -6,235 +6,166 @@
 # @license GPLv2
 #
 # @desc for algorithm: [eck14] G. Eckold and O. Sobolev, NIM A 752, pp. 54-64 (2014), doi: 10.1016/j.nima.2014.03.019
-# @desc for alternate R0 normalisation: [mit84] P. W. Mitchell, R. A. Cowley and S. A. Higgins, Acta Cryst. Sec A, 40(2), 152-160 (1984)
+# @desc for alternate R0 normalisation: [mit84] P. W. Mitchell, R. A. Cowley and S. A. Higgins, Acta Cryst. Sec A, 40(2), 152-160 (1984), doi: 10.1107/S0108767384000325
 # @desc for vertical scattering modification: [eck20] G. Eckold, personal communication, 2020.
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
-# requires numpy version >= 1.10
 import numpy as np
 import numpy.linalg as la
 import reso
-
-np.set_printoptions(floatmode = "fixed",  precision = 4)
-
-
-#--------------------------------------------------------------------------
-# scattering triangle
-# see: https://code.ill.fr/scientific-software/takin/mag-core/blob/master/tools/tascalc/tascalc.py
-
-ksq2E = 2.072124836832
-
-
-def k2lam(k):
-    return 2.*np.pi / k
-
-
-def get_E(ki, kf):
-        return ksq2E * (ki**2. - kf**2.)
-
-
-def get_scattering_angle(ki, kf, Q):
-    c = (ki**2. + kf**2. - Q**2.) / (2.*ki*kf)
-    return np.arccos(c)
-
-
-def get_angle_ki_Q(ki, kf, Q):
-    c = (ki**2. + Q**2. - kf**2.) / (2.*ki*Q)
-    return np.arccos(c)
-
-
-def get_angle_kf_Q(ki, kf, Q):
-    c = (ki**2. - Q**2. - kf**2.) / (2.*kf*Q)
-    return np.arccos(c)
-
-
-def get_mono_angle(k, d):
-    s = np.pi/(d*k)
-    angle = np.arcsin(s)
-    return angle
-#--------------------------------------------------------------------------
-
-
-
-#--------------------------------------------------------------------------
-# helpers
-
-#
-# z rotation matrix
-#
-def rotation_matrix_3d_z(angle):
-    s = np.sin(angle)
-    c = np.cos(angle)
-
-    return np.array([
-        [c, -s, 0],
-        [s,  c, 0],
-        [0,  0, 1]])
-
-
-def mirror_matrix(iSize, iComp):
-    mat = np.identity(iSize)
-    mat[iComp, iComp] = -1.
-
-    return mat;
-
-
-#
-# thin lens equation: 1/f = 1/lenB + 1/lenA
-#
-def focal_len(lenBefore, lenAfter):
-    f_inv = 1./lenBefore + 1./lenAfter
-    return 1. / f_inv
-
-
-#
-# optimal mono/ana curvature,
-# see e.g.
-#    - (Shirane 2002) p. 66
-#    - or nicos/nicos-core.git/tree/nicos/devices/tas/mono.py in nicos
-#    - or Monochromator_curved.comp in McStas
-#
-def foc_curv(lenBefore, lenAfter, tt, bVert):
-    f = focal_len(lenBefore, lenAfter)
-    s = np.abs(np.sin(0.5*tt))
-
-    if bVert:
-        curv = 2. * f*s
-    else:
-        curv = 2. * f/s
-
-    return curv
-#--------------------------------------------------------------------------
-
-
+import helpers
 
 
 #
 # mono (and ana) resolution calculation
 #
 def get_mono_vals(src_w, src_h, mono_w, mono_h,
-	dist_src_mono, dist_mono_sample,
-	ki, thetam,
-	coll_h_pre_mono, coll_h_pre_sample,
-	coll_v_pre_mono, coll_v_pre_sample,
-	mono_mosaic, mono_mosaic_v,
-	inv_mono_curvh, inv_mono_curvv,
-	pos_x , pos_y, pos_z,
-	refl):
+    dist_src_mono, dist_mono_sample,
+    ki, thetam,
+    coll_h_pre_mono, coll_h_pre_sample,
+    coll_v_pre_mono, coll_v_pre_sample,
+    mono_mosaic, mono_mosaic_v,
+    inv_mono_curvh, inv_mono_curvv,
+    pos_x, pos_y, pos_z, refl):
 
-    # A matrix: formula 26 in [eck14]
+    # A matrix: equ. 26 in [eck14]
     A = np.identity(3)
 
     A_t0 = 1. / mono_mosaic
     A_tx = inv_mono_curvh*dist_mono_sample / np.abs(np.sin(thetam))
-    A_t1 = A_t0*A_tx
+    A_t1 = A_t0 * A_tx
 
-    A[0,0] = 0.5*reso.sig2fwhm**2. / ki**2. * np.tan(thetam)**2. * \
-        ( (2./coll_h_pre_mono)**2. + (2*dist_src_mono/src_w)**2. + A_t0*A_t0 )
+    # typo in paper?
+    A[0,0] = 0.5*helpers.sig2fwhm**2. / ki**2. * np.tan(thetam)**2. * \
+        ( (2./coll_h_pre_mono)**2. + (2*dist_src_mono/src_w)**2. + A_t0**2. )
 
-    A[0,1] = A[1,0] = 0.5*reso.sig2fwhm**2. / ki**2. * np.tan(thetam) * \
-        ( + 2.*(1./coll_h_pre_mono)**2. + 2.*dist_src_mono*(dist_src_mono-dist_mono_sample)/src_w**2. + \
-            A_t0**2. - A_t0*A_t1)
+    A[0,1] = A[1,0] = 0.5*helpers.sig2fwhm**2. / ki**2. * np.tan(thetam) * \
+        ( + 2.*(1./coll_h_pre_mono)**2. + \
+            2.*dist_src_mono*(dist_src_mono-dist_mono_sample)/src_w**2. + \
+            A_t0**2. - A_t0*A_t1 )
 
-    A[1,1] = 0.5*reso.sig2fwhm**2. / ki**2. * \
-    ( (1./coll_h_pre_mono)**2. + (1./coll_h_pre_sample)**2. \
-        + ((dist_src_mono-dist_mono_sample)/src_w)**2. \
-        + (dist_mono_sample/(mono_w*np.abs(np.sin(thetam))))**2. \
-        + A_t0*A_t0 - 2.*A_t0*A_t1 + A_t1*A_t1)
+    A[1,1] = 0.5*helpers.sig2fwhm**2. / ki**2. * \
+        ( 1./coll_h_pre_mono**2. + 1./coll_h_pre_sample**2. \
+            + ((dist_src_mono-dist_mono_sample)/src_w)**2. \
+            + (dist_mono_sample/(mono_w*np.abs(np.sin(thetam))))**2. \
+            + (A_t0 - A_t1)**2. )
 
 
-
-    # Av matrix: formula 38 in [eck14]
+    # Av matrix: equ. 38 in [eck14]
     # some typos in paper leading to the (false) result of a better Qz resolution when focusing
     # => trying to match terms in Av with corresponding terms in A
     # corresponding pre-mono terms commented out in Av, as they are not considered there
     Av = np.identity(2)
 
-    Av_t0 = 0.5 / (mono_mosaic_v*np.abs(np.sin(thetam)))
-    Av_t1 = inv_mono_curvv*dist_mono_sample / mono_mosaic_v
+    Av_t0 = 0.5 / (mono_mosaic_v * np.abs(np.sin(thetam)))
+    Av_t1 = inv_mono_curvv * dist_mono_sample / mono_mosaic_v
 
-    Av[0,0] = 0.5*reso.sig2fwhm**2. / ki**2. * \
-        ( (1./coll_v_pre_sample)**2. + (dist_mono_sample/src_h)**2. + (dist_mono_sample/mono_h)**2. + \
-    	Av_t0**2. - 2.*Av_t0*Av_t1 + Av_t1**2. ) 	# typo/missing in paper?
+    Av[0,0] = 0.5*helpers.sig2fwhm**2. / ki**2. * \
+        ( 1./coll_v_pre_sample**2. + (dist_mono_sample/src_h)**2. + (dist_mono_sample/mono_h)**2. + \
+        (Av_t0 - Av_t1)**2. )     # typo/missing in paper?
 
-    Av[0,1] = Av[1,0] = 0.5*reso.sig2fwhm**2. / ki**2. * \
-        ( dist_src_mono*dist_mono_sample/src_h**2. - Av_t0*Av_t0 + Av_t0*Av_t1 )
+    Av[0,1] = Av[1,0] = 0.5*helpers.sig2fwhm**2. / ki**2. * \
+        ( dist_src_mono*dist_mono_sample/src_h**2. - Av_t0**2. + Av_t0*Av_t1 )
 
-    Av[1,1] = 0.5*reso.sig2fwhm**2. / ki**2. * \
-        ( (1./(coll_v_pre_mono))**2. + (dist_src_mono/src_h)**2. + Av_t0**2. )
+    Av[1,1] = 0.5*helpers.sig2fwhm**2. / ki**2. * \
+        ( (1./coll_v_pre_mono)**2. + (dist_src_mono/src_h)**2. + Av_t0**2. )
 
 
-
-    # B vector: formula 27 in [eck14]
+    # B vector: equ. 27 in [eck14]
     B = np.array([0,0,0])
-    B_t0 = inv_mono_curvh / (mono_mosaic*mono_mosaic*np.abs(np.sin(thetam)))
+    B_t0 = inv_mono_curvh / (mono_mosaic**2. * np.abs(np.sin(thetam)))
 
-    B[0] = reso.sig2fwhm**2. * pos_y / ki * np.tan(thetam) * \
+    B[0] = helpers.sig2fwhm**2. * pos_y / ki * np.tan(thetam) * \
         ( 2.*dist_src_mono / src_w**2. + B_t0 )
 
-    B[1] = reso.sig2fwhm**2. * pos_y / ki * \
-    ( - dist_mono_sample / (mono_w*np.abs(np.sin(thetam)))**2. + \
-        B_t0 - B_t0 * inv_mono_curvh*dist_mono_sample / np.abs(np.sin(thetam)) + \
+    B[1] = helpers.sig2fwhm**2. * pos_y / ki * \
+        ( - dist_mono_sample / (mono_w*np.abs(np.sin(thetam)))**2. + \
+        B_t0 - B_t0 * A_tx + \
         (dist_src_mono-dist_mono_sample) / src_w**2. )
 
 
-
-    # Bv vector: formula 39 in [eck14]
+    # Bv vector: equ. 39 in [eck14]
     Bv = np.array([0,0])
 
-    Bv_t0 = inv_mono_curvv/mono_mosaic_v**2
+    Bv_t0 = inv_mono_curvv / mono_mosaic_v**2
 
     # typo in paper?
-    Bv[0] = (-1.) *  reso.sig2fwhm**2. * pos_z / ki * \
-        ( dist_mono_sample / mono_h**2. + dist_mono_sample / src_h**2. + \
-            Bv_t0 * inv_mono_curvv*dist_mono_sample - 0.5*Bv_t0 / np.abs(np.sin(thetam)) )
+    Bv[0] = (-1.) *  helpers.sig2fwhm**2. * pos_z / ki * \
+        ( dist_mono_sample / mono_h**2. + \
+            dist_mono_sample / src_h**2. + \
+            Bv_t0 * inv_mono_curvv*dist_mono_sample - \
+            0.5*Bv_t0 / np.abs(np.sin(thetam)) )
 
     # typo in paper?
-    Bv[1] = (-1.) * reso.sig2fwhm**2. * pos_z / ki * \
+    Bv[1] = (-1.) * helpers.sig2fwhm**2. * pos_z / ki * \
         ( dist_src_mono / (src_h*src_h) + 0.5*Bv_t0/np.abs(np.sin(thetam)) )
 
 
+    # C scalar: equ. 28 in [eck14]
+    C = 0.5*helpers.sig2fwhm**2. * pos_y**2. * \
+        ( 1./src_w**2. + (1./(mono_w*np.abs(np.sin(thetam))))**2. + \
+            (inv_mono_curvh/(mono_mosaic * np.abs(np.sin(thetam))))**2. )
 
-    # C scalar: formula 28 in [eck14]
-    C = 0.5*reso.sig2fwhm**2. * pos_y**2. * \
-	    ( 1./src_w**2. + (1./(mono_w*np.abs(np.sin(thetam))))**2. + \
-		    (inv_mono_curvh/(mono_mosaic * np.abs(np.sin(thetam))))**2. )
-
-    # Cv scalar: formula 40 in [eck14]
-    Cv = 0.5*reso.sig2fwhm**2. * pos_z**2. * \
+    # Cv scalar: equ. 40 in [eck14]
+    Cv = 0.5*helpers.sig2fwhm**2. * pos_z**2. * \
         ( 1./src_h**2. + 1./mono_h**2. + (inv_mono_curvv/mono_mosaic_v)**2. )
 
 
-
     # z components, [eck14], equ. 42
-    A[2,2] = Av[0,0] - Av[0,1]*Av[0,1]/Av[1,1]
+    A[2,2] = Av[0,0] - Av[0,1]**2./Av[1,1]
     B[2] = Bv[0] - Bv[1]*Av[0,1]/Av[1,1]
-    D = Cv - 0.25*Bv[1]/Av[1,1]
+    # typo in paper? (thanks to F. Bourdarot for pointing this out)
+    D = Cv - (0.5*Bv[1])**2./Av[1,1]
 
 
     # [eck14], equ. 54
-    therefl = refl * np.sqrt(np.pi / Av[1,1]) # typo in paper?
+    therefl = refl * np.sqrt(np.pi / Av[1,1])  # typo in paper?
 
     return [ A, B, C, D, therefl ]
-
 
 
 
 #
 # Eckold algorithm combining the mono and ana resolutions
 #
-def calc_eck(param):
-    twotheta = param["twotheta"] * param["sample_sense"]
-    thetam = param["thetam"] * param["mono_sense"]
-    thetaa = param["thetaa"] * param["ana_sense"]
-    ki_Q = param["angle_ki_Q"] * param["sample_sense"]
-    kf_Q = param["angle_kf_Q"] * param["sample_sense"]
-
+def calc(param):
     ki = param["ki"]
     kf = param["kf"]
     E = param["E"]
     Q = param["Q"]
 
+    # angles
+    twotheta = helpers.get_scattering_angle(ki, kf, Q) * param["sample_sense"]
+    thetam = helpers.get_mono_angle(ki, param["mono_xtal_d"]) * param["mono_sense"]
+    thetaa = helpers.get_mono_angle(kf, param["ana_xtal_d"]) * param["ana_sense"]
+    Q_ki = helpers.get_angle_Q_ki(ki, kf, Q) * param["sample_sense"]
+    Q_kf = helpers.get_angle_Q_kf(ki, kf, Q) * param["sample_sense"]
+
+    if param["verbose"]:
+        print("2theta = %g, thetam = %g, thetaa = %g, Q_ki = %g, Q_kf = %g\n" %
+            (twotheta*helpers.rad2deg, thetam*helpers.rad2deg, thetaa*helpers.rad2deg,
+            Q_ki*helpers.rad2deg, Q_kf*helpers.rad2deg))
 
     # --------------------------------------------------------------------
     # mono/ana focus
@@ -244,13 +175,23 @@ def calc_eck(param):
     ana_curvv = param["ana_curvv"]
 
     if param["mono_is_optimally_curved_h"]:
-        mono_curvh = foc_curv(param["dist_src_mono"], param["dist_mono_sample"], np.abs(2.*thetam), False)
-    if param["mono_is_optimally_curved_v"]: 
-        mono_curvv = foc_curv(param["dist_src_mono"], param["dist_mono_sample"], np.abs(2.*thetam), True)
-    if param["ana_is_optimally_curved_h"]: 
-        ana_curvh = foc_curv(param["dist_sample_ana"], param["dist_ana_det"], np.abs(2.*thetaa), False)
-    if param["ana_is_optimally_curved_v"]: 
-        ana_curvv = foc_curv(param["dist_sample_ana"], param["dist_ana_det"], np.abs(2.*thetaa), True)
+        mono_curvh = helpers.foc_curv(param["dist_src_mono"], \
+            param["dist_mono_sample"], np.abs(2.*thetam), False)
+    if param["mono_is_optimally_curved_v"]:
+        mono_curvv = helpers.foc_curv(param["dist_src_mono"], \
+            param["dist_mono_sample"], np.abs(2.*thetam), True)
+    if param["ana_is_optimally_curved_h"]:
+        ana_curvh = helpers.foc_curv(param["dist_sample_ana"], \
+            param["dist_ana_det"], np.abs(2.*thetaa), False)
+    if param["ana_is_optimally_curved_v"]:
+        ana_curvv = helpers.foc_curv(param["dist_sample_ana"], \
+            param["dist_ana_det"], np.abs(2.*thetaa), True)
+
+    if param["verbose"]:
+        print("Mono curvature radius: vertical: %g cm, horizontal: %g cm." %
+                (mono_curvv/helpers.cm2A, mono_curvh/helpers.cm2A))
+        print("Ana curvature radius: vertical: %g cm, horizontal: %g cm.\n" %
+                (ana_curvv/helpers.cm2A, ana_curvh/helpers.cm2A))
 
     inv_mono_curvh = 0.
     inv_mono_curvv = 0.
@@ -268,7 +209,7 @@ def calc_eck(param):
     # --------------------------------------------------------------------
 
 
-    lam = k2lam(ki)
+    lam = helpers.k2lam(ki)
 
     coll_h_pre_mono = param["coll_h_pre_mono"]
     coll_v_pre_mono = param["coll_v_pre_mono"]
@@ -276,7 +217,6 @@ def calc_eck(param):
     if param["use_guide"]:
         coll_h_pre_mono = lam*param["guide_div_h"]
         coll_v_pre_mono = lam*param["guide_div_v"]
-
 
 
     # dict with results
@@ -291,7 +231,7 @@ def calc_eck(param):
     # - if the instrument works in ki=const mode the kf^3 factor is needed.
 
     # TODO
-    #tupScFact = get_scatter_factors(param.flags, param.thetam, param.ki, param.thetaa, param.kf);
+    #tupScFact = get_scatter_factors(param.flags, param.thetam, param.ki, param.thetaa, param.kf)
     tupScFact = [1., 1., 1.]
 
     dmono_refl = param["dmono_refl"] * tupScFact[0]
@@ -322,7 +262,7 @@ def calc_eck(param):
 
     #--------------------------------------------------------------------------
     # ana part
-    # equ 43 in [eck14]
+    # equ. 43 in [eck14]
     pos_y2 = - param["pos_x"]*np.sin(twotheta) + param["pos_y"]*np.cos(twotheta)
     pos_z2 = param["pos_z"]
 
@@ -355,32 +295,30 @@ def calc_eck(param):
     #--------------------------------------------------------------------------
 
 
-
-    # equ 4 & equ 53 in [eck14]
+    # equ. 4 & equ. 53 in [eck14]
     dE = (ki**2. - kf**2.) / (2.*Q**2.)
-    kipara = Q*(0.5+dE)
-    kfpara = Q-kipara
-    kperp = np.sqrt(np.abs(kipara**2. - ki**2.))
+    dEi = 0.5 + dE
+    dEf = 0.5 - dE
+    kperp = np.sqrt(ki**2. - (Q*dEi)**2.)
     kperp *= param["sample_sense"]
 
 
-
-    # trafo, equ 52 in [eck14]
+    # trafo, equ. 52 in [eck14]
     T = np.identity(6)
     T[0,3] = T[1,4] = T[2,5] = -1.
-    T[3,0] = 2.*ksq2E * kipara
-    T[3,3] = 2.*ksq2E * kfpara
-    T[3,1] = 2.*ksq2E * kperp
-    T[3,4] = -2.*ksq2E * kperp
-    T[4,1] = T[5,2] = (0.5 - dE)
-    T[4,4] = T[5,5] = (0.5 + dE)
+    T[3,0] = 2.*helpers.ksq2E * Q*dEi
+    T[3,3] = 2.*helpers.ksq2E * Q*dEf
+    T[3,1] = 2.*helpers.ksq2E * kperp
+    T[3,4] = -2.*helpers.ksq2E * kperp
+    T[4,1] = T[5,2] = dEf
+    T[4,4] = T[5,5] = dEi
 
     Tinv = la.inv(T)
 
 
-    # equ 54 in [eck14]
-    Dalph_i = rotation_matrix_3d_z(-ki_Q)
-    Dalph_f = rotation_matrix_3d_z(-kf_Q)
+    # equ. 54 in [eck14]
+    Dalph_i = helpers.rotation_matrix_3d_z(-Q_ki)
+    Dalph_f = helpers.rotation_matrix_3d_z(-Q_kf)
     Arot = np.dot(np.dot(np.transpose(Dalph_i), A), Dalph_i)
     Erot = np.dot(np.dot(np.transpose(Dalph_f), E), Dalph_f)
 
@@ -389,62 +327,82 @@ def calc_eck(param):
     matAE[3:6, 3:6] = Erot
 
     # U1 matrix
-    # typo in paper in quadric trafo in equ 54 (top)?
+    # typo in paper in quadric trafo in equ. 54 (top)?
     U1 = np.dot(np.dot(np.transpose(Tinv), matAE), Tinv)
 
     # V1 vector
     vecBF = np.zeros(6)
-    vecBrot = np.dot(np.transpose(Dalph_i), B)
-    vecFrot = np.dot(np.transpose(Dalph_f), F)
-    vecBF[0:3] = vecBrot
-    vecBF[3:6] = vecFrot
+    vecBF[0:3] = np.dot(np.transpose(Dalph_i), B)
+    vecBF[3:6] = np.dot(np.transpose(Dalph_f), F)
     V1 = np.dot(vecBF, Tinv)
-
 
 
     # --------------------------------------------------------------------------
     # integrate last 2 vars -> equs 57 & 58 in [eck14]
 
-    U2 = reso.quadric_proj(U1, 5);
-    U = reso.quadric_proj(U2, 4);
+    U2 = reso.quadric_proj(U1, 5)
+    # careful: factor -0.5*... missing in U matrix compared to normal gaussian!
+    U = 2. * reso.quadric_proj(U2, 4)
 
-    V2 = reso.quadric_proj_vec(V1, U1, 5);
-    V = reso.quadric_proj_vec(V2, U2, 4);
+    V2 = reso.quadric_proj_vec(V1, U1, 5)
+    V = reso.quadric_proj_vec(V2, U2, 4)
 
-    W = (C + D + G + H) - 0.25*V1[5]/U1[5,5] - 0.25*V2[4]/U2[4,4]
+    W = C + D + G + H
 
-    Z = dReflM*dReflA * np.sqrt(np.pi/np.abs(U1[5,5])) * np.sqrt(np.pi/np.abs(U2[4,4]))
+    # squares in Vs missing in paper? (thanks to F. Bourdarot for pointing this out)
+    W -= (0.5*V1[5])**2./U1[5,5] + (0.5*V2[4])**2./U2[4,4]
+
+    R0 = 0.
+    if param["calc_R0"]:
+        R0 = dReflM*dReflA * np.pi * np.sqrt(1. / np.abs(U1[5,5] * U2[4,4]))
     # --------------------------------------------------------------------------
 
 
+    # --------------------------------------------------------------------------
+    # include sample mosaic, see cn.cpp
+    # add horizontal sample mosaic
+    mos_Q_sq = (param["sample_mosaic"] * Q)**2.
+    vec1 = U[:, 1] / helpers.sig2fwhm**2.
+    U -= helpers.sig2fwhm**2. * np.outer(vec1, vec1) / \
+        (1./mos_Q_sq + U[1,1]/helpers.sig2fwhm**2.)
+
+    # add vertical sample mosaic
+    mos_v_Q_sq = (param["sample_mosaic_v"] * Q)**2.
+    vec2 = U[:, 2] / helpers.sig2fwhm**2.
+    U -= helpers.sig2fwhm**2. * np.outer(vec2, vec2) / \
+        (1./mos_v_Q_sq + U[2,2]/helpers.sig2fwhm**2.)
+    # --------------------------------------------------------------------------
+
 
     # quadratic part of quadric (matrix U)
-    # careful: factor -0.5*... missing in U matrix compared to normal gaussian!
-    res["reso"] = 2. * U;
+    R = U
     # linear (vector V) and constant (scalar W) part of quadric
-    res["reso_v"] = V;
-    res["reso_s"] = W;
+    res["reso_v"] = V
+    res["reso_s"] = W
 
 
-    if param["sample_sense"] < 0.:
+    if param["mirror_Qperp"] and param["sample_sense"] < 0.:
         # mirror Q_perp
-        matMirror = mirror_matrix(len(res["reso"]), 1)
-        res["reso"] = np.dot(np.dot(np.transpose(matMirror), res["reso"]), matMirror)
+        matMirror = helpers.mirror_matrix(len(R), 1)
+        R = np.dot(np.dot(np.transpose(matMirror), R), matMirror)
         res["reso_v"][1] = -res["reso_v"][1]
 
 
     # prefactor and volume
-    res["res_vol"] = reso.ellipsoid_volume(res["reso"])
+    res_vol = reso.ellipsoid_volume(R)
 
-    res["r0"] = Z
-    # missing volume prefactor to normalise gaussian,
-    # cf. equ. 56 in [eck14] to  equ. 1 in [pop75] and equ. A.57 in [mit84]
-    res["r0"] *= res["res_vol"] * np.pi * 3.
+    if param["calc_R0"]:
+        # missing volume prefactor to normalise gaussian,
+        # cf. equ. 56 in [eck14] to  equ. 1 in [pop75] and equ. A.57 in [mit84]
+        R0 *= res_vol * np.pi * 3.
+        R0 *= np.exp(-W)
+        R0 *= dxsec
 
-    res["r0"] *= np.exp(-W)
-    res["r0"] *= dxsec
+    res["reso"] = R
+    res["r0"] = R0
+    res["res_vol"] = res_vol
 
-	# Bragg widths
+    # Bragg widths
     res["coherent_fwhms"] = reso.calc_coh_fwhms(res["reso"])
     res["ok"] = True
 
@@ -452,127 +410,3 @@ def calc_eck(param):
         res["ok"] = False
 
     return res
-
-
-
-#
-# test calculation
-#
-if __name__ == "__main__":
-    verbose = True
-
-    cm2A = 1e8
-    min2rad = 1./ 60. / 180.*np.pi
-    rad2deg = 180. / np.pi
-
-    d_mono = 3.355
-    d_ana = 3.355
-
-    ki = 1.4
-    kf = 1.5
-    Q = 1.5
-    E = get_E(ki, kf)
-
-    sc_senses = [ 1., -1., 1.]
-
-    params = {
-        # scattering triangle
-        "ki" : ki, "kf" : kf, "E" : E, "Q" : Q,
-
-        # angles
-        "twotheta" : get_scattering_angle(ki, kf, Q),
-        "thetam" : get_mono_angle(ki, d_mono),
-        "thetaa" : get_mono_angle(kf, d_ana),
-        "angle_ki_Q" : get_angle_ki_Q(ki, kf, Q),
-        "angle_kf_Q" : get_angle_kf_Q(ki, kf, Q),
-
-        # scattering senses
-        "mono_sense" : sc_senses[0],
-        "sample_sense" : sc_senses[1],
-        "ana_sense" : sc_senses[2],
-
-        # distances
-        "dist_src_mono" : 100. * cm2A,
-        "dist_mono_sample" : 100. * cm2A,
-        "dist_sample_ana" : 100. * cm2A,
-        "dist_ana_det" : 100. * cm2A,
-
-        # component sizes
-        "src_w" : 10. * cm2A,
-        "src_h" : 10. * cm2A,
-        "mono_w" : 10. * cm2A,
-        "mono_h" : 10. * cm2A,
-        "det_w" : 10. * cm2A,
-        "det_h" : 10. * cm2A,
-        "ana_w" : 10. * cm2A,
-        "ana_h" : 10. * cm2A,
-
-        # focusing
-        "mono_curvh" : 0.,
-        "mono_curvv" : 0.,
-        "ana_curvh" : 0.,
-        "ana_curvv" : 0.,
-        "mono_is_optimally_curved_h" : False,
-        "mono_is_optimally_curved_v" : False,
-        "ana_is_optimally_curved_h" : False,
-        "ana_is_optimally_curved_v" : False,
-        "mono_is_curved_h" : False,
-        "mono_is_curved_v" : False,
-        "ana_is_curved_h" : False,
-        "ana_is_curved_v" : False,
-
-        # collimation
-        "coll_h_pre_mono" : 9999. *min2rad,
-        "coll_v_pre_mono" : 9999. *min2rad,
-        "coll_h_pre_sample" : 30. *min2rad,
-        "coll_v_pre_sample" : 9999. *min2rad,
-        "coll_h_post_sample" : 30. *min2rad,
-        "coll_v_post_sample" : 9999. *min2rad,
-        "coll_h_post_ana" : 9999. *min2rad,
-        "coll_v_post_ana" : 9999. *min2rad,
-
-        # guide
-        "use_guide" : False,
-        "guide_div_h" : 9999. *min2rad,
-        "guide_div_v" : 9999. *min2rad,
-
-        # mosaics
-        "mono_mosaic" : 60. *min2rad,
-        "mono_mosaic_v" : 60. *min2rad,
-        "ana_mosaic" : 60. *min2rad,
-        "ana_mosaic_v" : 60. *min2rad,
-
-        # crystal reflectivities
-        # TODO, so far always 1
-        "dmono_refl" : 1.,
-        "dana_effic" : 1.,
-
-        # off-center scattering
-        # WARNING: while this is calculated, it is not yet considered in the ellipse plots
-        "pos_x" : 0. * cm2A,
-        "pos_y" : 0. * cm2A,
-        "pos_z" : 0. * cm2A,
-
-        "kf_vert" : False,
-    }
-
-
-    # calculate resolution ellipsoid
-    res = calc_eck(params)
-    if not res["ok"]:
-        print("RESOLUTION CALCULATION FAILED!")
-        exit(-1)
-
-    if verbose:
-        print("2theta = %g, thetam = %g, thetaa = %g, ki_Q = %g, kf_Q = %g\n" %
-            (params["twotheta"]*rad2deg, params["thetam"]*rad2deg, params["thetaa"]*rad2deg,
-            params["angle_ki_Q"]*rad2deg, params["angle_kf_Q"]*rad2deg))
-        print("R0 = %g, Vol = %g" % (res["r0"], res["res_vol"]))
-        print("Resolution matrix:\n%s" % res["reso"])
-        print("Resolution vector: %s" % res["reso_v"])
-        print("Resolution scalar: %g" % res["reso_s"])
-
-
-    # describe and plot ellipses
-    ellipses = reso.calc_ellipses(res["reso"], verbose)
-    reso.plot_ellipses(ellipses, verbose)

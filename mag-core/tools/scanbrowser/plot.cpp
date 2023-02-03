@@ -3,7 +3,27 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 15-Jun-2018
  * @license see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
+
+#include "tlibs2/libs/algos.h"
 
 #include "plot.h"
 
@@ -12,12 +32,10 @@
 #include <QtWidgets/QMessageBox>
 
 
-using t_real = t_real_dat;
-
 
 Plotter::Plotter(QWidget *parent, QSettings* pSettings)
-	: QWidget(parent), m_pSettings(pSettings), 
-	m_pPlotter{std::make_shared<QCustomPlot>(this)}, 
+	: QWidget(parent), m_pSettings(pSettings),
+	m_pPlotter{std::make_shared<QCustomPlot>(this)},
 	m_pPlotContextMenu{new QMenu(m_pPlotter.get())}
 
 {
@@ -30,6 +48,8 @@ Plotter::Plotter(QWidget *parent, QSettings* pSettings)
 	m_pPlotContextMenu->setTitle("Plot");
 	m_pPlotContextMenu->addAction("Export to Gnuplot...", this, &Plotter::SaveGpl);
 	m_pPlotContextMenu->addAction("Save as PDF...", this, &Plotter::SavePDF);
+	m_pPlotContextMenu->addSeparator();
+	m_pPlotContextMenu->addAction("Save Data...", this, &Plotter::SaveDat);
 
 	m_pPlotter->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_pPlotter.get(), &QCustomPlot::customContextMenuRequested, this, &Plotter::ShowPlotContextMenu);
@@ -61,9 +81,9 @@ void Plotter::SavePDF()
 {
 	QString dirLast = "";
 	if(m_pSettings)
-		m_pSettings->value("dir_pdf", "").toString();
+		dirLast = m_pSettings->value("dir_pdf", "").toString();
 
-	QString file = QFileDialog::getSaveFileName(this, "Save as PDF", dirLast, "PDF Files (*.pdf *.PDF)");
+	QString file = QFileDialog::getSaveFileName(this, "Save as PDF", dirLast, "PDF Files (*.pdf)");
 	if(file=="")
 		return;
 
@@ -79,15 +99,15 @@ void Plotter::SavePDF()
 
 
 /**
- * export plot to Gnuplot
+ * export plot to gnuplot
  */
 void Plotter::SaveGpl()
 {
 	QString dirLast = "";
 	if(m_pSettings)
-		m_pSettings->value("dir_gpl", "").toString();
+		dirLast = m_pSettings->value("dir_gpl", "").toString();
 
-	QString file = QFileDialog::getSaveFileName(this, "Export to Gnuplot", dirLast, "Gnuplot Files (*.gpl *.GPL)");
+	QString file = QFileDialog::getSaveFileName(this, "Export to Gnuplot", dirLast, "Gnuplot Files (*.gpl)");
 	if(file=="")
 		return;
 
@@ -99,6 +119,30 @@ void Plotter::SaveGpl()
 
 	if(m_pSettings)
 		m_pSettings->setValue("dir_gpl", QFileInfo(file).path());
+}
+
+
+/**
+ * export plot to data file
+ */
+void Plotter::SaveDat()
+{
+	QString dirLast = "";
+	if(m_pSettings)
+		dirLast = m_pSettings->value("dir_dat", "").toString();
+
+	QString file = QFileDialog::getSaveFileName(this, "Export data", dirLast, "Data Files (*.dat)");
+	if(file=="")
+		return;
+
+	if(!m_dataset.Save(file.toStdString()))
+	{
+		QMessageBox::critical(this, "Data Export", "Could not save data file.");
+		return;
+	}
+
+	if(m_pSettings)
+		m_pSettings->setValue("dir_dat", QFileInfo(file).path());
 }
 
 
@@ -162,8 +206,25 @@ void Plotter::Plot(const Dataset &dataset)
 		std::copy(datx.begin(), datx.end(), std::back_inserter(_datx));
 		std::copy(daty.begin(), daty.end(), std::back_inserter(_daty));
 		std::copy(datyerr.begin(), datyerr.end(), std::back_inserter(_datyerr));
-	
-		graph->setData(_datx, _daty);
+
+		// sort data by x axis
+		auto sort_data = [](QVector<t_real>& xvec, QVector<t_real>& yvec, QVector<t_real>& yerrvec)
+		{
+			std::vector<std::size_t> perm = tl2::get_perm(xvec.size(),
+				[&xvec](std::size_t idx1, std::size_t idx2) -> bool
+				{
+					return xvec[idx1] < xvec[idx2];
+				});
+
+			xvec = tl2::reorder(xvec, perm);
+			yvec = tl2::reorder(yvec, perm);
+			yerrvec = tl2::reorder(yerrvec, perm);
+		};
+
+		sort_data(_datx, _daty, _datyerr);
+
+		// plot data
+		graph->setData(_datx, _daty, true);
 		graph_err->setData(_datyerr);
 
 

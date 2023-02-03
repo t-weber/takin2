@@ -3,13 +3,34 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date jul-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __DO_RESO_H__
 #define __DO_RESO_H__
 
 #include "../res/eck.h"
-#include "../res/viol.h"
+#include "../res/vio.h"
 #include "../res/ellipse.h"
 #include "../res/mc.h"
 
@@ -38,13 +59,16 @@ protected:
 
 	McNeutronOpts<ublas::matrix<t_real_reso>> m_opts;
 	EckParams m_reso;
-	ViolParams m_tofreso;
+	VioParams m_tofreso;
 
 	// randomly smear out sample position if vector size >= 1
 	std::vector<ResoResults> m_res;
 
 	bool m_bKiFix = 0;
 	t_real_reso m_dKFix = 1.4;
+
+	// for better compatibility with older versions
+	t_real_reso m_R0_scale = 1.;
 
 public:
 	TASReso();
@@ -54,7 +78,7 @@ public:
 	virtual ~TASReso() = default;
 
 	bool LoadRes(const char* pcXmlFile);
-	bool LoadLattice(const char* pcXmlFile);
+	bool LoadLattice(const char* pcXmlFile, bool flip_coords = false);
 
 	bool SetLattice(t_real_reso a, t_real_reso b, t_real_reso c,
 		t_real_reso alpha, t_real_reso beta, t_real_reso gamma,
@@ -70,10 +94,11 @@ public:
 	void SetOptimalFocus(ResoFocus foc) { m_foc = foc; }
 
 	const EckParams& GetResoParams() const { return m_reso; }
-	const ViolParams& GetTofResoParams() const { return m_tofreso; }
+	const VioParams& GetTofResoParams() const { return m_tofreso; }
 	const McNeutronOpts<ublas::matrix<t_real_reso>>& GetMCOpts() const { return m_opts; }
 	EckParams& GetResoParams() { return m_reso; }
-	ViolParams& GetTofResoParams() { return m_tofreso; }
+	VioParams& GetTofResoParams() { return m_tofreso; }
+	t_real_reso GetR0Scale() const { return m_R0_scale; }
 
 	const ResoResults& GetResoResults() const { return m_res[0]; }
 

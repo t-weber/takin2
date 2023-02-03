@@ -2,6 +2,27 @@
  * tlibs test file
  * @author Tobias Weber <tobias.weber@tum.de>
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 // gcc -I/usr/include/lapacke -o eig2 eig2.cpp ../log/log.cpp -lstdc++ -lm -llapacke -llapack -std=c++11
@@ -22,12 +43,13 @@ int main()
 	//ublas::matrix<T> M = tl::make_mat({{123.4,0},{0,567.8}});
 
 	ublas::matrix<T> M_org = M;
-	std::cout << M << std::endl;
+	std::cout << "symmetric: " << M << "\n" << std::endl;
 
 	std::vector<ublas::vector<T>> evecs;
 	std::vector<T> evals, evals_check;
 	tl::eigenvec_sym<T>(M, evecs, evals);
 	tl::eigenval_sym<T>(M, evals_check);
+	std::cout << "tl::eigenvec_sym\n";
 	for(int i=0; i<evals.size(); ++i)
 		std::cout << "eval: " << evals[i] <<
 		", eval_check: " << evals_check[i] <<
@@ -42,11 +64,32 @@ int main()
 
 	std::vector<ublas::vector<T>> evecs2;
 	std::vector<T> evals2;
-	tl::eigenvec_sym_simple(M, evecs2, evals2, true);
+	tl::eigenvec_sym_simple(M, evecs2, evals2);
+	std::cout << "tl::eigenvec_sym_simple\n";
 	for(int i=0; i<evals2.size(); ++i)
 		std::cout << "eval: " << evals2[i] <<
 		", evec: " << (evecs2[i]/ublas::norm_2(evecs2[i])) <<
 		", len: " << ublas::norm_2(evecs2[i]) << std::endl;
+	std::cout << std::endl;
+
+	std::vector<ublas::vector<T>> evecs3;
+	std::vector<T> evals3;
+	tl::eigenvec_approxsym(M, evecs3, evals3);
+	std::cout << "tl::eigenvec_approxsym\n";
+	for(int i=0; i<evals3.size(); ++i)
+		std::cout << "eval: " << evals3[i] <<
+		", evec: " << (evecs3[i]/ublas::norm_2(evecs3[i])) <<
+		", len: " << ublas::norm_2(evecs3[i]) << std::endl;
+	std::cout << std::endl;
+
+	std::vector<ublas::vector<T>> evecs4;
+	std::vector<T> evals4;
+	tl::eigenvec_approxsym_simple(M, evecs4, evals4);
+	std::cout << "tl::eigenvec_approxsym_simple\n";
+	for(int i=0; i<evals4.size(); ++i)
+		std::cout << "eval: " << evals4[i] <<
+		", evec: " << (evecs4[i]/ublas::norm_2(evecs4[i])) <<
+		", len: " << ublas::norm_2(evecs4[i]) << std::endl;
 	std::cout << std::endl;
 
 	std::vector<ublas::vector<T>> evecs2_r, evecs2_i;
@@ -54,6 +97,7 @@ int main()
 	std::vector<T> evals2_r_check, evals2_i_check;
 	tl::eigenvec(M, evecs2_r, evecs2_i, evals2_r, evals2_i, true);
 	tl::eigenval(M, evals2_r_check, evals2_i_check);
+	std::cout << "tl::eigenvec\n";
 	for(int i=0; i<evals2_r.size(); ++i)
 		std::cout << "eval r: " << evals2_r[i] <<
 		", eval r check: " << evals2_r_check[i] <<
@@ -74,11 +118,12 @@ int main()
 		{std::complex<T>(3., -1.5), std::complex<T>(2., 0.), std::complex<T>(2.2, -1.7)},
 		{std::complex<T>(5., -2.), std::complex<T>(2.2, 1.7), std::complex<T>(4., 0.)},
 	});
-	std::cout << "hermitian: " << Mc << std::endl;
+	std::cout << "\nhermitian: " << Mc << "\n" << std::endl;
 
 	tl::eigenvec_herm<T>(Mc, evecs_c, evals_c, true);
 	tl::eigenvecsel_herm<T>(Mc, evecs_c_sel, evals_c_sel, true, -5., 5., 1e-4);
 	tl::eigenval_herm<T>(Mc, evals_c_check);
+	std::cout << "tl::eigenvecsel_herm\n";
 	for(int i=0; i<evals_c.size(); ++i)
 	{
 		std::cout << "eval: " << evals_c[i] <<
@@ -113,6 +158,7 @@ int main()
 
 	tl::eigenvec_cplx<T>(Mc, evecs_c2, evals_c2, true);
 	tl::eigenval_cplx<T>(Mc, evals_c2_check);
+	std::cout << "tl::eigenvec_cplx\n";
 	for(int i=0; i<evals_c2.size(); ++i)
 		std::cout << "eval: " << evals_c2[i] <<
 		", eval_check: " << evals_c2_check[i] <<

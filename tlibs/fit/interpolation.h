@@ -4,6 +4,27 @@
  * @author: Tobias Weber <tobias.weber@tum.de>
  * @date: 25-04-2013
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __INTERPOLATION_H__
@@ -281,13 +302,14 @@ void find_peaks(std::size_t iLen, const T* _px, const T* _py, unsigned int iOrde
 	T eps = tl::get_epsilon<T>(), std::size_t iNumSpline = 512)
 {
 	// allocate memory
-	std::unique_ptr<T, std::default_delete<T[]>> uptrMem{new T[6*iNumSpline]};
-	T *px = uptrMem.get() + 0*iNumSpline;
-	T *py = uptrMem.get() + 1*iNumSpline;
-	T *pSplineX = uptrMem.get() + 2*iNumSpline;
-	T *pSplineY = uptrMem.get() + 3*iNumSpline;
-	T *pSplineDiff = uptrMem.get() + 4*iNumSpline;
-	T *pSplineDiff2 = uptrMem.get() + 5*iNumSpline;
+	std::unique_ptr<T, std::default_delete<T[]>> uptrMem{
+		new T[2*iLen + 4*iNumSpline]};
+	T *px = uptrMem.get() + 0*iLen;
+	T *py = uptrMem.get() + 1*iLen;
+	T *pSplineX = uptrMem.get() + 2*iLen + 0*iNumSpline;
+	T *pSplineY = uptrMem.get() + 2*iLen + 1*iNumSpline;
+	T *pSplineDiff = uptrMem.get() + 2*iLen + 2*iNumSpline;
+	T *pSplineDiff2 = uptrMem.get() + 2*iLen + 3*iNumSpline;
 
 
 	// sort input values

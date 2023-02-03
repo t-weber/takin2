@@ -1,13 +1,11 @@
-# Takin 2
-Takin version 2 unified release repository.
-
+# Takin
+Takin version 2.5 unified release repository.  
 [![DOI: 10.5281/zenodo.4117437](https://zenodo.org/badge/DOI/10.5281/zenodo.4117437.svg)](https://doi.org/10.5281/zenodo.4117437)
 
-The development repository group can be found here:  
-https://code.ill.fr/scientific-software/takin
-
-The repository of the previous Takin version 1 can be found here:  
-https://github.com/t-weber/takin
+Takin's development repository group can be found here:  
+[https://code.ill.fr/scientific-software/takin](https://code.ill.fr/scientific-software/takin).
 
 DOI for Takin 2: [10.5281/zenodo.4117437](https://dx.doi.org/10.5281/zenodo.4117437).  
-DOI for Takin 1: [10.5281/zenodo.3961491](https://dx.doi.org/10.5281/zenodo.3961491).
+DOI for Takin 1: [10.5281/zenodo.3961491](https://dx.doi.org/10.5281/zenodo.3961491).  
+DOI for Tlibs: [10.5281/zenodo.5717779](https://doi.org/10.5281/zenodo.5717779).  
+DOI for TAS-Paths: [10.5281/zenodo.4625649](https://doi.org/10.5281/zenodo.4625649).  

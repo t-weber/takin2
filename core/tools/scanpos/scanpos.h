@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2016, 30-jan-2017
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __SCANPOS_H__
@@ -79,7 +100,8 @@ bool make_plot(std::ostream& ostr,
 	(*pOstr) << "#!/usr/bin/gnuplot -p\n";
 	(*pOstr) << "#\n";
 	(*pOstr) << "# Created with Takin version " << TAKIN_VER
-		<< " and tlibs version " << TLIBS_VERSION << ".\n";
+		<< " and tlibs version " << TLIBS_VERSION
+		<< " (https://dx.doi.org/10.5281/zenodo.4117437).\n";
 	(*pOstr) << "# Date: " << tl::epoch_to_str<t_real>(tl::epoch<t_real>(),
 		"%b %d, %Y at %H:%M:%S (%Z).") << "\n";
 	(*pOstr) << "#\n\n";

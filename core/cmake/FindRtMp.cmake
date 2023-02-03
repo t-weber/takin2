@@ -1,5 +1,5 @@
 find_library(Rt_LIBRARIES
-	NAMES librt.so
+	NAMES librt.so librt.so.1
 	HINTS /usr/local/lib64 /usr/local/lib /usr/lib64 /usr/lib /opt/local/lib /lib/x86_64-linux-gnu #/usr/lib32 /usr/local/lib32
 	DOC "RT library"
 )

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "taz.h"
@@ -34,6 +55,7 @@ void TazDlg::ExportReal()
 	pTas->SetZoom(dZoom);
 }
 
+
 void TazDlg::ExportTof()
 {
 	TofLayout *pTof = m_sceneTof.GetTofLayout();
@@ -44,6 +66,7 @@ void TazDlg::ExportTof()
 	ExportSceneSVG(m_sceneTof);
 	pTof->SetZoom(dZoom);
 }
+
 
 void TazDlg::ExportRealLattice()
 {
@@ -56,6 +79,7 @@ void TazDlg::ExportRealLattice()
 	pLatt->SetZoom(dZoom);
 }
 
+
 void TazDlg::ExportRecip()
 {
 	ScatteringTriangle *pTri = m_sceneRecip.GetTriangle();
@@ -66,6 +90,7 @@ void TazDlg::ExportRecip()
 	ExportSceneSVG(m_sceneRecip);
 	pTri->SetZoom(dZoom);
 }
+
 
 void TazDlg::ExportProj()
 {
@@ -78,13 +103,14 @@ void TazDlg::ExportProj()
 	pLatt->SetZoom(dZoom);
 }
 
+
 void TazDlg::ExportSceneSVG(QGraphicsScene& scene)
 {
 	QFileDialog::Option fileopt = QFileDialog::Option(0);
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_settings.value("main/last_dir_export", ".").toString();
+	QString strDirLast = m_settings.value("main/last_dir_export", "~").toString();
 	QString strFile = QFileDialog::getSaveFileName(this,
 		"Export SVG", strDirLast, "SVG files (*.svg *.SVG)", nullptr, fileopt);
 	if(strFile == "")
@@ -99,12 +125,68 @@ void TazDlg::ExportSceneSVG(QGraphicsScene& scene)
 	svg.setSize(QSize(rect.width(), rect.height()));
 	//svg.setResolution(300);
 	svg.setViewBox(QRectF(0, 0, rect.width(), rect.height()));
-	svg.setDescription("Created with Takin");
+	svg.setDescription("Created with Takin (https://dx.doi.org/10.5281/zenodo.4117437)");
 
 	QPainter painter;
 	painter.begin(&svg);
 	scene.render(&painter);
 	painter.end();
+
+	std::string strDir = tl::get_dir(strFile.toStdString());
+	m_settings.setValue("main/last_dir_export", QString(strDir.c_str()));
+}
+
+
+/**
+ * export the current cut of the brillouin zone with the scattering plane
+ */
+void TazDlg::ExportBZCut()
+{
+	QFileDialog::Option fileopt = QFileDialog::Option(0);
+	if(!m_settings.value("main/native_dialogs", 1).toBool())
+		fileopt = QFileDialog::DontUseNativeDialog;
+
+	QString strDirLast = m_settings.value("main/last_dir_export", "~").toString();
+	QString strFile = QFileDialog::getSaveFileName(this,
+		"Export Data", strDirLast, "Data files (*.dat *.DAT)", nullptr, fileopt);
+	if(strFile == "")
+		return;
+	if(!strFile.endsWith(".dat", Qt::CaseInsensitive))
+		strFile += ".dat";
+
+
+	const ScatteringTriangle *pTri = m_sceneRecip.GetTriangle();
+	if(!pTri) return;
+
+	const auto& bz = pTri->GetBZ3D();
+	if(!bz.IsValid())
+	{
+		QMessageBox::critical(this, "Error", "3D Brillouin zone calculation is disabled or results are invalid.");
+		return;
+	}
+
+	std::ofstream ofstr(strFile.toStdString());
+	ofstr.precision(g_iPrec);
+	ofstr << "# Brillouin zone cut vertices.\n";
+	ofstr << "# Created with Takin " + std::string(TAKIN_VER) + " (https://dx.doi.org/10.5281/zenodo.4117437).\n";
+	ofstr << "\n";
+
+	const std::vector<ublas::vector<t_real>>& verts = pTri->GetBZ3DPlaneVerts();
+	for(ublas::vector<t_real> vert : verts)
+	{
+		if(vert.size() < 2)
+		{
+			tl::log_err("Invalid vertex in Brillouin zone cut.");
+			continue;
+		}
+
+		tl::set_eps_0(vert, g_dEps);
+		for(int coordidx=0; coordidx<2; ++coordidx)
+			ofstr << std::setw(g_iPrec*2.5) << std::left << vert[coordidx] << " ";
+		ofstr << "\n";
+	}
+	ofstr.flush();
+
 
 	std::string strDir = tl::get_dir(strFile.toStdString());
 	m_settings.setValue("main/last_dir_export", QString(strDir.c_str()));
@@ -120,7 +202,7 @@ void TazDlg::ExportBZ3DModel()
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_settings.value("main/last_dir_export", ".").toString();
+	QString strDirLast = m_settings.value("main/last_dir_export", "~").toString();
 	QString strFile = QFileDialog::getSaveFileName(this,
 		"Export X3D", strDirLast, "X3D files (*.x3d *.X3D)", nullptr, fileopt);
 	if(strFile == "")
@@ -129,7 +211,7 @@ void TazDlg::ExportBZ3DModel()
 		strFile += ".x3d";
 
 
-	ScatteringTriangle *pTri = m_sceneRecip.GetTriangle();
+	const ScatteringTriangle *pTri = m_sceneRecip.GetTriangle();
 	if(!pTri) return;
 
 	const auto& bz = pTri->GetBZ3D();
@@ -189,7 +271,7 @@ void TazDlg::ExportBZ3DModel()
 	ostrComment << bz.GetVertices().size() << " vertices, ";
 	ostrComment << pTri->GetBZ3DSymmVerts().size() << " symmetry points.\n";
 
-	std::string strTakin = "\nCreated with Takin " + std::string(TAKIN_VER) + ".\n";
+	std::string strTakin = "\nCreated with Takin " + std::string(TAKIN_VER) + " (https://dx.doi.org/10.5281/zenodo.4117437).\n";
 	strTakin += "Timestamp: " + tl::epoch_to_str<t_real>(tl::epoch<t_real>()) + "\n\n";
 	x3d.SetComment(strTakin + ostrComment.str());
 
@@ -205,7 +287,6 @@ void TazDlg::ExportBZ3DModel()
 		m_settings.setValue("main/last_dir_export", QString(strDir.c_str()));
 	}
 }
-
 
 
 
@@ -285,7 +366,7 @@ void TazDlg::ExportUCModel()
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strDirLast = m_settings.value("main/last_dir_export", ".").toString();
+	QString strDirLast = m_settings.value("main/last_dir_export", "~").toString();
 	QString strFile = QFileDialog::getSaveFileName(this,
 		"Export X3D", strDirLast, "X3D files (*.x3d *.X3D)", nullptr, fileopt);
 	if(strFile == "")
@@ -357,7 +438,7 @@ void TazDlg::ExportUCModel()
 	ostrComment << "Super cell contains " << m_latticecommon.vecIdxSC.size() << " atoms.\n";
 
 	tl::log_info(ostrComment.str());
-	std::string strTakin = "\nCreated with Takin " + std::string(TAKIN_VER) + ".\n";
+	std::string strTakin = "\nCreated with Takin " + std::string(TAKIN_VER) + " (https://dx.doi.org/10.5281/zenodo.4117437).\n";
 	strTakin += "Timestamp: " + tl::epoch_to_str<t_real>(tl::epoch<t_real>()) + "\n\n";
 	x3d.SetComment(strTakin + ostrComment.str());
 

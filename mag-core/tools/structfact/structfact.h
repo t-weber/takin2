@@ -4,6 +4,26 @@
  * @date Dec-2018
  * @license GPLv3, see 'LICENSE' file
  * @desc The present version was forked on 28-Dec-2018 from my privately developed "misc" project (https://github.com/t-weber/misc).
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __SFACT_H__
@@ -25,10 +45,9 @@
 #include <sstream>
 #include <complex>
 
-#include "tlibs2/libs/glplot.h"
-#include "tlibs2/libs/math20.h"
-
-#include "numerictablewidgetitem.h"
+#include "tlibs2/libs/qt/glplot.h"
+#include "tlibs2/libs/maths.h"
+#include "tlibs2/libs/qt/numerictablewidgetitem.h"
 
 
 using t_real = double;
@@ -37,6 +56,29 @@ using t_vec = tl2::vec<t_real, std::vector>;
 using t_vec_cplx = std::vector<t_cplx>;
 using t_mat = tl2::mat<t_real, std::vector>;
 using t_mat_cplx = tl2::mat<t_cplx, std::vector>;
+
+using t_real_gl = tl2::t_real_gl;
+using t_vec2_gl = tl2::t_vec2_gl;
+using t_vec3_gl = tl2::t_vec3_gl;
+using t_vec_gl = tl2::t_vec_gl;
+using t_mat_gl = tl2::t_mat_gl;
+
+
+extern t_real g_eps;
+extern int g_prec;
+
+
+enum : int
+{
+	COL_NAME = 0,
+	COL_SCATLEN_RE,
+	COL_SCATLEN_IM,
+	COL_X, COL_Y, COL_Z,
+	COL_RAD,
+	COL_COL,
+
+	NUM_COLS
+};
 
 
 struct NuclPos
@@ -53,12 +95,13 @@ public:
 	StructFactDlg(QWidget* pParent = nullptr);
 	~StructFactDlg() = default;
 
+
 protected:
 	QSettings *m_sett = nullptr;
 	QMenuBar *m_menu = nullptr;
 
 	QDialog *m_dlgPlot = nullptr;
-	std::shared_ptr<GlPlot> m_plot;
+	std::shared_ptr<tl2::GlPlot> m_plot;
 	std::size_t m_sphere = 0;
 	QLabel *m_labelGlInfos[4] = { nullptr, nullptr, nullptr, nullptr };
 	QLabel *m_status3D = nullptr;
@@ -77,7 +120,7 @@ protected:
 	QLineEdit *m_editGamma = nullptr;
 
 	QComboBox *m_comboSG = nullptr;
-	std::vector<std::vector<t_mat>> m_SGops;
+	std::vector<std::vector<t_mat>> m_SGops, m_SGops_centr;
 
 	QSpinBox *m_maxBZ = nullptr;
 	QCheckBox *m_RemoveZeroes = nullptr;
@@ -91,6 +134,7 @@ protected:
 	t_mat m_crystA = tl2::unit<t_mat>(3);
 	t_mat m_crystB = tl2::unit<t_mat>(3);
 
+
 protected:
 	// for nuclei tab
 	void AddTabItem(int row=-1, const std::string& name="n/a", t_real bRe=0., t_real bIm=0.,
@@ -99,14 +143,10 @@ protected:
 	void MoveTabItemUp();
 	void MoveTabItemDown();
 
-	void Add3DItem(int row=-1);
-	void Set3DStatusMsg(const std::string& msg);
-
 	void TableCurCellChanged(int rowNew, int colNew, int rowOld, int colOld);
 	void TableCellEntered(const QModelIndex& idx);
 	void TableItemChanged(QTableWidgetItem *item);
 	void ShowTableContextMenu(const QPoint& pt);
-
 
 	void Load();
 	void Save();
@@ -119,6 +159,10 @@ protected:
 	void CalcB(bool bFullRecalc=true);
 	void Calc();
 
+	void Add3DItem(int row=-1);
+	void Set3DStatusMsg(const std::string& msg);
+
+	void ShowStructPlot();
 	void PlotMouseDown(bool left, bool mid, bool right);
 	void PlotMouseUp(bool left, bool mid, bool right);
 	void PickerIntersection(const t_vec3_gl* pos, std::size_t objIdx, const t_vec3_gl* posSphere);
@@ -139,6 +183,7 @@ protected:
 
 	virtual void closeEvent(QCloseEvent *evt) override;
 
+
 private:
 	int m_iCursorRow = -1;
 	bool m_ignoreChanges = 1;
@@ -149,6 +194,7 @@ private:
 	int m_iCursorRow_FindSG = -1;
 
 	static std::vector<std::string> g_default_colours;
+
 
 private:
 	std::vector<int> GetSelectedRows(bool sort_reversed = false) const;

@@ -16,11 +16,13 @@
 		<tolerance>2.500000e+01</tolerance>
 	</convofit>
 	<meta>
+		<doi>https://dx.doi.org/10.5281/zenodo.4117437</doi>
 		<info>Created with Takin/Convo.</info>
 		<module>takin/convo</module>
-		<timestamp>1611908605.610163</timestamp>
+		<timestamp>1671193932.149776</timestamp>
+		<url>https://code.ill.fr/scientific-software/takin</url>
 		<user>tw</user>
-		<version>2.0</version>
+		<version>2.3</version>
 	</meta>
 	<monteconvo>
 		<E_from>-9.804000e-01</E_from>
@@ -29,7 +31,8 @@
 		<S_offs>0</S_offs>
 		<S_scale>6e4</S_scale>
 		<S_slope>0</S_slope>
-		<algo>1</algo>
+		<algo>pop</algo>
+		<algo_idx>2</algo_idx>
 		<ana_foc>1</ana_foc>
 		<autosave/>
 		<crys/>

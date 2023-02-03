@@ -2,42 +2,71 @@
  * tlibs2
  * fitting and interpolation library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2012-2020
+ * @date 2012-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
- * @see http://seal.cern.ch/documents/minuit/mnusersguide.pdf
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_FITTER_H__
 #define __TLIBS2_FITTER_H__
 
-#include <Minuit2/FCNBase.h>
-#include <Minuit2/MnFcn.h>
-#include <Minuit2/FunctionMinimum.h>
-#include <Minuit2/MnMigrad.h>
-#include <Minuit2/MnPrint.h>
+#if __has_include(<Minuit2/FCNBase.h>) && __has_include(<Minuit2/MnTraceObject.h>)
+	#include <Minuit2/FCNBase.h>
+	#include <Minuit2/MnFcn.h>
+	#include <Minuit2/FunctionMinimum.h>
+	#include <Minuit2/MnMigrad.h>
+	#include <Minuit2/MnPrint.h>
+
+	#define __TLIBS2_USE_MINUIT__
+#else
+	#pragma message("tlibs2: Disabling Minuit library (not found).")
+#endif
 
 #include <vector>
+#include <span>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <algorithm>
 #include <limits>
+#include <type_traits>
 
 #include "log.h"
 #include "expr.h"
 
-#if defined(__cpp_concepts) && __cplusplus >= 201709L
-	#include "math20.h"
-#else
-	#include "math17.h"
-#endif
+#include "maths.h"
 
 
 namespace tl2 {
 
-using t_real_min = typename std::result_of<
-	decltype(&ROOT::Minuit2::MnFcn::Up)(ROOT::Minuit2::MnFcn)>::type;
+
+// ----------------------------------------------------------------------------
+// Minuit interface
+// @see http://seal.cern.ch/documents/minuit/mnusersguide.pdf
+// ----------------------------------------------------------------------------
+#ifdef __TLIBS2_USE_MINUIT__
+using t_real_min = std::invoke_result_t<
+	decltype(&ROOT::Minuit2::MnFcn::Up), ROOT::Minuit2::MnFcn>;
 
 
 // ----------------------------------------------------------------------------
@@ -183,7 +212,7 @@ class Chi2Function : public ROOT::Minuit2::FCNBase
 protected:
 	const FitterFuncModel<t_real_min> *m_pfkt = nullptr;
 
-	std::size_t m_uiLen = 0;
+	std::size_t m_num_pts = 0;
 	const t_real* m_px = nullptr;
 	const t_real* m_py = nullptr;
 	const t_real* m_pdy = nullptr;
@@ -191,14 +220,32 @@ protected:
 	t_real_min m_dSigma = 1.;
 	bool m_bDebug = 0;
 
+
 public:
 	Chi2Function(const FitterFuncModel<t_real_min>* fkt=0,
-		std::size_t uiLen=0, const t_real *px=0,
+		std::size_t num_pts=0, const t_real *px=0,
 		const t_real *py=0, const t_real *pdy=0)
-		: m_pfkt{fkt}, m_uiLen{uiLen}, m_px{px}, m_py{py}, m_pdy{pdy}
+		: m_pfkt{fkt}, m_num_pts{num_pts}, m_px{px}, m_py{py}, m_pdy{pdy}
 	{}
 
 	virtual ~Chi2Function() = default;
+
+
+	const Chi2Function<t_real> operator=(const Chi2Function<t_real>& other)
+	{
+		this->m_pfkt = other.m_pfkt;
+		this->m_px = other.m_px;
+		this->m_py = other.m_py;
+		this->m_pdy = other.m_pdy;
+		this->m_dSigma = other.m_dSigma;
+		this->m_bDebug = other.m_bDebug;
+	}
+
+	Chi2Function(const Chi2Function<t_real>& other)
+	{
+		operator=(other);
+	}
+
 
 	/*
 	 * chi^2 calculation
@@ -213,7 +260,7 @@ public:
 		FitterFuncModel<t_real_min>* pfkt = uptrFkt.get();
 
 		pfkt->SetParams(vecParams);
-		return tl2::chi2<t_real_min, decltype(*pfkt), const t_real*>(*pfkt, m_uiLen, m_px, m_py, m_pdy);
+		return tl2::chi2<t_real_min, decltype(*pfkt), const t_real*>(*pfkt, m_num_pts, m_px, m_py, m_pdy);
 	}
 
 	virtual t_real_min Up() const override { return m_dSigma*m_dSigma; }
@@ -245,6 +292,16 @@ protected:
 public:
 	MiniFunction(const FitterFuncModel<t_real_min>* fkt=0) : m_pfkt(fkt) {}
 	virtual ~MiniFunction() = default;
+
+	MiniFunction(const MiniFunction<t_real>& other)
+		: m_pfkt(other.m_pfkt), m_dSigma(other.m_dSigma)
+	{}
+
+	const MiniFunction<t_real> operator=(const MiniFunction<t_real>& other)
+	{
+		this->m_pfkt = other.m_pfkt;
+		this->m_dSigma = other.m_dSigma;
+	}
 
 	virtual t_real_min Up() const override { return m_dSigma*m_dSigma; }
 
@@ -545,12 +602,15 @@ bool minimise_expr(const std::string& func, const std::vector<std::string>& vecP
 
 	return false;
 }
+
+#endif	// __TLIBS2_USE_MINUIT__
 // ----------------------------------------------------------------------------
 
 
 
 // ----------------------------------------------------------------------------
 // interpolation
+// ----------------------------------------------------------------------------
 
 /**
  * @see http://mathworld.wolfram.com/BernsteinPolynomial.html
@@ -637,6 +697,7 @@ class Bezier
 		std::unique_ptr<t_vec[]> m_pvecs;
 		std::size_t m_iN;
 
+
 	public:
 		Bezier(std::size_t N, const T *px, const T *py) : m_iN(N)
 		{
@@ -662,12 +723,15 @@ template<class t_vec, typename T=typename t_vec::value_type>
 class BSpline
 {
 	protected:
-		std::unique_ptr<t_vec[]> m_pvecs;
-		std::size_t m_iN, m_iDegree;
-		std::vector<T> m_vecKnots;
+		T m_eps = std::numeric_limits<T>::epsilon();
+		std::unique_ptr<t_vec[]> m_pvecs{};
+		std::size_t m_iN, m_iDegree{};
+		std::vector<T> m_vecKnots{};
+
 
 	public:
-		BSpline(std::size_t N, const T *px, const T *py, unsigned int iDegree=3) : m_iN(N), m_iDegree(iDegree)
+		BSpline(std::size_t N, const T *px, const T *py,
+			unsigned int iDegree=3) : m_iN(N), m_iDegree(iDegree)
 		{
 			m_pvecs.reset(new t_vec[m_iN]);
 
@@ -681,13 +745,12 @@ class BSpline
 			std::size_t iM = m_iDegree + m_iN + 1;
 			m_vecKnots.resize(iM);
 
-			const T eps = std::numeric_limits<T>::epsilon();
 
 			// set knots to uniform, nonperiodic B-Spline
 			for(unsigned int i=0; i<m_iDegree+1; ++i)
-				m_vecKnots[i] = 0.+i*eps;
+				m_vecKnots[i] = 0.+i*m_eps;
 			for(unsigned int i=iM-m_iDegree-1; i<iM; ++i)
-				m_vecKnots[i] = 1.-i*eps;
+				m_vecKnots[i] = 1.-i*m_eps;
 			for(unsigned int i=m_iDegree+1; i<iM-m_iDegree-1; ++i)
 				m_vecKnots[i] = T(i+1-m_iDegree-1) / T(iM-2*m_iDegree-2 + 1);
 		}
@@ -710,6 +773,9 @@ class BSpline
 
 			return vec;
 		}
+
+
+		void SetEps(T eps) { m_eps = eps; }
 };
 
 
@@ -759,12 +825,187 @@ public:
 		T xrange = (*iter2)[0] - (*iterLower)[0];
 		T xpos = (x-(*iterLower)[0]) / xrange;
 
-		return lerp<T,T>((*iterLower)[1], (*iter2)[1], xpos);
+		return std::lerp((*iterLower)[1], (*iter2)[1], xpos);
 	}
+};
+// ------------------------------------------------------------------------------------------------
+
+
+
+// ------------------------------------------------------------------------------------------------
+// peak finder
+// ------------------------------------------------------------------------------------------------
+template<class T, std::size_t N> struct __sort_obj
+{
+	T vec[N];
 };
 
 
+template<class T, std::size_t N>
+bool __comp_fkt(const __sort_obj<T, N>& t0, const __sort_obj<T, N>& t1)
+{
+	return t0.vec[0] < t1.vec[0];
+}
+
+
+/**
+ * simultaneously sort two arrays
+ */
+template<class Iter = double*>
+void __sort_2(Iter begin1, Iter end1, Iter begin2)
+{
+	using T = typename std::iterator_traits<Iter>::value_type;
+
+	const std::size_t N = end1 - begin1;
+	std::unique_ptr<__sort_obj<T, 2>[]>obj{new __sort_obj<T, 2>[N]};
+
+	for(std::size_t i=0; i<N; ++i)
+	{
+		obj.get()[i].vec[0] = *(begin1+i);
+		obj.get()[i].vec[1] = *(begin2+i);
+	}
+
+	std::stable_sort(obj.get(), obj.get()+N, __comp_fkt<T, 2>);
+
+	for(std::size_t i=0; i<N; ++i)
+	{
+		*(begin1+i) = obj.get()[i].vec[0];
+		*(begin2+i) = obj.get()[i].vec[1];
+	}
+}
+
+
+/**
+ * find the zeros of a curve
+ */
+template<class t_cont>
+std::vector<std::size_t> find_zeroes(const t_cont& cont)
+{
+	const std::size_t num_pts = cont.size();
+	std::vector<std::size_t> indices;
+
+	for(std::size_t i=0; i<num_pts-1; ++i)
+	{
+		if(std::signbit(cont[i]) != std::signbit(cont[i+1]))
+			indices.push_back(i);
+	}
+
+	return indices;
+}
+
+
+/**
+ * try to identify local minima and maxima on a curve
+ */
+template<typename T>
+void find_peaks(std::size_t num_pts, const T* _px, const T* _py, unsigned int spline_order,
+	std::vector<T>& peaks_x, std::vector<T>& peaks_sizes,
+	std::vector<T>& peaks_widths, std::vector<bool>& peaks_minima,
+	std::size_t num_spline = 512, T eps = std::numeric_limits<T>::epsilon())
+{
+	if(num_pts < 1)
+		return;
+
+	using t_vec = tl2::vec<T, std::vector>;
+
+	// allocate memory
+	std::unique_ptr<T[]> uptrMem{new T[2*num_pts + 2*num_spline]};
+	T *px = uptrMem.get() + 0*num_pts;
+	T *py = uptrMem.get() + 1*num_pts;
+	T *spline_x = uptrMem.get() + 2*num_pts + 0*num_spline;
+	T *spline_y = uptrMem.get() + 2*num_pts + 1*num_spline;
+
+
+	// sort input values by x
+	std::copy(_px, _px+num_pts, px);
+	std::copy(_py, _py+num_pts, py);
+	__sort_2<T*>(px, px+num_pts, py);
+
+
+	BSpline<t_vec, T> spline(num_pts, px, py, spline_order);
+	spline.SetEps(eps);
+	const T* y_min = std::min_element(py, py+num_pts);
+
+	for(std::size_t iSpline=0; iSpline<num_spline; ++iSpline)
+	{
+		const T dT = T(iSpline) / T(num_spline-1);
+		t_vec vec = spline(dT);
+
+		spline_x[iSpline] = vec[0];
+		spline_y[iSpline] = vec[1];
+	}
+
+
+	// differentiate curve
+	std::vector<T> spline_diff = tl2::diff<std::vector<T>>(
+		std::span<T>(spline_x, num_spline), std::span<T>(spline_y, num_spline));
+	std::vector<T> spline_diff2 = tl2::diff<std::vector<T>>(
+		std::span<T>(spline_x, num_spline), std::span<T>(spline_diff.data(), num_spline));
+
+	// find zeros
+	std::vector<std::size_t> zeros = find_zeroes(spline_diff);
+
+
+	for(std::size_t zero_idx=0; zero_idx<zeros.size(); ++zero_idx)
+	{
+		const std::size_t cur_zero_idx = zeros[zero_idx];
+
+		// saddle point
+		if(tl2::equals_0<T>(spline_diff2[cur_zero_idx], eps))
+			continue;
+
+		// minima or maxima
+		bool is_minimum = (spline_diff2[cur_zero_idx] > 0.);
+
+		int min_idx_left = -1;
+		int min_idx_right = -1;
+		if(zero_idx > 0)
+			min_idx_left = zeros[zero_idx-1];
+		if(zero_idx < zeros.size() - 1)
+			min_idx_right = zeros[zero_idx+1];
+
+		T height = 0.;
+		T width = 0.;
+		T div = 0.;
+
+		// extremum left of the peak
+		if(min_idx_left >= 0)
+		{
+			height += (spline_y[cur_zero_idx] - spline_y[min_idx_left]);
+			width += std::abs((spline_x[cur_zero_idx] - spline_x[min_idx_left]));
+			div += 1.;
+		}
+
+		// extremum right of the peak
+		if(min_idx_right >= 0)
+		{
+			height += (spline_y[cur_zero_idx] - spline_y[min_idx_right]);
+			width += std::abs((spline_x[cur_zero_idx] - spline_x[min_idx_right]));
+			div += 1.;
+		}
+
+		// no adjacent extrema...
+		if(min_idx_left < 0 && min_idx_right < 0)
+		{
+			height = spline_y[cur_zero_idx] - *y_min;
+			width = (px[num_pts-1] - px[0]) / 10.;	// guess something...
+			div = 1.;
+		}
+
+		if(div != 0.)
+		{
+			height /= div;
+			width /= div;
+		}
+
+		peaks_x.push_back(spline_x[cur_zero_idx]);
+		peaks_sizes.push_back(height);
+		peaks_widths.push_back(width);
+		peaks_minima.push_back(is_minimum);
+	}
+}
 // ----------------------------------------------------------------------------
+
 
 }
 

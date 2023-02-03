@@ -1,8 +1,29 @@
 /**
  * Scan viewer
  * @author Tobias Weber <tweber@ill.fr>
- * @date mar-2015 - 2021
+ * @date mar-2015 - 2022
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "scanviewer.h"
@@ -51,7 +72,7 @@ namespace fs = boost::filesystem;
 ScanViewerDlg::ScanViewerDlg(QWidget* pParent)
 	: QDialog(pParent, Qt::WindowTitleHint|Qt::WindowCloseButtonHint|Qt::WindowMinMaxButtonsHint),
 		m_settings("takin", "scanviewer"),
-		m_vecExts({	".dat", ".DAT", ".scn", ".SCN", ".ng0", ".NG0", ".log", ".LOG", "" }),
+		m_vecExts({ ".dat", ".DAT", ".scn", ".SCN", ".ng0", ".NG0", ".log", ".LOG", ".nxs", ".NXS", ".hdf", ".HDF", "" }),
 		m_pFitParamDlg(new FitParamDlg(this, &m_settings))
 {
 	this->setupUi(this);
@@ -72,6 +93,7 @@ ScanViewerDlg::ScanViewerDlg(QWidget* pParent)
 	plot->setCanvasBackground(colorBck);
 
 	m_plotwrap.reset(new QwtPlotWrapper(plot, 2, true));
+
 
 	QPen penCurve;
 	penCurve.setColor(QColor(0,0,0x99));
@@ -192,7 +214,7 @@ void ScanViewerDlg::SetAbout()
 {
 	labelVersion->setText("Version " TAKIN_VER ".");
 	labelWritten->setText("Written by Tobias Weber <tweber@ill.fr>.");
-	labelYears->setText("Years: 2015 - 2021.");
+	labelYears->setText("Years: 2015 - 2022.");
 
 	std::string strCC = "Built";
 #ifdef BOOST_PLATFORM
@@ -221,6 +243,7 @@ void ScanViewerDlg::closeEvent(QCloseEvent* pEvt)
 	m_settings.setValue("geo", saveGeometry());
 	m_settings.setValue("last_dir", QString(m_strCurDir.c_str()));
 
+	// save recent directory list
 	QStringList lstDirs;
 	for(int iDir=0; iDir<comboPath->count(); ++iDir)
 	{
@@ -286,7 +309,8 @@ void ScanViewerDlg::ClearPlot()
 	comboX->clear();
 	comboY->clear();
 	comboMon->clear();
-	textRoot->clear();
+	textExportedFile->clear();
+	textRawFile->clear();
 	spinStart->setValue(0);
 	spinStop->setValue(0);
 	spinSkip->setValue(0);
@@ -328,7 +352,7 @@ void ScanViewerDlg::SelectDir()
 	if(!m_settings.value("main/native_dialogs", 1).toBool())
 		fileopt = QFileDialog::DontUseNativeDialog;
 
-	QString strCurDir = (m_strCurDir==""?".":m_strCurDir.c_str());
+	QString strCurDir = (m_strCurDir==""?"~":m_strCurDir.c_str());
 	QString strDir = QFileDialog::getExistingDirectory(this, "Select directory",
 		strCurDir, QFileDialog::ShowDirsOnly | fileopt);
 	if(strDir != "")
@@ -367,17 +391,29 @@ void ScanViewerDlg::FileSelected()
 	if(lstSelected.size() == 0)
 		return;
 
+	// clear previous files
 	ClearPlot();
+
+	// get first selected file
 	m_strCurFile = lstSelected.first()->text().toStdString();
 
-	std::vector<std::string> vecStrSelected;
+	// get the rest of the selected files
+	std::vector<std::string> vecSelectedFiles, vecSelectedFilesRest;
 	for(const QListWidgetItem *pLstItem : lstSelected)
 	{
 		if(!pLstItem) continue;
-		if(pLstItem == lstSelected.first()) continue;
 
-		vecStrSelected.push_back(m_strCurDir + pLstItem->text().toStdString());
+		std::string selectedFile = m_strCurDir + pLstItem->text().toStdString();
+		vecSelectedFiles.push_back(selectedFile);
+
+		// ignore first file
+		if(pLstItem == lstSelected.first())
+			continue;
+
+		vecSelectedFilesRest.push_back(selectedFile);
 	}
+
+	ShowRawFiles(vecSelectedFiles);
 
 	// first file
 	std::string strFile = m_strCurDir + m_strCurFile;
@@ -385,7 +421,7 @@ void ScanViewerDlg::FileSelected()
 	if(!m_pInstr) return;
 
 	// merge with other selected files
-	for(const std::string& strOtherFile : vecStrSelected)
+	for(const std::string& strOtherFile : vecSelectedFilesRest)
 	{
 		std::unique_ptr<tl::FileInstrBase<t_real>> pToMerge(
 			tl::FileInstrBase<t_real>::LoadInstr(strOtherFile.c_str()));
@@ -399,7 +435,7 @@ void ScanViewerDlg::FileSelected()
 	std::string strMonVar = m_pInstr->GetMonVar();
 	//tl::log_info("Count var: ", strCntVar, ", mon var: ", strMonVar);
 
-	const std::wstring strPM = tl::get_spec_char_utf16("pm");
+	const std::wstring strPM = tl::get_spec_char_utf16("pm");  // +-
 
 	m_bDoUpdate = 0;
 	int iIdxX=-1, iIdxY=-1, iIdxMon=-1, iCurIdx=0;
@@ -430,10 +466,18 @@ void ScanViewerDlg::FileSelected()
 		std::string strFirstScanVar = tl::str_to_lower(vecScanVars[0]);
 		std::string strColLower = tl::str_to_lower(strCol);
 
-		if(vecScanVars.size() && strFirstScanVar == strColLower)
-			iIdxX = iCurIdx;
-		if(vecScanVars.size() && strFirstScanVar.substr(0, strCol.length()) == strColLower)
-			iIdxX = iCurIdx;
+		if(vecScanVars.size())
+		{
+			if(strFirstScanVar == strColLower)
+				iIdxX = iCurIdx;
+			else if(strFirstScanVar.substr(0, strCol.length()) == strColLower)
+				iAlternateX = iCurIdx;
+			// sometimes the scanned variable is named "QH", but the data column "H"
+			else if(strFirstScanVar.substr(1) == strColLower)
+				iAlternateX = iCurIdx;
+		}
+
+		// count and monitor variables
 		if(tl::str_to_lower(strCntVar) == strColLower)
 			iIdxY = iCurIdx;
 		if(tl::str_to_lower(strMonVar) == strColLower)
@@ -1004,7 +1048,7 @@ void ScanViewerDlg::PlotScan()
  */
 void ScanViewerDlg::GenerateExternal(int iLang)
 {
-	textRoot->clear();
+	textExportedFile->clear();
 	if(!m_vecX.size() || !m_vecY.size())
 		return;
 
@@ -1023,8 +1067,52 @@ void ScanViewerDlg::GenerateExternal(int iLang)
 	else
 		tl::log_err("Unknown external language.");
 
-	textRoot->setText(strSrc.c_str());
+	textExportedFile->setText(strSrc.c_str());
 
+}
+
+
+/**
+ * show raw scan files
+ */
+void ScanViewerDlg::ShowRawFiles(const std::vector<std::string>& files)
+{
+	QString rawFiles;
+
+	for(const std::string& file : files)
+	{
+		std::size_t size = tl::get_file_size(file);
+		std::ifstream ifstr(file);
+		if(!ifstr)
+			continue;
+
+		auto ch_ptr = std::unique_ptr<char[]>(new char[size+1]);
+		ch_ptr[size] = 0;
+		ifstr.read(ch_ptr.get(), size);
+
+		// check if the file is of non-binary type
+		bool is_printable = std::all_of(ch_ptr.get(), ch_ptr.get()+size, [](char ch) -> bool
+		{
+			bool is_bin = std::iscntrl(ch) != 0 && std::isspace(ch) == 0;
+			//if(is_bin)
+			//	std::cerr << "Non-printable character: 0x" << std::hex << int((unsigned char)ch) << std::endl;
+			return !is_bin;
+		});
+
+		if(is_printable)
+		{
+			//rawFiles += ("# File: " + file + "\n").c_str();
+			rawFiles += ch_ptr.get();
+			rawFiles += "\n";
+		}
+		else
+		{
+			//tl::log_err("Cannot print binary file \"", file, "\".");
+			rawFiles = "<binary data>";
+		}
+	}
+
+	textRawFile->setText(rawFiles);
 }
 
 
@@ -1125,7 +1213,8 @@ void ScanViewerDlg::ChangedPath()
 	{
 		m_strCurDir = tl::wstr_to_str(dir.native());
 		tl::trim(m_strCurDir);
-		if(*(m_strCurDir.begin()+m_strCurDir.length()-1) != fs::path::preferred_separator)
+		std::size_t len = m_strCurDir.length();
+		if(len > 0 && *(m_strCurDir.begin()+len-1) != fs::path::preferred_separator)
 			m_strCurDir += fs::path::preferred_separator;
 		UpdateFileList();
 
@@ -1537,7 +1626,7 @@ void ScanViewerDlg::FitGauss()
 	// prefit
 	unsigned int iOrder = m_settings.value("spline_order", 6).toInt();
 	std::vector<t_real> vecMaximaX, vecMaximaSize, vecMaximaWidth;
-	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder, 
+	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder,
 		vecMaximaX, vecMaximaSize, vecMaximaWidth, g_dEpsGfx);
 
 
@@ -1640,7 +1729,7 @@ void ScanViewerDlg::FitLorentz()
 	// prefit
 	unsigned int iOrder = m_settings.value("spline_order", 6).toInt();
 	std::vector<t_real> vecMaximaX, vecMaximaSize, vecMaximaWidth;
-	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder, 
+	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder,
 		vecMaximaX, vecMaximaSize, vecMaximaWidth, g_dEpsGfx);
 
 
@@ -1750,7 +1839,7 @@ void ScanViewerDlg::FitVoigt()
 	// prefit
 	unsigned int iOrder = m_settings.value("spline_order", 6).toInt();
 	std::vector<t_real> vecMaximaX, vecMaximaSize, vecMaximaWidth;
-	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder, 
+	tl::find_peaks<t_real>(m_vecX.size(), m_vecX.data(), m_vecY.data(), iOrder,
 		vecMaximaX, vecMaximaSize, vecMaximaWidth, g_dEpsGfx);
 
 

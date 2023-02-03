@@ -4,6 +4,27 @@
 # @date 2012-2017
 # @license GPLv2 or GPLv3
 #
+# ----------------------------------------------------------------------------
+# tlibs -- a physical-mathematical C++ template library
+# Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 
 project(tlibs)
 cmake_minimum_required(VERSION 3.0)
@@ -16,7 +37,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}" ".")
 set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}")
 #set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 
-find_package(Boost REQUIRED COMPONENTS iostreams system filesystem regex REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams system filesystem REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Minuit2 REQUIRED)
@@ -31,10 +52,11 @@ set(CMAKE_AUTOUIC OFF)
 #message("CMake source dir: ${CMAKE_SOURCE_DIR}")
 #message("Binary dir: ${CMAKE_BINARY_DIR}")
 message("Install path prefix: ${CMAKE_INSTALL_PREFIX}")
+message("OpenGL include dir: \"${OPENGL_INCLUDE_DIR}\".")
 
 
 add_definitions(-DNDEBUG)
-add_definitions(-DUSE_IOSTR -DUSE_BOOST_REX)
+add_definitions(-DUSE_IOSTR)
 add_definitions(-DNO_LAPACK)
 #add_definitions(-DUSE_FFTW)
 add_definitions(-DINSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
@@ -45,7 +67,10 @@ include_directories("${PROJECT_SOURCE_DIR}" ".")
 include_directories("${Boost_INCLUDE_DIRS}/..")
 include_directories("${FREETYPE_INCLUDE_DIRS}")
 include_directories("${Minuit2_INCLUDE_DIRS}")
-include_directories("${OPENGL_INCLUDE_DIR}" "${OPENGL_INCLUDE_DIR}/GL" "${OPENGL_INCLUDE_DIR}/OpenGL")
+include_directories("${OPENGL_INCLUDE_DIR}" 
+	"${OPENGL_INCLUDE_DIR}/GL" 
+	"${OPENGL_INCLUDE_DIR}/OpenGL"
+	"${OPENGL_INCLUDE_DIR}/Headers")
 
 
 add_definitions(-std=c++11)
@@ -60,7 +85,7 @@ add_library(tlibs SHARED
 	file/tmp.cpp  file/loadinstr.cpp  file/x3d.cpp
 	log/log.cpp log/debug.cpp
 	helper/flags.cpp
-	math/fourier.cpp  math/linalg2.cpp  math/rand.cpp
+	math/linalg2.cpp  math/rand.cpp
 	net/tcp.cpp
 	string/spec_char.cpp  string/eval.cpp
 	gfx/gl.cpp  gfx/gnuplot.cpp
@@ -73,12 +98,12 @@ target_link_libraries(tlibs ${Boost_LIBRARIES} Threads::Threads
 )
 
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-	add_custom_command(TARGET tlibs POST_BUILD
-		COMMAND strip -v $<TARGET_FILE:tlibs>
-		MAIN_DEPENDENCY tlibs
-	)
-endif()
+#if(CMAKE_BUILD_TYPE STREQUAL "Release")
+#	add_custom_command(TARGET tlibs POST_BUILD
+#		COMMAND strip -v $<TARGET_FILE:tlibs>
+#		MAIN_DEPENDENCY tlibs
+#	)
+#endif()
 # -----------------------------------------------------------------------------
 
 

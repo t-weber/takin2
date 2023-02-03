@@ -5,8 +5,9 @@ Overview of former and current Takin repositories
 	https://code.ill.fr/scientific-software/takin
 	Main development repository group for Takin 2.
 
+	https://github.com/ILLGrenoble/takin
 	https://github.com/t-weber/takin2
-	Unified release repository for Takin 2.
+	Unified release repositories for Takin 2.
 
 - From 2016 till 2019:
 	https://github.com/t-weber/takin
@@ -25,3 +26,9 @@ Software DOIs
 
 	- Version 1 (2014 - 2019):
 		http://dx.doi.org/10.5281/zenodo.3961491
+
+	- Library (tlibs, 2015 - now):
+		https://doi.org/10.5281/zenodo.5717779
+
+	- TAS-Paths (2021-2022):
+		https://doi.org/10.5281/zenodo.4625649

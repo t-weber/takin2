@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date dec-2015
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __CONVOFIT_SCAN_H__
@@ -73,10 +94,10 @@ struct Scan
 	std::vector<t_real_sc> vecCts, vecMon;
 	std::vector<t_real_sc> vecCtsErr, vecMonErr;
 
-	t_real_sc vecScanOrigin[4];		// scan origin
-	t_real_sc vecScanDir[4];		// actual scan axis
-	t_real_sc vecMainScanDir[4];	// principal scan axis
-	unsigned int m_iScIdx = 0;		// index of principal scan axis
+	t_real_sc vecScanOrigin[4];      // scan origin
+	t_real_sc vecScanDir[4];         // actual scan axis
+	t_real_sc vecMainScanDir[4];     // principal scan axis
+	unsigned int m_iScIdx = 0;       // index of principal scan axis
 
 
 	ScanPoint InterpPoint(std::size_t i, std::size_t N) const
@@ -107,8 +128,9 @@ extern bool load_file(const std::vector<std::string>& vecFiles, Scan& scan,
 	unsigned iScanAxis = 0, bool bVerbose = 1);
 
 extern bool load_file(const char* pcFile, Scan& scan,
-	bool bNormToMon = 1, const Filter& filter=Filter(),
-	bool bFlipCoords=0, bool bUseFirstAndLastPoints = 0);
+	bool bNormToMon = 1, const Filter& filter = Filter(),
+	bool bFlipCoords = 0, bool bUseFirstAndLastPoints = 0);
+
 extern bool save_file(const char* pcFile, const Scan& sc);
 
 

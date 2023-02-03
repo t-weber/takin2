@@ -2,16 +2,36 @@
  * tlibs2
  * file library
  * @author Tobias Weber <tobias.weber@tum.de>, <tweber@ill.fr>
- * @date 2013-2020
+ * @date 2013-2021
+ * @note Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
  * @license GPLv3, see 'LICENSE' file
- * @desc Forked on 7-Nov-2018 from my privately and TUM-PhD-developed "tlibs" project (https://github.com/t-weber/tlibs).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_FILE_H__
 #define __TLIBS2_FILE_H__
 
 
-#if __has_include(<filesystem>)
+#if __has_include(<filesystem>) && !defined(__APPLE_CC__)
 	#include <filesystem>
 	namespace fs = std::filesystem;
 #else
@@ -27,7 +47,6 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/optional.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -35,6 +54,7 @@
 #include <vector>
 #include <tuple>
 #include <map>
+#include <optional>
 #include <algorithm>
 
 #include "str.h"
@@ -113,7 +133,7 @@ std::tuple<bool, t_str> load_file(const t_str& file)
  * @param len: length in size of T
  */
 template <class T, class t_char = char>
-std::pair<bool, std::shared_ptr<T[]>> 
+std::pair<bool, std::shared_ptr<T[]>>
 get_file_mem(std::basic_istream<t_char>& istr, std::size_t offs, std::size_t len=1)
 {
 	bool ok = true;
@@ -138,10 +158,10 @@ get_file_mem(std::basic_istream<t_char>& istr, std::size_t offs, std::size_t len
 
 // ----------------------------------------------------------------------------
 
-template<typename t_char=char>
-bool dir_exists(const t_char* pcDir)
+template<typename t_char = char>
+bool dir_exists(const std::basic_string<t_char>& strDir)
 {
-	fs::path path(pcDir);
+	fs::path path(strDir);
 	bool bExists = fs::exists(path);
 	bool bIsDir = fs::is_directory(path);
 
@@ -150,9 +170,9 @@ bool dir_exists(const t_char* pcDir)
 
 
 template<typename t_char=char>
-bool file_exists(const t_char* pcDir)
+bool file_exists(const std::basic_string<t_char>& strDir)
 {
-	fs::path path(pcDir);
+	fs::path path(strDir);
 	bool bExists = fs::exists(path);
 	bool bIsDir = fs::is_directory(path);
 	bool bIsFile = fs::is_regular_file(path);
@@ -170,17 +190,17 @@ bool file_exists(const t_char* pcDir)
  */
 template<bool bRecursive=0, class t_char = char,
 	template<class...> class t_cont = std::vector>
-t_cont<std::basic_string<t_char>> get_all_files(const t_char* pcPath)
+t_cont<std::basic_string<t_char>> get_all_files(const std::basic_string<t_char>& strPath)
 {
 	t_cont<std::basic_string<t_char>> vecFiles;
-	if(!dir_exists(pcPath))
+	if(!dir_exists(strPath))
 		return vecFiles;
 
 	using t_iter = typename std::conditional<bRecursive,
 		fs::recursive_directory_iterator,
 		fs::directory_iterator>::type;
 
-	fs::path path(pcPath);
+	fs::path path(strPath);
 	t_iter iter(path), iterEnd;
 	for(; iter!=iterEnd; ++iter)
 	{
@@ -265,10 +285,10 @@ template<class t_str> struct StringComparer<t_str, 0>
 
 
 template<class t_str = std::string>
-boost::optional<prop::string_path<t_str, prop::id_translator<t_str>>>
+std::optional<prop::string_path<t_str, prop::id_translator<t_str>>>
 get_prop_path(const std::string& _strAddr, const typename t_str::value_type& chSep)
 {
-	using t_ret = boost::optional<prop::string_path<t_str, prop::id_translator<t_str>>>;
+	using t_ret = std::optional<prop::string_path<t_str, prop::id_translator<t_str>>>;
 
 	t_str strAddr = _strAddr;
 	trim(strAddr);
@@ -282,7 +302,7 @@ get_prop_path(const std::string& _strAddr, const typename t_str::value_type& chS
 	try
 	{
 		prop::string_path<t_str, prop::id_translator<t_str>> path(strAddr, chSep);
-		return boost::optional<decltype(path)>(path);
+		return std::optional<decltype(path)>(path);
 	}
 	catch(const prop::ptree_bad_path& ex) {}
 	catch(const std::exception& ex) {}
@@ -297,7 +317,7 @@ get_prop_path(const std::string& _strAddr, const typename t_str::value_type& chS
 /**
  * property tree
  */
-template<class _t_str = std::string, bool bCaseSensitive=0>
+template<class _t_str = std::string, bool bCaseSensitive = false>
 class Prop
 {
 public:
@@ -308,7 +328,7 @@ public:
 
 
 protected:
-	t_prop m_prop;
+	t_prop m_prop{};
 	t_ch m_chSep = '/';
 
 
@@ -446,11 +466,14 @@ public:
 	}
 
 
-	bool Load(const t_str& strFile) { return Load(strFile.c_str()); }
-	bool Load(const t_str& strFile, PropType ty) { return Load(strFile.c_str(), ty); }
+	bool Load(const t_str& strFile)
+	{ return Load(strFile.c_str()); }
+	bool Load(const t_str& strFile, PropType ty)
+	{ return Load(strFile.c_str(), ty); }
 
 
-	bool Save(const t_str& strFile) const { return Save(strFile.c_str()); }
+	bool Save(const t_str& strFile) const
+	{ return Save(strFile.c_str()); }
 	bool Save(const t_str& strFile, PropType ty) const
 	{ return Save(strFile.c_str(), ty); }
 
@@ -490,11 +513,11 @@ public:
 
 
 	template<typename T>
-	boost::optional<T> QueryOpt(const t_str& strAddr) const
+	std::optional<T> QueryOpt(const t_str& strAddr) const
 	{
 		bool bOk = 0;
 		T tVal = Query<T>(strAddr, nullptr, &bOk);
-		return bOk ? boost::optional<T>(std::move(tVal)) : boost::optional<T>();
+		return bOk ? std::optional<T>(std::move(tVal)) : std::nullopt;
 	}
 
 

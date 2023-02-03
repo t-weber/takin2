@@ -3,13 +3,40 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 2016 -- 2020
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "sqwfactory.h"
-#include "sqw.h"
+
+#include "modules/simple_phonon.h"
+#include "modules/simple_magnon.h"
+#include "modules/kdtree.h"
+#include "modules/table1d.h"
+#include "modules/elast.h"
+#include "modules/uniform_grid.h"
+
 #include "sqw_proc.h"
 #include "sqw_proc_impl.h"
-#include "sqw_uniform_grid.h"
 #include "sqwrawdelegate.h"
 #include "sqwnull.h"
 
@@ -175,10 +202,8 @@ std::shared_ptr<SqwBase> construct_sqw(const std::string& strName,
 	{
 		tl::log_debug("Constructing \"", iterExt->first, "\" S(q,w) module via external interface.");
 
-		// limit number of spawned child processes
-		std::size_t iNumProcesses = g_iMaxThreads;
-		if(iNumProcesses > 8)
-			iNumProcesses = 8;
+		// number of spawned child processes
+		std::size_t iNumProcesses = get_max_processes();
 
 		return std::make_shared<SqwProc<SqwNull>>(strConfigFile.c_str(),
 			SqwProcStartMode::START_PARENT_CREATE_CHILD, nullptr,
@@ -203,6 +228,7 @@ void unload_sqw_ext_plugins()
 {
 	g_mapSqwExt.clear();
 	g_vecExtMods.clear();
+
 	tl::log_debug("Unloaded all external plugins.");
 }
 
@@ -294,6 +320,9 @@ void unload_sqw_plugins()
 {
 	for(auto& pMod : g_vecMods)
 	{
+		if(!pMod)
+			continue;
+
 		std::function<t_fkt_info> fktInfo =
 #ifndef __MINGW32__
 			pMod->get<t_pfkt_info>("takin_sqw_info");
@@ -325,7 +354,6 @@ void unload_sqw_plugins()
 	g_vecMods.clear();
 	tl::log_debug("Unloaded all plugins.");
 
-
 	// also unload the external process plugins
 	unload_sqw_ext_plugins();
 }
@@ -336,7 +364,11 @@ void load_sqw_plugins()
 	static bool bPluginsLoaded = 0;
 	if(!bPluginsLoaded)
 	{
-		std::vector<std::string> vecPlugins = find_resource_dirs("plugins");
+		// look in the directories "plugins" and "takin_plugins"
+		std::vector<std::string> vecPlugins = find_resource_dirs("plugins", false);
+		for(const std::string& plugin : find_resource_dirs("takin_plugins", false))
+			vecPlugins.push_back(plugin);
+
 		for(const std::string& strPlugins : vecPlugins)
 		{
 			tl::log_info("Loading plugins from directory: ", strPlugins, ".");
@@ -350,7 +382,7 @@ void load_sqw_plugins()
 					std::shared_ptr<so::shared_library> pmod =
 						std::make_shared<so::shared_library>(strPlugin,
 							so::load_mode::rtld_lazy | so::load_mode::rtld_local);
-					if(!pmod)
+					if(!pmod || !*pmod)
 						continue;
 
 					// import info function

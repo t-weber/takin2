@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date june-2015
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __NUMINT_H__
@@ -29,6 +50,10 @@ R numint_trap(const std::function<R(A)>& fkt,
 }
 
 
+/**
+ * trapezoid rule
+ * @see e.g.: https://en.wikipedia.org/wiki/Trapezoidal_rule
+ */
 template<class R=double, class A=double>
 R numint_trapN(const std::function<R(A)>& fkt,
 	A x0, A x1, std::size_t N)
@@ -75,6 +100,10 @@ R numint_simp(const std::function<R(A)>& fkt,
 }
 
 
+/**
+ * Simpson's rule
+ * @see e.g.: https://en.wikipedia.org/wiki/Simpson%27s_rule
+ */
 template<class R=double, class A=double>
 R numint_simpN(const std::function<R(A)>& fkt,
 	A x0, A x1, std::size_t N)
@@ -99,6 +128,7 @@ R numint_simpN(const std::function<R(A)>& fkt,
 
 /**
  * convolution integral of fkt0 and fkt1
+ * @see https://en.wikipedia.org/wiki/Convolution
  */
 template<class R=double, class A=double>
 R convolute(const std::function<R(A)>& fkt0, const std::function<R(A)>& fkt1,
@@ -116,6 +146,10 @@ R convolute(const std::function<R(A)>& fkt0, const std::function<R(A)>& fkt1,
 }
 
 
+/**
+ * discrete convolution
+ * @see https://en.wikipedia.org/wiki/Convolution#Discrete_convolution
+ */
 template<class cont_type = std::vector<double>>
 cont_type convolute_discrete(const cont_type& f, const cont_type& g)
 {
@@ -144,6 +178,7 @@ cont_type convolute_discrete(const cont_type& f, const cont_type& g)
 
 /**
  * Newton iteration
+ * @see https://en.wikipedia.org/wiki/Newton%27s_method
  */
 template<class T = double>
 T newton(const std::function<T(T)>& fkt, const std::function<T(T)>& diff,

@@ -3,6 +3,24 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 15-Jun-2018
  * @license see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include "cliparser.h"
@@ -12,9 +30,6 @@
 #include "tlibs2/libs/str.h"
 
 #include <cmath>
-
-
-using t_real = t_real_cli;
 
 
 // ----------------------------------------------------------------------------
@@ -46,7 +61,7 @@ std::shared_ptr<Symbol> Symbol::uminus(const Symbol &sym)
 {
 	if(sym.GetType()==SymbolType::REAL)
 	{ // -1.23
-		return std::make_shared<SymbolReal>(-dynamic_cast<const SymbolReal&>(sym).GetValue()); 
+		return std::make_shared<SymbolReal>(-dynamic_cast<const SymbolReal&>(sym).GetValue());
 	}
 	if(sym.GetType()==SymbolType::ARRAY)
 	{ // -[1,2,3]
@@ -58,7 +73,7 @@ std::shared_ptr<Symbol> Symbol::uminus(const Symbol &sym)
 	}
 	else if(sym.GetType()==SymbolType::DATASET)
 	{ // -data
-		return std::make_shared<SymbolDataset>(-dynamic_cast<const SymbolDataset&>(sym).GetValue()); 
+		return std::make_shared<SymbolDataset>(-dynamic_cast<const SymbolDataset&>(sym).GetValue());
 	}
 
 	return nullptr;
@@ -73,7 +88,7 @@ std::shared_ptr<Symbol> Symbol::add(const Symbol &sym1, const Symbol &sym2)
 	if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::REAL)
 	{ // 1.23 + 1.23
 		return std::make_shared<SymbolReal>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() + 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() +
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 	if(sym1.GetType()==SymbolType::ARRAY && sym2.GetType()==SymbolType::ARRAY)
@@ -106,25 +121,25 @@ std::shared_ptr<Symbol> Symbol::add(const Symbol &sym1, const Symbol &sym2)
 	else if(sym1.GetType()==SymbolType::STRING && sym2.GetType()==SymbolType::STRING)
 	{ // "abc" + "123"
 		return std::make_shared<SymbolString>(
-			dynamic_cast<const SymbolString&>(sym1).GetValue() + 
+			dynamic_cast<const SymbolString&>(sym1).GetValue() +
 			dynamic_cast<const SymbolString&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::DATASET)
 	{ // data1 + data2
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() + 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() +
 			dynamic_cast<const SymbolDataset&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::REAL)
 	{ // data + 1.23
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() + 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() +
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::REAL)
 	{ // 1.23 + data
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() + 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() +
 			dynamic_cast<const SymbolDataset&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::STRING && sym2.GetType()==SymbolType::REAL)
@@ -161,7 +176,7 @@ std::shared_ptr<Symbol> Symbol::sub(const Symbol &sym1, const Symbol &sym2)
 	if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::REAL)
 	{ // 1.23 - 2.34
 		return std::make_shared<SymbolReal>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() - 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() -
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 	if(sym1.GetType()==SymbolType::ARRAY && sym2.GetType()==SymbolType::ARRAY)
@@ -185,13 +200,13 @@ std::shared_ptr<Symbol> Symbol::sub(const Symbol &sym1, const Symbol &sym2)
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::DATASET)
 	{ // data1 - data2
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() - 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() -
 			dynamic_cast<const SymbolDataset&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::REAL)
 	{ // data - 1.23
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() - 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() -
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 
@@ -212,7 +227,7 @@ std::shared_ptr<Symbol> Symbol::mul(const Symbol &sym1, const Symbol &sym2)
 	if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::REAL)
 	{ // 1.23 * 2.34
 		return std::make_shared<SymbolReal>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() * 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() *
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::STRING)
@@ -261,13 +276,13 @@ std::shared_ptr<Symbol> Symbol::mul(const Symbol &sym1, const Symbol &sym2)
 	else if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::DATASET)
 	{ // 3 * data
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() * 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() *
 			dynamic_cast<const SymbolDataset&>(sym2).GetValue());
 	}
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::REAL)
 	{ // data * 3
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() * 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() *
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 
@@ -288,7 +303,7 @@ std::shared_ptr<Symbol> Symbol::div(const Symbol &sym1, const Symbol &sym2)
 	if(sym1.GetType()==SymbolType::REAL && sym2.GetType()==SymbolType::REAL)
 	{ // 1.23 / 5.67
 		return std::make_shared<SymbolReal>(
-			dynamic_cast<const SymbolReal&>(sym1).GetValue() / 
+			dynamic_cast<const SymbolReal&>(sym1).GetValue() /
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 	if(sym1.GetType()==SymbolType::ARRAY && sym2.GetType()==SymbolType::REAL)
@@ -302,7 +317,7 @@ std::shared_ptr<Symbol> Symbol::div(const Symbol &sym1, const Symbol &sym2)
 	else if(sym1.GetType()==SymbolType::DATASET && sym2.GetType()==SymbolType::REAL)
 	{ // data / 5.
 		return std::make_shared<SymbolDataset>(
-			dynamic_cast<const SymbolDataset&>(sym1).GetValue() / 
+			dynamic_cast<const SymbolDataset&>(sym1).GetValue() /
 			dynamic_cast<const SymbolReal&>(sym2).GetValue());
 	}
 

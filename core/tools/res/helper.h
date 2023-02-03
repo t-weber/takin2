@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date nov-2016
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TAKIN_RES_AUX_H__
@@ -15,11 +36,11 @@
 
 
 /**
- * transforms resolution ellipsoid from <Qpara Qperp Qup> 
+ * transforms resolution ellipsoid from <Qpara Qperp Qup>
  * to crystal hkl coordinate system
  */
 template<class t_mat, class t_vec, class t_real = typename t_mat::value_type>
-std::tuple<t_mat, t_vec, t_vec> 
+std::tuple<t_mat, t_vec, t_vec>
 conv_lab_to_rlu(t_real dAngleQVec0,
 	const t_mat& matUB, const t_mat& matUBinv,
 	const t_mat& reso, const t_vec& reso_v, const t_vec& Q_avg)
@@ -45,11 +66,11 @@ conv_lab_to_rlu(t_real dAngleQVec0,
 
 
 /**
- * transforms resolution ellipsoid from <Qpara Qperp Qup> 
+ * transforms resolution ellipsoid from <Qpara Qperp Qup>
  * to crystal orientation vector hkl system
  */
 template<class t_mat, class t_vec, class t_real = typename t_mat::value_type>
-std::tuple<t_mat, t_vec, t_vec> 
+std::tuple<t_mat, t_vec, t_vec>
 conv_lab_to_rlu_orient(t_real dAngleQVec0,
 	const t_mat& matUB, const t_mat& matUBinv,
 	const t_mat& matUrlu, const t_mat& matUinvrlu,

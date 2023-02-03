@@ -1,8 +1,29 @@
 /**
  * monte carlo convolution tool
  * @author Tobias Weber <tobias.weber@tum.de>
- * @date 2015-2020
+ * @date 2015 - 2023
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ConvoDlg.h"
@@ -85,16 +106,16 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 	m_vecTextBoxes = { editSqwParams };
 	m_vecTextNames = { "convofit/sqw_params" };
 
-	m_vecComboBoxes = { comboAlgo, comboFixedK, comboFocMono, comboFocAna,
+	m_vecComboBoxes = { comboAlgo,
+		comboFixedK, comboFocMono, comboFocAna,
 		comboFitter, comboAxis, comboAxis2,
 	};
-	m_vecComboNames = { "monteconvo/algo", "monteconvo/fixedk", "monteconvo/mono_foc",
-		"monteconvo/ana_foc", "convofit/minimiser", "convofit/scanaxis", "convofit/scanaxis2",
+	m_vecComboNames = { "monteconvo/algo_idx",
+		"monteconvo/fixedk", "monteconvo/mono_foc", "monteconvo/ana_foc",
+		"convofit/minimiser", "convofit/scanaxis", "convofit/scanaxis2",
 	};
 
-	m_vecCheckBoxes = { checkScan, check2dMap,
-		checkRnd, checkNorm, checkFlip
-	};
+	m_vecCheckBoxes = { checkScan, check2dMap, checkRnd, checkNorm, checkFlip };
 	m_vecCheckNames = { "monteconvo/has_scanfile", "monteconvo/scan_2d",
 		"convofit/recycle_neutrons", "convofit/normalise", "convofit/flip_coords"
 	};
@@ -200,25 +221,29 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 
 	QAction *pNew = new QAction("New", this);
 	pNew->setIcon(load_icon("res/icons/document-new.svg"));
+	pNew->setShortcut(QKeySequence::New);
 	pMenuFile->addAction(pNew);
 
 	pMenuFile->addSeparator();
 
-	QAction *pLoad = new QAction("Load...", this);
+	QAction *pLoad = new QAction("Open...", this);
 	pLoad->setIcon(load_icon("res/icons/document-open.svg"));
+	pLoad->setShortcut(QKeySequence::Open);
 	pMenuFile->addAction(pLoad);
 
-	m_pMenuRecent = new QMenu("Recently Loaded", this);
+	m_pMenuRecent = new QMenu("Recently Opened", this);
 	RecentFiles recent(m_pSett, "monteconvo/recent");
 	recent.FillMenu(m_pMenuRecent, [this](const std::string& str){ Load(str.c_str()); });
 	pMenuFile->addMenu(m_pMenuRecent);
 
 	QAction *pSave = new QAction("Save", this);
 	pSave->setIcon(load_icon("res/icons/document-save.svg"));
+	pSave->setShortcut(QKeySequence::Save);
 	pMenuFile->addAction(pSave);
 
 	QAction *pSaveAs = new QAction("Save As...", this);
 	pSaveAs->setIcon(load_icon("res/icons/document-save-as.svg"));
+	pSaveAs->setShortcut(QKeySequence::SaveAs);
 	pMenuFile->addAction(pSaveAs);
 
 	pMenuFile->addSeparator();
@@ -229,8 +254,10 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 
 	pMenuFile->addSeparator();
 
-	QAction *pExit = new QAction("Quit Convo", this);
+	QAction *pExit = new QAction("Close Convo", this);
+	//pExit->setMenuRole(QAction::QuitRole);
 	pExit->setIcon(load_icon("res/icons/system-log-out.svg"));
+	pExit->setShortcut(QKeySequence::Close);
 	pMenuFile->addAction(pExit);
 
 
@@ -295,6 +322,7 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 	QMenu *pMenuHelp = new QMenu("Help", this);
 
 	QAction *pAbout = new QAction("About...", this);
+	pAbout->setMenuRole(QAction::AboutRole);
 	pAbout->setIcon(load_icon("res/icons/dialog-information.svg"));
 	pMenuHelp->addAction(pAbout);
 
@@ -320,8 +348,8 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 	connect(pExportPlot2d, &QAction::triggered, m_plotwrap2d.get(), &QwtPlotWrapper::SavePlot);
 	connect(pExportPlotGpl, &QAction::triggered, m_plotwrap.get(), &QwtPlotWrapper::ExportGpl);
 	connect(pExportPlot2dGpl, &QAction::triggered, m_plotwrap2d.get(), &QwtPlotWrapper::ExportGpl);
-	connect(pSaveResults, &QAction::triggered, this, &ConvoDlg::SaveResult);
 	connect(pAbout, &QAction::triggered, this, &ConvoDlg::ShowAboutDlg);
+	connect(pSaveResults, &QAction::triggered, [this]() { SaveResult(); });
 
 	this->layout()->setMenuBar(m_pMenuBar);
 	// --------------------------------------------------------------------
@@ -334,13 +362,19 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 	m_pFavDlg = new FavDlg(this, m_pSett);
 	connect(m_pFavDlg, &FavDlg::ChangePos, this, &ConvoDlg::ChangePos);
 
-	connect(btnBrowseCrys, &QToolButton::clicked, this, &ConvoDlg::browseCrysFiles);
-	connect(btnBrowseRes, &QToolButton::clicked, this, &ConvoDlg::browseResoFiles);
-	connect(btnBrowseSqw, &QPushButton::clicked, this, &ConvoDlg::browseSqwFiles);
-	connect(btnBrowseScan, &QToolButton::clicked, this, &ConvoDlg::browseScanFiles);
-	connect(btnBrowseAutosave, &QToolButton::clicked, this, &ConvoDlg::browseAutosaveFile);
-	connect(btnFav, &QPushButton::clicked, this, &ConvoDlg::ShowFavourites);
-	connect(btnSqwParams, &QToolButton::clicked, this, &ConvoDlg::showSqwParamDlg);
+	connect(btnBrowseCrys, &QAbstractButton::clicked, this, &ConvoDlg::browseCrysFiles);
+	connect(btnBrowseRes, &QAbstractButton::clicked, this, &ConvoDlg::browseResoFiles);
+	connect(btnBrowseSqw, &QAbstractButton::clicked, this, &ConvoDlg::browseSqwFiles);
+	connect(btnBrowseScan, &QAbstractButton::clicked, this, &ConvoDlg::browseScanFiles);
+	connect(btnBrowseAutosave, &QAbstractButton::clicked, this, &ConvoDlg::browseAutosaveFile);
+	connect(btnFav, &QAbstractButton::clicked, this, &ConvoDlg::ShowFavourites);
+	connect(btnSqwParams, &QAbstractButton::clicked, this, &ConvoDlg::showSqwParamDlg);
+	connect(btnSaveResults, &QAbstractButton::clicked,
+	[this]()
+	{
+		QString outfile = editAutosave->text();
+		SaveResult(&outfile);
+	});
 
 	connect(comboSqw, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ConvoDlg::SqwModelChanged);
 	connect(editSqw, &QLineEdit::textChanged, this, &ConvoDlg::createSqwModel);
@@ -354,11 +388,12 @@ ConvoDlg::ConvoDlg(QWidget* pParent, QSettings* pSett)
 	connect(editSlope, &QLineEdit::textChanged, this, &ConvoDlg::scaleChanged);
 	connect(editOffs, &QLineEdit::textChanged, this, &ConvoDlg::scaleChanged);
 
-	connect(btnStart, &QPushButton::clicked, this, &ConvoDlg::Start);
-	connect(btnStartFit, &QPushButton::clicked, this, &ConvoDlg::StartFit);
-	connect(btnStop, &QPushButton::clicked, this, &ConvoDlg::Stop);
+	connect(btnStart, &QAbstractButton::clicked, this, &ConvoDlg::Start);
+	connect(btnStartFit, &QAbstractButton::clicked, this, &ConvoDlg::StartFit);
+	connect(btnStop, &QAbstractButton::clicked, this, &ConvoDlg::Stop);
 
 	connect(checkScan, &QCheckBox::toggled, this, &ConvoDlg::scanCheckToggled);
+	connect(checkFlip, &QCheckBox::toggled, this, &ConvoDlg::coordFlipToggled);
 
 	connect(pHK, &QAction::triggered, this, &ConvoDlg::ChangeHK);
 	connect(pHL, &QAction::triggered, this, &ConvoDlg::ChangeHL);
@@ -428,6 +463,9 @@ void ConvoDlg::createSqwModel(const QString& qstrFile)
 	}
 
 	std::string strSqwIdent = comboSqw->itemData(comboSqw->currentIndex()).toString().toStdString();
+	if(strSqwIdent == "")
+		return;
+
 	std::string _strSqwFile = qstrFile.toStdString();
 	tl::trim(_strSqwFile);
 	std::string strSqwFile = find_file_in_global_paths(_strSqwFile);
@@ -658,6 +696,12 @@ void ConvoDlg::scanCheckToggled(bool bChecked)
 }
 
 
+void ConvoDlg::coordFlipToggled(bool bChecked)
+{
+	scanFileChanged(editScan->text());
+}
+
+
 void ConvoDlg::scanFileChanged(const QString& qstrFile)
 {
 	m_bUseScan = 0;
@@ -758,7 +802,7 @@ void ConvoDlg::ShowAboutDlg()
 	std::ostringstream ostrAbout;
 	ostrAbout << "Takin/Convo version " << TAKIN_VER << ".\n";
 	ostrAbout << "Written by Tobias Weber <tweber@ill.fr>,\n";
-	ostrAbout << "2015 - 2021.\n";
+	ostrAbout << "2015 - 2023.\n";
 	ostrAbout << "\n" << TAKIN_LICENSE("Takin/Convo");
 
 	QMessageBox::about(this, "About Convo", ostrAbout.str().c_str());

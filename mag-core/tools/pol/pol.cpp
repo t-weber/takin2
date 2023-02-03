@@ -4,11 +4,30 @@
  * @date Oct-2018
  * @license GPLv3, see 'LICENSE' file
  * @desc The present version was forked on 8-Nov-2018 from my privately developed "magtools" project (https://github.com/t-weber/magtools).
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * "magtools" project
+ * Copyright (C) 2017-2018  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include <QtCore/QSettings>
 #include <QtCore/QDir>
-#include <QtCore/QLoggingCategory>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
@@ -21,10 +40,11 @@
 #include <string>
 #include <optional>
 
-#include "tlibs2/libs/glplot.h"
-#include "tlibs2/libs/math20.h"
+#include "tlibs2/libs/qt/glplot.h"
+#include "tlibs2/libs/maths.h"
+#include "tlibs2/libs/phys.h"
 #include "tlibs2/libs/str.h"
-#include "tlibs2/libs/helper.h"
+#include "tlibs2/libs/qt/helper.h"
 
 #include <boost/version.hpp>
 #include <boost/config.hpp>
@@ -40,6 +60,12 @@ using t_vec = tl2::vec<t_cplx, std::vector>;
 using t_mat = tl2::mat<t_cplx, std::vector>;
 using t_matvec = std::vector<t_mat>;
 
+using t_real_gl = tl2::t_real_gl;
+using t_vec2_gl = tl2::t_vec2_gl;
+using t_vec3_gl = tl2::t_vec3_gl;
+using t_vec_gl = tl2::t_vec_gl;
+using t_mat_gl = tl2::t_mat_gl;
+
 
 // ----------------------------------------------------------------------------
 class PolDlg : public QDialog
@@ -48,7 +74,7 @@ private:
 	QSettings m_sett{"takin", "pol"};
 	int m_prec = 6;		// precision
 
-	std::shared_ptr<GlPlot> m_plot{std::make_shared<GlPlot>(this)};
+	std::shared_ptr<tl2::GlPlot> m_plot{std::make_shared<tl2::GlPlot>(this)};
 	QLabel *m_labelGlInfos[4] = { nullptr, nullptr, nullptr, nullptr };
 
 	QLineEdit* m_editNRe = new QLineEdit("0", this);
@@ -112,7 +138,7 @@ protected slots:
 	{
 		// GL device info
 		auto [strGlVer, strGlShaderVer, strGlVendor, strGlRenderer]
-			= m_plot->GetImpl()->GetGlDescr();
+			= m_plot->GetRenderer()->GetGlDescr();
 		m_labelGlInfos[0]->setText(QString("GL Version: ") + strGlVer.c_str() + QString("."));
 		m_labelGlInfos[1]->setText(QString("GL Shader Version: ") + strGlShaderVer.c_str() + QString("."));
 		m_labelGlInfos[2]->setText(QString("GL Vendor: ") + strGlVendor.c_str() + QString("."));
@@ -121,15 +147,15 @@ protected slots:
 
 		if(!m_3dobjsReady)		// create 3d objects
 		{
-			m_arrow_pi = m_plot->GetImpl()->AddArrow(0.05, 1., 0.,0.,0.5,  0.,0.,0.85,1.);
-			m_arrow_pf = m_plot->GetImpl()->AddArrow(0.05, 1., 0.,0.,0.5,  0.,0.5,0.,1.);
-			m_arrow_M_Re = m_plot->GetImpl()->AddArrow(0.05, 1., 0.,0.,0.5,  0.85,0.,0.,1.);
-			m_arrow_M_Im = m_plot->GetImpl()->AddArrow(0.05, 1., 0.,0.,0.5,  0.85,0.25,0.,1.);
+			m_arrow_pi = m_plot->GetRenderer()->AddArrow(0.05, 1., 0.,0.,0.5,  0.,0.,0.85,1.);
+			m_arrow_pf = m_plot->GetRenderer()->AddArrow(0.05, 1., 0.,0.,0.5,  0.,0.5,0.,1.);
+			m_arrow_M_Re = m_plot->GetRenderer()->AddArrow(0.05, 1., 0.,0.,0.5,  0.85,0.,0.,1.);
+			m_arrow_M_Im = m_plot->GetRenderer()->AddArrow(0.05, 1., 0.,0.,0.5,  0.85,0.25,0.,1.);
 
-			m_plot->GetImpl()->SetObjectLabel(m_arrow_pi, "P_i");
-			m_plot->GetImpl()->SetObjectLabel(m_arrow_pf, "P_f");
-			m_plot->GetImpl()->SetObjectLabel(m_arrow_M_Re, "Re{M_perp}");
-			m_plot->GetImpl()->SetObjectLabel(m_arrow_M_Im, "Im{M_perp}");
+			m_plot->GetRenderer()->SetObjectLabel(m_arrow_pi, "P_i");
+			m_plot->GetRenderer()->SetObjectLabel(m_arrow_pf, "P_f");
+			m_plot->GetRenderer()->SetObjectLabel(m_arrow_M_Re, "Re{M_perp}");
+			m_plot->GetRenderer()->SetObjectLabel(m_arrow_M_Im, "Im{M_perp}");
 
 			m_3dobjsReady = true;
 			CalcPol();
@@ -245,7 +271,7 @@ protected slots:
 			{
 				auto lenVec = GetArrowLen(*m_curDraggedObj);
 				if(lenVec > 0.)
-					m_plot->GetImpl()->SetPickerSphereRadius(lenVec);
+					m_plot->GetRenderer()->SetPickerSphereRadius(lenVec);
 			}
 		}
 	}
@@ -275,6 +301,20 @@ public:
 	{
 		setWindowTitle("Polarisation Vectors");
 		setSizeGripEnabled(true);
+
+		// restore settings done from takin main settings dialog
+		QSettings sett_core("takin", "core");
+		if(sett_core.contains("main/font_gen"))
+		{
+			QString font_str = sett_core.value("main/font_gen").toString();
+			QFont font = this->font();
+			if(font.fromString(font_str))
+				setFont(font);
+		}
+		if(sett_core.contains("main/prec"))
+		{
+			m_prec = sett_core.value("main/prec").toInt();
+		}
 
 		auto tabs = new QTabWidget(this);
 
@@ -308,11 +348,11 @@ public:
 				m_editPfX, m_editPfY, m_editPfZ})
 				connect(edit, &QLineEdit::textEdited, this, &PolDlg::CalcPol);
 
-			connect(m_plot.get(), &GlPlot::AfterGLInitialisation, this, &PolDlg::AfterGLInitialisation);
-			connect(m_plot->GetImpl(), &GlPlot_impl::PickerIntersection, this, &PolDlg::PickerIntersection);
+			connect(m_plot.get(), &tl2::GlPlot::AfterGLInitialisation, this, &PolDlg::AfterGLInitialisation);
+			connect(m_plot->GetRenderer(), &tl2::GlPlotRenderer::PickerIntersection, this, &PolDlg::PickerIntersection);
 
-			connect(m_plot.get(), &GlPlot::MouseDown, this, &PolDlg::MouseDown);
-			connect(m_plot.get(), &GlPlot::MouseUp, this, &PolDlg::MouseUp);
+			connect(m_plot.get(), &tl2::GlPlot::MouseDown, this, &PolDlg::MouseDown);
+			connect(m_plot.get(), &tl2::GlPlot::MouseUp, this, &PolDlg::MouseUp);
 
 
 			auto pGrid = new QGridLayout(plotpanel);
@@ -383,7 +423,7 @@ public:
 			std::string strBoost = BOOST_LIB_VERSION;
 			algo::replace_all(strBoost, "_", ".");
 
-			auto labelTitle = new QLabel("Polarisation Calculator", infopanel);
+			auto labelTitle = new QLabel("Takin / Polarisation Calculator", infopanel);
 			auto fontTitle = labelTitle->font();
 			fontTitle.setBold(true);
 			labelTitle->setFont(fontTitle);
@@ -429,11 +469,11 @@ public:
 			resize(800, 600);
 
 		// have scattering plane in horizontal plane
-		m_plot->GetImpl()->SetLight(0, tl2::create<t_vec3_gl>({ 5, 5, 5 }));
-		m_plot->GetImpl()->SetLight(1, tl2::create<t_vec3_gl>({ -5, -5, -5 }));
-		m_plot->GetImpl()->SetCoordMax(5.);
-		m_plot->GetImpl()->SetCamBase(tl2::create<t_mat_gl>({1,0,0,0,  0,0,1,0,  0,-1,0,-5,  0,0,0,1}),
-			tl2::create<t_vec_gl>({1,0,0,0}), tl2::create<t_vec_gl>({0,0,1,0}));
+		m_plot->GetRenderer()->SetLight(0, tl2::create<t_vec3_gl>({ 5, 5, 5 }));
+		m_plot->GetRenderer()->SetLight(1, tl2::create<t_vec3_gl>({ -5, -5, -5 }));
+		m_plot->GetRenderer()->SetCoordMax(5.);
+		m_plot->GetRenderer()->GetCamera().SetDist(2.5);
+		m_plot->GetRenderer()->GetCamera().UpdateTransformation();
 
 		CalcPol();
 	}
@@ -480,40 +520,40 @@ public:
 		if(m_3dobjsReady)
 		{
 			// P_i
-			t_mat_gl matPi = GlPlot_impl::GetArrowMatrix(
+			t_mat_gl matPi = tl2::get_arrow_matrix<t_vec_gl, t_mat_gl, t_real_gl>(
 				tl2::create<t_vec_gl>({t_real_gl(PiX), t_real_gl(PiY), t_real_gl(PiZ)}), 	// to
 				1., 								// scale
 				tl2::create<t_vec_gl>({0,0,0.5}),		// translate
 				tl2::create<t_vec_gl>({0,0,1}));		// from
-			m_plot->GetImpl()->SetObjectMatrix(m_arrow_pi, matPi);
+			m_plot->GetRenderer()->SetObjectMatrix(m_arrow_pi, matPi);
 
 			// P_f
-			t_mat_gl matPf = GlPlot_impl::GetArrowMatrix(
+			t_mat_gl matPf = tl2::get_arrow_matrix<t_vec_gl, t_mat_gl, t_real_gl>(
 				tl2::create<t_vec_gl>({t_real_gl(P_f[0].real()), t_real_gl(P_f[1].real()), t_real_gl(P_f[2].real())}), 	// to
 				1., 								// scale
 				tl2::create<t_vec_gl>({0,0,0.5}),		// translate
 				tl2::create<t_vec_gl>({0,0,1}));		// from
-			m_plot->GetImpl()->SetObjectMatrix(m_arrow_pf, matPf);
+			m_plot->GetRenderer()->SetObjectMatrix(m_arrow_pf, matPf);
 
 			// Re(M)
 			const t_real_gl lenReM = t_real_gl(std::sqrt(MPerpReX*MPerpReX + MPerpReY*MPerpReY + MPerpReZ*MPerpReZ));
-			t_mat_gl matMRe = GlPlot_impl::GetArrowMatrix(
+			t_mat_gl matMRe = tl2::get_arrow_matrix<t_vec_gl, t_mat_gl, t_real_gl>(
 				tl2::create<t_vec_gl>({t_real_gl(MPerpReX), t_real_gl(MPerpReY), t_real_gl(MPerpReZ)}), 	// to
 				lenReM,								// scale
 				tl2::create<t_vec_gl>({0,0,0.5}),		// translate
 				tl2::create<t_vec_gl>({0,0,1}));		// from
-			m_plot->GetImpl()->SetObjectMatrix(m_arrow_M_Re, matMRe);
-			m_plot->GetImpl()->SetObjectVisible(m_arrow_M_Re, !tl2::equals(lenReM, t_real_gl(0)));
+			m_plot->GetRenderer()->SetObjectMatrix(m_arrow_M_Re, matMRe);
+			m_plot->GetRenderer()->SetObjectVisible(m_arrow_M_Re, !tl2::equals(lenReM, t_real_gl(0)));
 
 			// Im(M)
 			const t_real_gl lenImM = t_real_gl(std::sqrt(MPerpImX*MPerpImX + MPerpImY*MPerpImY + MPerpImZ*MPerpImZ));
-			t_mat_gl matMIm = GlPlot_impl::GetArrowMatrix(
+			t_mat_gl matMIm = tl2::get_arrow_matrix<t_vec_gl, t_mat_gl, t_real_gl>(
 				tl2::create<t_vec_gl>({t_real_gl(MPerpImX), t_real_gl(MPerpImY), t_real_gl(MPerpImZ)}), 	// to
 				lenImM,								// scale
 				tl2::create<t_vec_gl>({0,0,0.5}),		// translate
 				tl2::create<t_vec_gl>({0,0,1}));		// from
-			m_plot->GetImpl()->SetObjectMatrix(m_arrow_M_Im, matMIm);
-			m_plot->GetImpl()->SetObjectVisible(m_arrow_M_Im, !tl2::equals(lenImM, t_real_gl(0)));
+			m_plot->GetRenderer()->SetObjectMatrix(m_arrow_M_Im, matMIm);
+			m_plot->GetRenderer()->SetObjectVisible(m_arrow_M_Im, !tl2::equals(lenImM, t_real_gl(0)));
 
 			m_plot->update();
 		}
@@ -530,40 +570,7 @@ public:
 
 int main(int argc, char** argv)
 {
-	//QLoggingCategory::setFilterRules("*=true");
-	qInstallMessageHandler([](QtMsgType ty, const QMessageLogContext& ctx, const QString& log) -> void
-	{
-		auto get_msg_type = [](const QtMsgType& _ty) -> std::string
-		{
-			switch(_ty)
-			{
-				case QtDebugMsg: return "debug";
-				case QtWarningMsg: return "warning";
-				case QtCriticalMsg: return "critical";
-				case QtFatalMsg: return "fatal";
-				case QtInfoMsg: return "info";
-				default: return "<unknown>";
-			}
-		};
-
-		auto get_str = [](const char* pc) -> std::string
-		{
-			if(!pc) return "<unknown>";
-			return std::string{"\""} + std::string{pc} + std::string{"\""};
-		};
-
-		std::cerr << "qt " << get_msg_type(ty);
-		if(ctx.function)
-		{
-			std::cerr << " in "
-				<< "file " << get_str(ctx.file) << ", "
-				<< "function " << get_str(ctx.function) << ", "
-				<< "line " << ctx.line;
-		}
-		std::cerr << ": " << log.toStdString() << std::endl;
-	});
-
-	set_gl_format(1, _GL_MAJ_VER, _GL_MIN_VER, 8);
+	tl2::set_gl_format(1, _GL_MAJ_VER, _GL_MIN_VER, 8);
 	tl2::set_locales();
 
 	QApplication::addLibraryPath(QString(".") + QDir::separator() + "qtplugins");
@@ -586,7 +593,7 @@ int main(int argc, char** argv)
  */
 bool init()
 {
-	set_gl_format(1, _GL_MAJ_VER, _GL_MIN_VER, 8);
+	tl2::set_gl_format(1, _GL_MAJ_VER, _GL_MIN_VER, 8);
 	tl2::set_locales();
 
 	return true;

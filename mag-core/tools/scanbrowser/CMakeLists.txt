@@ -3,6 +3,24 @@
 # @date 6-apr-2018
 # @license see 'LICENSE' file
 #
+# ----------------------------------------------------------------------------
+# mag-core (part of the Takin software suite)
+# Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
 
 project(scanbrowser)
 cmake_minimum_required(VERSION 3.0)
@@ -38,7 +56,7 @@ find_package(QCP REQUIRED)
 # Minuit
 find_package(Minuit2 REQUIRED)
 find_package(Threads REQUIRED)
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 # -----------------------------------------------------------------------------
 
 
@@ -76,6 +94,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/cli"
 	"${Boost_INCLUDE_DIRS}" "${Boost_INCLUDE_DIRS}/.." "${FLEX_INCLUDE_DIRS}"
 	"${PROJECT_BINARY_DIR}/parser"
+	"${Minuit2_INCLUDE_DIRS}"
 	"${QCP_INCLUDE_DIRS}"
 )
 
@@ -86,6 +105,7 @@ add_executable(takin_scanbrowser
 	workspace.cpp workspace.h
 	data.cpp data.h plot.cpp plot.h
 	command.cpp command.h
+	about.cpp about.h
 	globals.cpp globals.h
 	hacks.cpp hacks.h
 
@@ -99,11 +119,12 @@ add_executable(takin_scanbrowser
 #	../../ext/qcp/qcustomplot.cpp ../../ext/qcp/qcustomplot.h
 )
 
-qt5_use_modules(takin_scanbrowser Core Gui Widgets OpenGL)
+#qt5_use_modules(takin_scanbrowser Core Gui Widgets)
 
 target_link_libraries(takin_scanbrowser
 	${Boost_LIBRARIES}
+	Qt5::Core Qt5::Gui Qt5::Widgets
 	${QCP_LIBRARIES}
-	${Minuit2_LIBRARIES} Threads::Threads OpenMP::OpenMP_CXX
+	${Minuit2_LIBRARIES} Threads::Threads #OpenMP::OpenMP_CXX
 	-ldl
 )

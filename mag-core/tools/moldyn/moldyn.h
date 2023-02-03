@@ -3,6 +3,24 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date Dec-2019
  * @license GPLv3, see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __MOLDYN_GUI_H__
@@ -20,8 +38,8 @@
 #include <vector>
 #include <tuple>
 
-#include "tlibs2/libs/glplot.h"
-#include "tlibs2/libs/math20.h"
+#include "tlibs2/libs/qt/glplot.h"
+#include "tlibs2/libs/maths.h"
 
 #include "moldyn-loader.h"
 
@@ -29,6 +47,12 @@
 using t_real = double;
 using t_vec = tl2::vec<t_real, std::vector>;
 using t_mat = tl2::mat<t_real, std::vector>;
+
+using t_real_gl = tl2::t_real_gl;
+using t_vec2_gl = tl2::t_vec2_gl;
+using t_vec3_gl = tl2::t_vec3_gl;
+using t_vec_gl = tl2::t_vec_gl;
+using t_mat_gl = tl2::t_mat_gl;
 
 
 /**
@@ -110,7 +134,7 @@ protected:
 	QDoubleSpinBox *m_spinScale = nullptr;
 	QMenu *m_atomContextMenu = nullptr;
 
-	GlPlot *m_plot = nullptr;
+	tl2::GlPlot *m_plot = nullptr;
 	std::size_t m_sphere = 0;
 	std::vector<std::size_t> m_sphereHandles;
 

@@ -3,6 +3,27 @@
  * @author: Tobias Weber <tobias.weber@tum.de>
  * @date: 2013-2018
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS_LINALG2_IMPL_H__
@@ -37,10 +58,10 @@ struct select_func
 	select_func(F1* f1, F2* f2) : m_f1(f1), m_f2(f2) {}
 
 	template<class T>
-	typename std::enable_if<std::is_same<T, T1>::value, F1*>::type 
+	typename std::enable_if<std::is_same<T, T1>::value, F1*>::type
 		get_func() { return m_f1; }
 	template<class T>
-	typename std::enable_if<std::is_same<T, T2>::value, F2*>::type 
+	typename std::enable_if<std::is_same<T, T2>::value, F2*>::type
 		get_func() { return m_f2; }
 };
 
@@ -219,7 +240,7 @@ bool eigenvec_cplx(const ublas::matrix<std::complex<T>>& mat,
 
 	if(iInfo!=0)
 	{
-		log_err("Could not solve general complex eigenproblem", 
+		log_err("Could not solve general complex eigenproblem",
 			" (lapack error ", iInfo , ").");
 		bOk = false;
 	}
@@ -386,7 +407,7 @@ bool eigenvec_herm(const ublas::matrix<std::complex<T>>& mat,
 	using t_cplx = std::complex<T>;
 	bool bOk = true;
 
-	select_func<float, double, decltype(LAPACKE_cheev), decltype(LAPACKE_zheev)> 
+	select_func<float, double, decltype(LAPACKE_cheev), decltype(LAPACKE_zheev)>
 		sfunc(LAPACKE_cheev, LAPACKE_zheev);
 	auto pfunc = sfunc.get_func<T>();
 

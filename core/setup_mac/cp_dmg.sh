@@ -6,6 +6,27 @@
 #
 # copy application into disk image
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
 echo -e "Removing any old file ..."
 rm -f takin.dmg
@@ -13,6 +34,7 @@ rm -f takin.dmg
 echo -e "Cleaning temporary files ..."
 find takin.app -name ".DS_Store" -exec rm -fv {} \;
 find takin.app -name ".dir" -exec rm -fv {} \;
+find takin.app -type d -name "__pycache__" -exec rm -rfv {} \;
 
 echo -e "\nCreating a writable image ..."
 if ! hdiutil create takin.dmg -srcfolder takin.app -fs UDF -format "UDRW" -volname "takin"; then

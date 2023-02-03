@@ -3,6 +3,24 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 28-may-18
  * @license see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __CLI_PARSER_H__
@@ -47,7 +65,7 @@ public:
 	virtual yy::CliParser::symbol_type yylex(CliParserContext &ctx);
 };
 
-template<class t_real_cli> t_real_cli str_to_real(const std::string& str);
+template<class t_real> t_real str_to_real(const std::string& str);
 
 // ----------------------------------------------------------------------------
 
@@ -149,16 +167,16 @@ public:
 class SymbolReal : public Symbol
 {
 private:
-	t_real_cli m_val = 0;
+	t_real m_val = 0;
 
 public:
 	SymbolReal() = default;
-	SymbolReal(t_real_cli val) : m_val(val) {}
+	SymbolReal(t_real val) : m_val(val) {}
 	virtual ~SymbolReal() {}
 
 	virtual SymbolType GetType() const override { return SymbolType::REAL; }
-	t_real_cli GetValue() const { return m_val; }
-	void SetValue(t_real_cli val) { m_val = val; }
+	t_real GetValue() const { return m_val; }
+	void SetValue(t_real val) { m_val = val; }
 
 	virtual std::shared_ptr<Symbol> copy() const override { return std::make_shared<SymbolReal>(m_val); }
 	virtual void print(std::ostream& ostr) const override { ostr << GetValue(); }
@@ -304,17 +322,17 @@ public:
 class CliASTReal : public CliAST
 {
 protected:
-	t_real_cli m_val = t_real_cli(0);
+	t_real m_val = t_real(0);
 
 public:
-	CliASTReal(t_real_cli val) : m_val(val) { }
+	CliASTReal(t_real val) : m_val(val) { }
 	virtual ~CliASTReal() {}
 
 	virtual void Print(std::ostringstream &ostr, int indent = 0) const override;
 	virtual std::shared_ptr<Symbol> Eval(CliParserContext& ctx) const override;
 
 	virtual CliASTType GetType() const override { return CliASTType::REAL; }
-	t_real_cli GetValue() const { return m_val; }
+	t_real GetValue() const { return m_val; }
 };
 
 

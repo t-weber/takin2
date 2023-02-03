@@ -1,0 +1,9 @@
+This library, tlibs 2, is licensed under the GNU GPL version 3
+(see the "LICENSE" file).
+
+As sole exception, it is allowed to link tlibs 2 against Takin core modules [1]
+under the GNU GPL version 2, for example in order to build plugin libraries for
+resolution convolution [2].
+
+[1] https://code.ill.fr/scientific-software/takin/core
+[2] https://code.ill.fr/scientific-software/takin/plugins

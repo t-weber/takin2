@@ -4,6 +4,27 @@
 # @author Tobias Weber <tweber@ill.fr>
 # @license GPLv2
 #
+# ----------------------------------------------------------------------------
+# Takin (inelastic neutron scattering software package)
+# Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+#                          Grenoble, France).
+# Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+#                          (TUM), Garching, Germany).
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# ----------------------------------------------------------------------------
+#
 
 
 GTAR="$(which gtar)"
@@ -35,6 +56,8 @@ MAGFFACT2=https://raw.githubusercontent.com/neutronpy/neutronpy/master/neutronpy
 
 SPACEGROUPS=https://raw.githubusercontent.com/egonw/bodr/master/bodr/crystal/space-groups.xml
 ELEMENTS=https://raw.githubusercontent.com/egonw/bodr/master/bodr/elements/elements.xml
+
+CLIPPER=https://codeload.github.com/cctbx/clipper/zip/refs/heads/master
 
 
 
@@ -305,7 +328,33 @@ function dl_magffacts2
 
 
 
+#
+# download the clipper library
+#
+function dl_clipper()
+{
+	if [ ! -f tmp/clipper.zip ]; then
+		echo -e "Obtaining the Clipper library...\n"
+
+		if ! wget ${CLIPPER} -O tmp/clipper.zip; then
+			echo -e "Error: Cannot download Clipper library.";
+			return -1;
+		fi
+
+		if ! unzip tmp/clipper.zip -d 3rdparty
+		then
+			echo -e "Error: Cannot extract Clipper archive.";
+			exit -1;
+		fi
+	fi
+}
+
+
+
+
 mkdir tmp
+echo -e "--------------------------------------------------------------------------------"
+dl_clipper
 echo -e "--------------------------------------------------------------------------------"
 dl_elements
 dl_spacegroups

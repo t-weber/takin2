@@ -4,6 +4,26 @@
  * @date Jan-2019
  * @license GPLv3, see 'LICENSE' file
  * @desc The present version was forked on 28-Dec-2018 from my privately developed "misc" project (https://github.com/t-weber/misc).
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __MAG_SFACT_H__
@@ -25,10 +45,35 @@
 #include <sstream>
 #include <complex>
 
-#include "tlibs2/libs/glplot.h"
-#include "tlibs2/libs/math20.h"
+#include "tlibs2/libs/qt/glplot.h"
+#include "tlibs2/libs/maths.h"
+#include "tlibs2/libs/qt/numerictablewidgetitem.h"
 
-#include "../structfact/numerictablewidgetitem.h"
+
+// columns of Fourier components table
+enum : int
+{
+	COL_NAME = 0,
+	COL_X, COL_Y, COL_Z,                // position
+	COL_M_MAG,                          // scale factor of FC
+	COL_ReM_X, COL_ReM_Y, COL_ReM_Z,    // fourier components
+	COL_ImM_X, COL_ImM_Y, COL_ImM_Z,
+	COL_RAD,                            // drawing radius
+	COL_COL,                            // colour
+
+	NUM_COLS
+};
+
+
+// columns of propagation vectors table
+enum : int
+{
+	PROP_COL_NAME = 0,
+	PROP_COL_X, PROP_COL_Y, PROP_COL_Z, // propagation direction
+	PROP_COL_CONJ,                      // conjugate fourier component for this propagation ve>
+
+	PROP_NUM_COLS
+};
 
 
 using t_real = double;
@@ -37,6 +82,25 @@ using t_vec = tl2::vec<t_real, std::vector>;
 using t_vec_cplx = tl2::vec<t_cplx, std::vector>;
 using t_mat = tl2::mat<t_real, std::vector>;
 using t_mat_cplx = tl2::mat<t_cplx, std::vector>;
+
+using t_real_gl = tl2::t_real_gl;
+using t_vec2_gl = tl2::t_vec2_gl;
+using t_vec3_gl = tl2::t_vec3_gl;
+using t_vec_gl = tl2::t_vec_gl;
+using t_mat_gl = tl2::t_mat_gl;
+
+
+extern t_real g_eps;
+extern int g_prec;
+
+
+struct PowderLine
+{
+	t_real Q{};
+	t_real I{};
+	std::size_t num_peaks = 0;
+	std::string peaks;
+};
 
 
 struct NuclPos
@@ -60,20 +124,21 @@ public:
 	MagStructFactDlg(QWidget* pParent = nullptr);
 	virtual ~MagStructFactDlg() = default;
 
+
 protected:
 	QSettings *m_sett = nullptr;
 	QMenuBar *m_menu = nullptr;
 
 	// unit cell view
 	QDialog *m_dlgPlot = nullptr;
-	std::shared_ptr<GlPlot> m_plot;
+	std::shared_ptr<tl2::GlPlot> m_plot;
 	std::size_t m_sphere = 0;
 	std::size_t m_arrow = 0;
 	QLabel *m_status3D = nullptr;
 
 	// super cell view
 	QDialog *m_dlgPlotSC = nullptr;
-	std::shared_ptr<GlPlot> m_plotSC;
+	std::shared_ptr<tl2::GlPlot> m_plotSC;
 	std::size_t m_sphereSC = 0;
 	std::size_t m_arrowSC = 0;
 	QLabel *m_status3DSC = nullptr;
@@ -104,6 +169,7 @@ protected:
 
 	t_mat m_crystA = tl2::unit<t_mat>(3);
 	t_mat m_crystB = tl2::unit<t_mat>(3);
+
 
 protected:
 	// general table operations
@@ -149,6 +215,7 @@ protected:
 	void SetGLInfos();
 
 	virtual void closeEvent(QCloseEvent *evt) override;
+
 
 private:
 	int m_iCursorRow = -1;

@@ -3,6 +3,24 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2019
  * @license GPLv3, see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __LOAD_CIF_H__
@@ -18,19 +36,25 @@
 
 #include <gemmi/cif.hpp>
 #include <gemmi/symmetry.hpp>
+#include <gemmi/version.hpp>
 
-#include "tlibs2/libs/math20.h"
+#include "tlibs2/libs/maths.h"
 using namespace tl2_ops;
 
 
+template<class t_str = std::string>
+t_str get_gemmi_version()
+{
+	return GEMMI_VERSION;
+}
 
-template<class t_real=double>
+
+template<class t_real = double>
 struct Lattice
 {
 	t_real a, b, c;
 	t_real alpha, beta, gamma;
 };
-
 
 
 /**
@@ -49,7 +73,6 @@ void remove_quotes(t_str& str)
 }
 
 
-
 /**
  * gets the atom positions from the CIF
  */
@@ -64,7 +87,7 @@ get_cif_atoms(gemmi::cif::Block& block)
 	const char* loopNames[] =
 	{
 		"_type_symbol",
-		"_symbol"
+		"_symbol",
 		"_site_label",
 		"_label",
 	};
@@ -98,7 +121,6 @@ get_cif_atoms(gemmi::cif::Block& block)
 
 	return std::make_tuple(atoms, atomnames);
 }
-
 
 
 /**
@@ -149,7 +171,6 @@ std::vector<t_mat> get_cif_ops(gemmi::cif::Block& block)
 }
 
 
-
 /**
  * gets the symmetry operations from the CIF's space group
  * (use tl2::equals_all to check if space group operations are the same)
@@ -184,7 +205,6 @@ std::vector<t_mat> get_cif_sg_ops(gemmi::cif::Block& block)
 
 	return ops;
 }
-
 
 
 /**
@@ -262,7 +282,6 @@ load_cif(const std::string& filename, t_real eps=1e-6)
 }
 
 
-
 /**
  * gets space group description strings and symmetry operations
  */
@@ -309,7 +328,6 @@ get_sgs(bool bAddNr=true, bool bAddHall=true)
 }
 
 
-
 /**
  * finds all space groups which transform the initial positions into the final ones
  */
@@ -325,7 +343,6 @@ find_matching_sgs(
 {
 	std::vector<t_vec> posFinal = tl2::keep_atoms_in_uc<t_vec, t_real>(_posFinal);
 
-
 	std::vector<std::tuple<int, std::string, std::vector<t_mat>>> matchingSGs;
 	auto sgs = get_sgs<t_mat, t_real>();
 
@@ -337,7 +354,8 @@ find_matching_sgs(
 
 		for(const t_vec& pos : posInit)
 		{
-			std::vector<t_vec> newpos = tl2::apply_ops_hom<t_vec, t_mat, t_real>(pos, sgOps, eps);
+			std::vector<t_vec> newpos =
+				tl2::apply_ops_hom<t_vec, t_mat, t_real>(pos, sgOps, eps);
 			generatedpos.insert(generatedpos.end(), newpos.begin(), newpos.end());
 		}
 
@@ -356,6 +374,45 @@ find_matching_sgs(
 	}
 
 	return matchingSGs;
+}
+
+
+/**
+ * checks for allowed Bragg reflections
+ *
+ * algorithm based on Clipper's HKL_class
+ *   constructor in clipper/core/coords.cpp by K. Cowtan, 2013
+ * @see http://www.ysbl.york.ac.uk/~cowtan/clipper/
+ *
+ * symmetry operation S on position r: R*r + t
+ * F = sum<S>( exp(2*pi*i * (R*r + t)*G) )
+ *   = sum<S>( exp(2*pi*i * ((R*r)*G + t*G)) )
+ *   = sum<S>( exp(2*pi*i * (r*(G*R) + t*G)) )
+ *   = sum<S>( exp(2*pi*i * (r*(G*R)))  *  exp(2*pi*i * (G*t)) )
+ */
+template<class t_mat, class t_vec, class t_real = typename t_vec::value_type,
+	template<class...> class t_cont = std::vector>
+std::pair<bool, std::size_t>
+is_reflection_allowed(const t_vec& Q, const t_cont<t_mat>& symops, t_real eps)
+requires tl2::is_mat<t_mat> && tl2::is_vec<t_vec>
+{
+	for(std::size_t opidx=0; opidx<symops.size(); ++opidx)
+	{
+		const t_mat& mat = symops[opidx];
+		t_mat rot = tl2::submat<t_mat>(mat, 0,0, 3,3); // rotation part of the symop
+		rot = tl2::trans(rot);                         // recip -> transpose
+
+		if(tl2::equals<t_vec>(Q, rot*Q, eps))          // does Q transform into itself
+		{
+			t_vec trans = tl2::create<t_vec>({ mat(0,3), mat(1,3), mat(2,3) });
+
+			// does Q translate to multiples of the lattice vector?
+			if(!tl2::is_integer<t_real>(tl2::inner<t_vec>(trans, Q), eps))
+				return std::make_pair(false, opidx);
+		}
+	}
+
+	return std::make_pair(true, symops.size());
 }
 
 

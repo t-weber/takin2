@@ -11,6 +11,7 @@
 #include "tools/monteconvo/sqwbase.h"
 #include "tlibs/math/linalg.h"
 
+
 class SqwMod : public SqwBase
 {
 	public:
@@ -41,9 +42,12 @@ class SqwMod : public SqwBase
 		SqwMod(const std::string& strCfgFile);
 		virtual ~SqwMod();
 
-		virtual std::tuple<std::vector<t_real>, std::vector<t_real>>
-			disp(t_real dh, t_real dk, t_real dl) const override;
-		virtual t_real operator()(t_real dh, t_real dk, t_real dl, t_real dE) const override;
+		virtual std::tuple<std::vector<t_real>, std::vector<t_real>> disp(
+			t_real dh, t_real dk, t_real dl) const override;
+		virtual t_real operator()(
+			t_real dh, t_real dk, t_real dl, t_real dE) const override;
+		virtual t_real GetBackground(
+			t_real dh, t_real dk, t_real dl, t_real dE) const override;
 
 		virtual std::vector<t_var> GetVars() const override;
 		virtual void SetVars(const std::vector<t_var>&) override;

@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 2014 - 2018
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TAZ_SCATT_TRIAG_H__
@@ -197,7 +218,8 @@ class ScatteringTriangle : public QGraphicsItem
 		const tl::Kd<t_real_glob>& GetKdLattice() const { return m_kdLattice; }
 
 		const tl::Brillouin3D<t_real_glob>& GetBZ3D() const { return m_bz3; }
-		const std::vector<ublas::vector<t_real_glob>>& GetBZ3DPlaneVerts() const { return m_vecBZ3VertsUnproj; }
+		const std::vector<ublas::vector<t_real_glob>>& GetBZ3DPlaneVerts(bool planeproj=0) const
+		{ return planeproj ? m_vecBZ3Verts : m_vecBZ3VertsUnproj; }
 		const std::vector<ublas::vector<t_real_glob>>& GetBZ3DSymmVerts() const { return m_vecBZ3SymmPts; }
 
 	public:

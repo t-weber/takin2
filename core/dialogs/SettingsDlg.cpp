@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 5-dec-2014
  * @license GPLv2
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 #include "SettingsDlg.h"
@@ -134,6 +155,7 @@ SettingsDlg::SettingsDlg(QWidget* pParent, QSettings* pSett)
 		t_tupSpin("main/max_neighbours", g_iMaxNN, spinMaxNN),
 		t_tupSpin("main/max_peaks", 10, spinBragg),
 		t_tupSpin("main/max_threads", g_iMaxThreads, spinThreads),
+		t_tupSpin("main/max_processes", g_iMaxProcesses, spinProcesses),
 		t_tupSpin("gl/font_size", 24, spinGLFont),
 		t_tupSpin("net/poll", 750, spinNetPoll),
 	};
@@ -148,6 +170,7 @@ SettingsDlg::SettingsDlg(QWidget* pParent, QSettings* pSett)
 	spinPrecGen->setMaximum(std::numeric_limits<t_real>::max_digits10);
 	spinPrecGfx->setMaximum(std::numeric_limits<t_real>::max_digits10);
 	spinThreads->setMaximum(std::thread::hardware_concurrency());
+	spinProcesses->setMaximum(std::thread::hardware_concurrency());
 
 	SetDefaults(0);
 
@@ -309,6 +332,7 @@ void SettingsDlg::SetGlobals() const
 	g_iPrecGfx = spinPrecGfx->value();
 
 	g_iMaxThreads = spinThreads->value();
+	g_iMaxProcesses = spinProcesses->value();
 
 	g_dEps = std::pow(10., -t_real(g_iPrec));
 	g_dEpsGfx = std::pow(10., -t_real(g_iPrecGfx));

@@ -20,7 +20,7 @@ use_scipy = False
 
 # -----------------------------------------------------------------------------
 # rotate a vector around an axis using Rodrigues' formula
-# see: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+# see https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
 def rotate(_axis, vec, phi):
 	axis = _axis / la.norm(_axis)
 
@@ -39,7 +39,7 @@ def get_metric(B):
 
 
 # cross product in fractional coordinates: c^l = eps_ijk g^li a^j b^k
-# see: (Arens 2015), p. 815
+# see (Arens 2015), p. 815
 def cross(a, b, B):
 	# levi-civita in fractional coordinates
 	def levi(i,j,k, B):
@@ -47,12 +47,15 @@ def cross(a, b, B):
 		return la.det(M)
 
 	metric_inv = la.inv(get_metric(B))
-	eps = [[[ levi(i,j,k, B) for k in range(0,3) ] for j in range(0,3) ] for i in range(0,3) ]
+	eps = [[[ levi(i,j,k, B)
+		for k in range(0,3) ]
+			for j in range(0,3) ]
+				for i in range(0,3) ]
 	return np.einsum("ijk,j,k,li -> l", eps, a, b, metric_inv)
 
 
 # dot product in fractional coordinates
-# see: (Arens 2015), p. 808
+# see (Arens 2015), p. 808
 def dot(a, b, metric):
 	return np.dot(a, np.dot(metric, b))
 
@@ -89,7 +92,7 @@ if use_scipy:
 	hbar_in_meVs = co.Planck/co.elementary_charge*1000./2./np.pi
 	E_to_k2 = 2.*co.neutron_mass/hbar_in_meVs**2. / co.elementary_charge*1000. * 1e-20
 else:
-	E_to_k2 = 0.482596406464	# calculated with scipy, using the formula above
+	E_to_k2 = 0.482596423544	# calculated with scipy, using the formula above
 
 k2_to_E = 1./E_to_k2
 # -----------------------------------------------------------------------------
@@ -133,20 +136,17 @@ def get_psi(ki, kf, Q, sense=1.):
 
 
 # crystallographic A matrix converting fractional to lab coordinates
-# see: https://de.wikipedia.org/wiki/Fraktionelle_Koordinaten
+# see https://de.wikipedia.org/wiki/Fraktionelle_Koordinaten
 def get_A(lattice, angles):
 	cs = np.cos(angles)
+	s1 = np.sin(angles[1])
 	s2 = np.sin(angles[2])
 
 	a = lattice[0] * np.array([1, 0, 0])
 	b = lattice[1] * np.array([cs[2], s2, 0])
 	c = lattice[2] * np.array([cs[1], \
 		(cs[0]-cs[1]*cs[2]) / s2, \
-		(np.sqrt(1. - np.dot(cs,cs) + 2.*cs[0]*cs[1]*cs[2])) / s2])
-
-	# testing equality with own derivation
-	#print((np.sqrt(1. - np.dot(cs,cs) + 2.*cs[0]*cs[1]*cs[2])) / s2)
-	#print(np.sqrt(1. - cs[1]*cs[1] - ((cs[0] - cs[2]*cs[1])/s2)**2.))
+		np.sqrt(s1*s1 - ((cs[0] - cs[2]*cs[1])/s2)**2.)])
 
 	# the real-space basis vectors form the columns of the A matrix
 	return np.transpose(np.array([a, b, c]))
@@ -161,7 +161,7 @@ def get_B(lattice, angles):
 
 
 # UB orientation matrix
-# see: https://dx.doi.org/10.1107/S0021889805004875
+# see https://dx.doi.org/10.1107/S0021889805004875
 def get_UB(B, orient1_rlu, orient2_rlu, orientup_rlu):
 	orient1_invA = np.dot(B, orient1_rlu)
 	orient2_invA = np.dot(B, orient2_rlu)
@@ -177,8 +177,10 @@ def get_UB(B, orient1_rlu, orient2_rlu, orientup_rlu):
 
 
 # a3 & a4 angles
+# see https://dx.doi.org/10.1107/S0021889805004875
 def get_a3a4(ki, kf, Q_rlu, orient_rlu, orient_up_rlu, B, sense_sample=1., a3_offs=np.pi):
 	metric = get_metric(B)
+	#print("Metric: " + str(metric))
 
 	# angle xi between Q and orientation reflex
 	xi = angle(Q_rlu, orient_rlu, metric)
@@ -200,10 +202,11 @@ def get_a3a4(ki, kf, Q_rlu, orient_rlu, orient_up_rlu, B, sense_sample=1., a3_of
 	a3 = - psi - xi + a3_offs
 	a4 = get_a4(ki, kf, Qlen)
 
-	#print("xi = " + str(xi/np.pi*180.) + ", psi = " + str(psi/np.pi*180.) + ", offs = " + str(a3_offs/np.pi*180.))
 	return [a3, a4, dist_Q_plane]
 
 
+# hkl position
+# see https://dx.doi.org/10.1107/S0021889805004875
 def get_hkl(ki, kf, a3, Qlen, orient_rlu, orient_up_rlu, B, sense_sample=1., a3_offs=np.pi):
 	B_inv = la.inv(B)
 
@@ -435,8 +438,6 @@ class TasGUI:
 				self.tasstatus.setText("")
 			else:
 				metric = get_metric(self.B)
-				#ang1 = angle(Q_rlu, self.orient_rlu, metric)
-				#ang2 = angle(Q_rlu, self.orient2_rlu, metric)
 				ang_plane = np.pi*0.5 - angle(Q_rlu, self.orient_up_rlu, metric)
 
 				self.tasstatus.setText(u"WARNING: Q is out of the plane by %.4g \u212b\u207b\u00b9, i.e. %.4g deg!" \
@@ -628,7 +629,7 @@ class TasGUI:
 		app.setApplicationName("qtas")
 		#app.setStyle("Fusion")
 
-		sett = qtc.QSettings("tobis_stuff", "in20tool")
+		sett = qtc.QSettings("takin", "tascalc")
 		if sett.contains("mainwnd/theme"):
 			app.setStyle(sett.value("mainwnd/theme"))
 
@@ -987,7 +988,9 @@ class TasGUI:
 		infolayout.addWidget(qtw.QLabel("Written by Tobias Weber <tweber@ill.fr>.", infopanel), 1,0, 1,2)
 		infolayout.addWidget(qtw.QLabel("Date: October 24, 2018.", infopanel), 2,0, 1,2)
 		infolayout.addWidget(separatorInfo, 3,0, 1,2)
-		infolayout.addWidget(qtw.QLabel("Interpreter Version: " + sys.version + ".", infopanel), 4,0, 1,2)
+		interpreter = qtw.QLabel("Interpreter Version: " + sys.version + ".", infopanel)
+		interpreter.setWordWrap(True)
+		infolayout.addWidget(interpreter, 4,0, 1,2)
 		infolayout.addWidget(qtw.QLabel("Numpy Version: " + np.__version__ + ".", infopanel), 5,0, 1,2)
 		infolayout.addWidget(qtw.QLabel("Qt Version: " + qtc.QT_VERSION_STR + ".", infopanel), 6,0, 1,2)
 		infolayout.addItem(qtw.QSpacerItem(16,16, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding), 7,0, 1,2)
@@ -1017,7 +1020,6 @@ class TasGUI:
 		self.xtalChanged()
 		self.KiKfChanged()
 		self.comboA3ConvChanged()
-		#self.QChanged()
 		self.KiKfChanged_angles()
 
 		dlg.show()

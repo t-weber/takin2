@@ -32,6 +32,7 @@ tmp/**
 build/**
 script/build/**
 tests/build/**
+unittests/build/**
 *.pyc
 .DS_Store
 *.csv

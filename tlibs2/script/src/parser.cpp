@@ -2,14 +2,37 @@
  * parser entry point
  * @author Tobias Weber <tweber@ill.fr>
  * @date 20-dec-19
- * @license see 'LICENSE' file
- * @desc Forked on 18/July/2020 from my privatly developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ * @license GPLv3, see 'LICENSE' file
+ * @desc Forked on 18/July/2020 from my privately developed "matrix_calc" project (https://github.com/t-weber/matrix_calc).
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ * matrix_calc
+ * Copyright (C) 2020       Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include "ast.h"
 #include "parser.h"
 #include "llasm.h"
 #include "printast.h"
+#include "str.h"
 
 #include <fstream>
 #include <locale>
@@ -126,11 +149,11 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
+		const std::string& inprog = vecProgs[0];
 		if(outprog == "")
-		{
+			outprog = tl2::get_file_noext(tl2::get_file_nodir(inprog));
+		if(outprog == "")
 			outprog = "out";
-			tl2::log_warn("No program output specified, using \"", outprog, "\".");
-		}
 
 		std::string outprog_ast = outprog + "_ast.xml";
 		std::string outprog_syms = outprog + "_syms.txt";
@@ -147,7 +170,6 @@ int main(int argc, char** argv)
 		// --------------------------------------------------------------------
 		// parse input
 		// --------------------------------------------------------------------
-		const std::string& inprog = vecProgs[0];
 		tl2::log_info("Parsing \"", inprog, "\"...");
 
 		std::ifstream ifstr{inprog};
@@ -280,6 +302,9 @@ int main(int argc, char** argv)
 		(*ostr) << "\n" << R"START(
 ; -----------------------------------------------------------------------------
 ; further imported external functions
+declare i8* @llvm.stacksave()
+declare void @llvm.stackrestore(i8*)
+
 declare i8* @strncpy(i8*, i8*, i64)
 declare i8* @strncat(i8*, i8*, i64)
 declare i32 @strncmp(i8*, i8*, i64)

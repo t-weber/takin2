@@ -52,7 +52,7 @@
 		<pop_mono_use_curvh>0</pop_mono_use_curvh>
 		<pop_mono_use_curvv>1</pop_mono_use_curvv>
 		<pop_mono_w>1.500000e+01</pop_mono_w>
-		<pop_sampe_wperpq>2.000000e+00</pop_sampe_wperpq>
+		<pop_sample_wperpq>2.000000e+00</pop_sample_wperpq>
 		<pop_sample_cuboid>0</pop_sample_cuboid>
 		<pop_sample_h>3.000000e+00</pop_sample_h>
 		<pop_sample_wq>2.000000e+00</pop_sample_wq>

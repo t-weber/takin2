@@ -3,6 +3,27 @@
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 12-sep-2014
  * @license GPLv2 or GPLv3
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs -- a physical-mathematical C++ template library
+ * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #include "log.h"
@@ -147,6 +168,7 @@ void Log::end_log()
 			(*pOstr) << get_color(LogColor::NONE);
 		(*pOstr) << std::endl;
 	}
+
 	s_mtx.unlock();
 }
 
@@ -184,7 +206,8 @@ Log::Log(const std::string& strInfo, LogColor col, std::ostream* pOstr)
 Log::~Log()
 {
 	std::lock_guard<decltype(s_mtx)> _lck(s_mtx);
-	//std::cerr << "Removing " << m_strInfo << " logger." << std::endl;
+	//std::cerr << "Removing " << m_strInfo << " logger for thread " << std::hex << std::this_thread::get_id() << std::endl;
+	//std::cout << boost::stacktrace::stacktrace{} << std::endl;
 
 	m_mapOstrsTh.clear();
 	m_vecOstrs.clear();
@@ -193,8 +216,6 @@ Log::~Log()
 
 std::vector<Log::t_pairOstr>& Log::GetThreadOstrs()
 {
-	static const std::vector<Log::t_pairOstr> empty;
-
 	t_mapthreadOstrs::iterator iter = m_mapOstrsTh.find(std::this_thread::get_id());
 	if(iter == m_mapOstrsTh.end())
 		iter = m_mapOstrsTh.insert({std::this_thread::get_id(), std::vector<t_pairOstr>()}).first;
@@ -241,6 +262,7 @@ void Log::RemoveOstr(std::ostream* pOstr)
 }
 
 
+// use -fvisibility=hidden to avoid multiple calls to the destructors in loaded external libraries
 Log log_info("INFO", LogColor::WHITE, &std::cerr),
 	log_warn("WARNING", LogColor::YELLOW, &std::cerr),
 	log_err("ERROR", LogColor::RED, &std::cerr),

@@ -277,6 +277,7 @@ License URL: https://root.cern/about/license/
 --------------------------------------------------------------------------------
 Clipper
 URL: http://www.ysbl.york.ac.uk/~cowtan/clipper/
+URL: https://github.com/cctbx/clipper
 
 Copyright (c) 2000-2006 by Kevin Cowtan.
 
@@ -422,6 +423,29 @@ SOFTWARE.
 
 
 --------------------------------------------------------------------------------
+HDF5
+URL: https://www.hdfgroup.org/
+
+Copyright (c) 2006 by The HDF Group.
+
+License URL: https://support.hdfgroup.org/ftp/HDF5/releases/COPYING
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+Libaec
+URL: https://gitlab.dkrz.de/k202009/libaec/
+
+Copyright (c) 2021 by Mathis Rosenhauer, Moritz Hanke, Joerg Behrens,
+                      Luis Kornblueh.
+
+License URL: https://gitlab.dkrz.de/k202009/libaec/-/blob/master/LICENSE.txt
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
 Tango Icons
 URL: http://tango.freedesktop.org/Tango_Icon_Library
 License: Public Domain
@@ -554,6 +578,87 @@ subject to the following restrictions:
     source or altered source distribution.
 --------------------------------------------------------------------------------
 
+
+
+--------------------------------------------------------------------------------
+liblzma / XZ Utils
+URL: https://git.tukaani.org/?p=xz.git
+License URL: https://git.tukaani.org/?p=xz.git;a=blob_plain;f=COPYING
+
+Copyright (c) 2022 by Lasse Collin.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+zstandard
+URL: https://github.com/facebook/zstd
+License URL: https://raw.githubusercontent.com/facebook/zstd/dev/LICENSE
+
+Copyright (c) 2016-2022 by Facebook, Inc.
+--------------------------------------------------------------------------------
+
+
+
+
+--------------------------------------------------------------------------------
+libintl
+URL: https://git.savannah.gnu.org/cgit/gettext.git/tree/gettext-runtime/intl
+License URL: https://git.savannah.gnu.org/cgit/gettext.git/plain/gettext-runtime/intl/COPYING.LIB
+
+Copyright (c) 2005-2022 by Free Software Foundation, Inc.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+pcre
+URL: http://www.pcre.org
+License URL: https://raw.githubusercontent.com/PCRE2Project/pcre2/master/LICENCE
+
+Copyright (c) 1997-2022 by University of Cambridge.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+glib
+URL: https://gitlab.gnome.org/GNOME/glib
+License URL: https://gitlab.gnome.org/GNOME/glib/-/raw/main/COPYING
+
+Copyright (c) 2022 by the GLib Team.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+gcc runtime libraries
+URL: https://github.com/gcc-mirror/gcc/tree/master/libgcc
+License URL: https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.RUNTIME
+
+Copyright (c) 1987-2022 by the GCC Team.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+Bison
+URL: http://savannah.gnu.org/projects/bison/
+URL: http://git.savannah.gnu.org/cgit/bison.git
+License URL: http://git.savannah.gnu.org/cgit/bison.git/tree/COPYING
+
+Copyright (c) 1998-2015 and 2018-2022 by Free Software Foundation, Inc.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+Flex
+URL: https://github.com/westes/flex
+License URL: https://github.com/westes/flex/blob/master/COPYING
+
+Copyright (c) 2001-2007 by The Flex Project.
+--------------------------------------------------------------------------------
 
 
 

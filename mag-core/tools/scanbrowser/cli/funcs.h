@@ -3,6 +3,24 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 20-Jun-2018
  * @license see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __FUNCS_H__
@@ -14,13 +32,13 @@
 #include <string>
 #include <memory>
 
-#include "cliparser_types.h"
+//#include "cliparser_types.h"
 #include "cliparser.h"
 
 
 // real functions
-extern std::unordered_map<std::string, std::tuple<t_real_cli(*)(t_real_cli), std::string>> g_funcs_real_1arg;
-extern std::unordered_map<std::string, std::tuple<t_real_cli(*)(t_real_cli, t_real_cli), std::string>> g_funcs_real_2args;
+extern std::unordered_map<std::string, std::tuple<t_real(*)(t_real), std::string>> g_funcs_real_1arg;
+extern std::unordered_map<std::string, std::tuple<t_real(*)(t_real, t_real), std::string>> g_funcs_real_2args;
 
 // array functions
 extern std::unordered_map<std::string, std::tuple<std::shared_ptr<Symbol>(*)(std::shared_ptr<SymbolList>), std::string>> g_funcs_arr_1arg;
@@ -33,7 +51,7 @@ extern std::unordered_map<std::string, std::tuple<std::shared_ptr<Symbol>(*)(Cli
 extern std::unordered_map<std::string, std::tuple<std::shared_ptr<Symbol>(*)(CliParserContext&, const std::vector<std::shared_ptr<Symbol>>&), std::string>> g_funcs_gen_vararg;
 
 // constants
-extern std::unordered_map<std::string, std::tuple<t_real_cli, std::string>> g_consts_real;
+extern std::unordered_map<std::string, std::tuple<t_real, std::string>> g_consts_real;
 
 
 

@@ -35,7 +35,7 @@ extern "C" void load_tl2(int bDebug)
  */
 extern "C" jl_array_t* load_instr(const char* pcFile)
 {
-	tl2::FileInstrBase<t_real>* pInstr = tl2::FileInstrBase<t_real>::LoadInstr(pcFile);
+	std::shared_ptr<tl2::FileInstrBase<t_real>> pInstr = tl2::FileInstrBase<t_real>::LoadInstr(pcFile);
 	if(!pInstr)
 	{
 		jl_array_t *pArrNull = jl_alloc_array_1d(

@@ -3,6 +3,32 @@
  * @author Tobias Weber <tweber@ill.fr>
  * @date 28-may-18
  * @license see 'LICENSE' file
+ * @desc Originally forked from: https://github.com/t-weber/misc/tree/master/parser
+ *
+ * References:
+ *	https://github.com/westes/flex/tree/master/examples/manual
+ *	http://www.gnu.org/software/bison/manual/html_node/index.html
+ *	http://git.savannah.gnu.org/cgit/bison.git/tree/examples
+ *
+ * ----------------------------------------------------------------------------
+ * mag-core (part of the Takin software suite)
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * "misc" project
+ * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 %option noyywrap
@@ -14,10 +40,10 @@
 %}
 
 
-sign 	[-+]
-integer {sign}?[0-9]+
+sign     [-+]
+integer  {sign}?[0-9]+
 uinteger [0-9]+
-real 	{uinteger}(\.[0-9]*)?|\.[0-9]+
+real     {uinteger}(\.[0-9]*)?|\.[0-9]+
 
 
 %%
@@ -45,7 +71,7 @@ real 	{uinteger}(\.[0-9]*)?|\.[0-9]+
 
 {real}([eE]{integer})? {
 	//std::cerr << "matched: " << yytext << std::endl;
-	return yy::CliParser::make_TOK_REAL(str_to_real<t_real_cli>(yytext));
+	return yy::CliParser::make_TOK_REAL(str_to_real<t_real>(yytext));
 }
 
 ["'][^"'\n]*["'] {
@@ -60,7 +86,7 @@ real 	{uinteger}(\.[0-9]*)?|\.[0-9]+
 
 . {
 	ctx.PrintError(std::string("Lexer error: Unknown token: \"") + yytext + std::string("\""));
-} 
+}
 
 
 %%

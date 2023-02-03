@@ -74,7 +74,7 @@
      <property name="currentIndex">
       <number>6</number>
      </property>
-     <widget class="QWidget" name="tabCN">
+     <widget class="QWidget" name="tabTAS">
       <attribute name="title">
        <string>TAS</string>
       </attribute>
@@ -89,7 +89,7 @@
         <widget class="QGroupBox" name="groupBox_2">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
+           <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
@@ -129,24 +129,37 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_33b">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Vert. Mosaic:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
            <widget class="QLabel" name="label_34">
             <property name="text">
              <string>Reflectivity:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_17">
             <property name="text">
              <string>Refl. Curve:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QLineEdit" name="editAnaEffic"/>
           </item>
-          <item row="5" column="2">
+          <item row="6" column="2">
            <widget class="QToolButton" name="btnAnaEffic">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -162,7 +175,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1" colspan="2">
+          <item row="5" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinAnaEffic">
             <property name="decimals">
              <number>4</number>
@@ -178,7 +191,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="3">
+          <item row="4" column="0" colspan="3">
            <widget class="QRadioButton" name="radioAnaScatterMinus">
             <property name="text">
              <string>Negative scattering sense</string>
@@ -188,13 +201,29 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="3">
+          <item row="3" column="0" colspan="3">
            <widget class="QRadioButton" name="radioAnaScatterPlus">
             <property name="text">
              <string>Positive scattering sense</string>
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QDoubleSpinBox" name="spinAnaMosaicV">
+            <property name="suffix">
+             <string> '</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>50.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -264,7 +293,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinHCollMono">
             <property name="suffix">
              <string> '</string>
@@ -290,7 +319,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="1" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinHCollBSample">
             <property name="suffix">
              <string> '</string>
@@ -316,7 +345,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="2" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinHCollASample">
             <property name="suffix">
              <string> '</string>
@@ -342,7 +371,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="3" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinHCollAna">
             <property name="suffix">
              <string> '</string>
@@ -362,7 +391,7 @@
         <widget class="QGroupBox" name="groupBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
+           <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
@@ -389,6 +418,19 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_29b">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Vert. Mosaic:</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_30">
             <property name="sizePolicy">
@@ -402,21 +444,21 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_31">
             <property name="text">
              <string>Reflectivity:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_16">
             <property name="text">
              <string>Refl. Curve:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QLineEdit" name="editMonoRefl">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -426,7 +468,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1" colspan="2">
+          <item row="5" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinMonoRefl">
             <property name="decimals">
              <number>4</number>
@@ -442,7 +484,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="3">
+          <item row="4" column="0" colspan="3">
            <widget class="QRadioButton" name="radioMonoScatterMinus">
             <property name="text">
              <string>Negative scattering sense</string>
@@ -452,13 +494,29 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="3">
+          <item row="3" column="0" colspan="3">
            <widget class="QRadioButton" name="radioMonoScatterPlus">
             <property name="text">
              <string>Positive scattering sense</string>
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QDoubleSpinBox" name="spinMonoMosaicV">
+            <property name="suffix">
+             <string> '</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>50.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -528,6 +586,12 @@
        </item>
        <item row="1" column="2">
         <widget class="QGroupBox" name="groupBox_28">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Options</string>
          </property>
@@ -539,12 +603,25 @@
            <number>1</number>
           </property>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkUseR0">
+           <widget class="QCheckBox" name="checkUseGeneralR0">
             <property name="toolTip">
-             <string>Resolution pre-factor.</string>
+             <string>Use generalised R0 calculation method. Should normally be left unchecked.</string>
             </property>
             <property name="text">
-             <string>Use R0 Factor</string>
+             <string>Use Generalised R0 Factor</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkUseKi3">
+            <property name="toolTip">
+             <string>Monochromator factor. Not needed if a monitor counter is used in the ki axis.</string>
+            </property>
+            <property name="text">
+             <string>Use ki³ Factor</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -552,22 +629,9 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QCheckBox" name="checkUseKi3">
-            <property name="toolTip">
-             <string>Monochromator factor. Leave unchecked if a monitor counter is used in the ki axis.</string>
-            </property>
-            <property name="text">
-             <string>Use ki³ Factor</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
            <widget class="QCheckBox" name="checkUseKf3">
             <property name="toolTip">
-             <string>Analyser factor. Leave unchecked for kf=const mode.</string>
+             <string>Analyser factor. Not needed for kf=const mode.</string>
             </property>
             <property name="text">
              <string>Use kf³ Factor</string>
@@ -577,29 +641,42 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkUseKi">
+            <property name="toolTip">
+             <string>Monitor factor. In kf=const mode, this and the kf/ki factor cancel out, and are not needed.</string>
+            </property>
+            <property name="text">
+             <string>Use 1/ki Factor</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item row="4" column="0">
+           <widget class="QCheckBox" name="checkUseMonitor">
+            <property name="toolTip">
+             <string>Normalise R0 to the incoming resolution volume.</string>
+            </property>
+            <property name="text">
+             <string>Monitor Counter in ki Axis</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
            <widget class="QCheckBox" name="checkUseKfKi">
             <property name="toolTip">
-             <string>Factor in conversion from dynamical structure factor S(Q,E) to double-differential scattering cross-section. Leave unchecked if a monitor counter is used in the ki axis.</string>
+             <string>Factor in conversion from dynamical structure factor S(Q,E) to double-differential scattering cross-section. Not needed if a monitor counter is used in the ki axis.</string>
             </property>
             <property name="text">
              <string>Use kf/ki Factor</string>
             </property>
             <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkUseGeneralR0">
-            <property name="toolTip">
-             <string>Use generalised R0 calculation method via the ki and kf resolution volumes instead. Should normally be left unchecked.</string>
-            </property>
-            <property name="text">
-             <string>Use Generalised R0 Factor</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -735,7 +812,7 @@
         <widget class="QGroupBox" name="groupBox_3">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
+           <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
@@ -762,7 +839,20 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_38b">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Vert. Mosaic:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="2">
            <widget class="QDoubleSpinBox" name="spinSampleMosaic">
             <property name="suffix">
              <string> '</string>
@@ -778,7 +868,23 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
+          <item row="1" column="1" colspan="2">
+           <widget class="QDoubleSpinBox" name="spinSampleMosaicV">
+            <property name="suffix">
+             <string> '</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>999</double>
+            </property>
+            <property name="value">
+             <double>50</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="3">
            <widget class="QRadioButton" name="radioSampleScatterPlus">
             <property name="text">
              <string>Positive scattering sense</string>
@@ -788,7 +894,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="3" column="0" colspan="3">
            <widget class="QRadioButton" name="radioSampleScatterMinus">
             <property name="text">
              <string>Negative scattering sense</string>
@@ -807,7 +913,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabPop">
+     <widget class="QWidget" name="tabTASGeo">
       <attribute name="title">
        <string>TAS Geometry</string>
       </attribute>
@@ -1773,7 +1879,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabEck">
+     <widget class="QWidget" name="tabAdvancedTAS">
       <attribute name="title">
        <string>Advanced TAS</string>
       </attribute>
@@ -1784,6 +1890,117 @@
        <property name="spacing">
         <number>1</number>
        </property>
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_12m">
+         <property name="title">
+          <string>Monitor</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_31m">
+          <property name="margin">
+           <number>4</number>
+          </property>
+          <property name="spacing">
+           <number>1</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_39m">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Width:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="spinMonitorW">
+            <property name="suffix">
+             <string> cm</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>999</double>
+            </property>
+            <property name="singleStep">
+             <double>0.1</double>
+            </property>
+            <property name="value">
+             <double>5</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_40m">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Height:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="spinMonitorH">
+            <property name="suffix">
+             <string> cm</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>999</double>
+            </property>
+            <property name="singleStep">
+             <double>0.1</double>
+            </property>
+            <property name="value">
+             <double>5</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_54m">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Dist. from Mono:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="spinDistMonoMonitor">
+            <property name="suffix">
+             <string> cm</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <double>9999</double>
+            </property>
+            <property name="singleStep">
+             <double>1</double>
+            </property>
+            <property name="value">
+             <double>5</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="0" column="2">
         <widget class="QGroupBox" name="groupBox_18">
          <property name="sizePolicy">
@@ -1802,35 +2019,6 @@
           <property name="spacing">
            <number>1</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_62">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Vertical Mosaic:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QDoubleSpinBox" name="spinAnaMosaicV">
-            <property name="suffix">
-             <string> '</string>
-            </property>
-            <property name="decimals">
-             <number>2</number>
-            </property>
-            <property name="maximum">
-             <double>999.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>50.000000000000000</double>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="checkKfVert">
             <property name="text">
@@ -1961,58 +2149,8 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QGroupBox" name="groupBox_7">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Monochromator</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_27">
-          <property name="margin">
-           <number>4</number>
-          </property>
-          <property name="spacing">
-           <number>1</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_59">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Vertical Mosaic:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QDoubleSpinBox" name="spinMonoMosaicV">
-            <property name="suffix">
-             <string> '</string>
-            </property>
-            <property name="decimals">
-             <number>2</number>
-            </property>
-            <property name="maximum">
-             <double>999.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>50.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <spacer name="verticalSpacer">
+       <item row="2" column="1">
+        <spacer name="verticalSpacer_3b">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -3543,16 +3681,19 @@
  <tabstops>
   <tabstop>spinMonod</tabstop>
   <tabstop>spinMonoMosaic</tabstop>
+  <tabstop>spinMonoMosaicV</tabstop>
   <tabstop>radioMonoScatterPlus</tabstop>
   <tabstop>radioMonoScatterMinus</tabstop>
   <tabstop>spinMonoRefl</tabstop>
   <tabstop>editMonoRefl</tabstop>
   <tabstop>btnMonoRefl</tabstop>
   <tabstop>spinSampleMosaic</tabstop>
+  <tabstop>spinSampleMosaicV</tabstop>
   <tabstop>radioSampleScatterPlus</tabstop>
   <tabstop>radioSampleScatterMinus</tabstop>
   <tabstop>spinAnad</tabstop>
   <tabstop>spinAnaMosaic</tabstop>
+  <tabstop>spinAnaMosaicV</tabstop>
   <tabstop>radioAnaScatterPlus</tabstop>
   <tabstop>radioAnaScatterMinus</tabstop>
   <tabstop>spinAnaEffic</tabstop>
@@ -3566,10 +3707,12 @@
   <tabstop>spinVCollBSample</tabstop>
   <tabstop>spinVCollASample</tabstop>
   <tabstop>spinVCollAna</tabstop>
-  <tabstop>checkUseR0</tabstop>
   <tabstop>checkUseGeneralR0</tabstop>
   <tabstop>checkUseKi3</tabstop>
   <tabstop>checkUseKf3</tabstop>
+  <tabstop>checkUseKi</tabstop>
+  <tabstop>checkUseMonitor</tabstop>
+  <tabstop>checkUseKfKi</tabstop>
   <tabstop>spinMonoW</tabstop>
   <tabstop>spinMonoH</tabstop>
   <tabstop>spinMonoThick</tabstop>
@@ -3604,11 +3747,12 @@
   <tabstop>radioDetCirc</tabstop>
   <tabstop>spinDetW</tabstop>
   <tabstop>spinDetH</tabstop>
-  <tabstop>spinMonoMosaicV</tabstop>
+  <tabstop>spinMonitorW</tabstop>
+  <tabstop>spinMonitorH</tabstop>
+  <tabstop>spinDistMonoMonitor</tabstop>
   <tabstop>spinSamplePosX</tabstop>
   <tabstop>spinSamplePosY</tabstop>
   <tabstop>spinSamplePosZ</tabstop>
-  <tabstop>spinAnaMosaicV</tabstop>
   <tabstop>checkKfVert</tabstop>
   <tabstop>spinDistTofPulseMono</tabstop>
   <tabstop>spinDistTofMonoSample</tabstop>
