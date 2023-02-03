@@ -641,6 +641,27 @@ Copyright (c) 1987-2022 by the GCC Team.
 
 
 
+--------------------------------------------------------------------------------
+Bison
+URL: http://savannah.gnu.org/projects/bison/
+URL: http://git.savannah.gnu.org/cgit/bison.git
+License URL: http://git.savannah.gnu.org/cgit/bison.git/tree/COPYING
+
+Copyright (c) 1998-2015 and 2018-2022 by Free Software Foundation, Inc.
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+Flex
+URL: https://github.com/westes/flex
+License URL: https://github.com/westes/flex/blob/master/COPYING
+
+Copyright (c) 2001-2007 by The Flex Project.
+--------------------------------------------------------------------------------
+
+
+
 ================================================================================
 
 

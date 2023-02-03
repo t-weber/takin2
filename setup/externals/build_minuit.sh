@@ -36,8 +36,8 @@ if [ "$1" == "--mingw" ]; then
 fi
 
 
-
-MINUIT_REMOTE=https://codeload.github.com/root-project/root/zip/master
+#MINUIT_REMOTE=https://codeload.github.com/root-project/root/zip/master
+MINUIT_REMOTE=https://codeload.github.com/root-project/root/zip/refs/heads/latest-stable
 MINUIT_LOCAL=${MINUIT_REMOTE##*[/\\]}
 
 
@@ -53,7 +53,8 @@ fi
 unzip "${MINUIT_LOCAL}"
 
 
-cd root-master/math/minuit2/
+#cd root-master/math/minuit2/
+cd root-latest-stable/math/minuit2/
 mkdir build && cd build
 
 

@@ -144,7 +144,8 @@ if ! wget https://raw.githubusercontent.com/PCRE2Project/pcre2/master/LICENCE -O
 fi
 
 # glib
-if ! wget https://gitlab.gnome.org/GNOME/glib/-/raw/main/COPYING -O ${LICDIR}/glib_license.txt; then
+#if ! wget https://gitlab.gnome.org/GNOME/glib/-/raw/main/COPYING -O ${LICDIR}/glib_license.txt; then
+if ! wget https://gitlab.gnome.org/GNOME/glib/-/raw/main/LICENSES/LGPL-2.1-or-later.txt -O ${LICDIR}/glib_license.txt; then
 	echo -e "Error: Cannot download glib license.";
 fi
 

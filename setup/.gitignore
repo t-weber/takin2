@@ -1,0 +1,8 @@
+root-master.*
+root-master/**
+
+root-latest-stable.*
+root-latest-stable/**
+
+lapack-master.*
+lapack-master/**

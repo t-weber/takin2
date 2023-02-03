@@ -40,7 +40,8 @@ if ! sudo apt-get install cmake clang build-essential \
 	libboost-all-dev libclipper-dev libhdf5-dev \
 	qt5-default qttools5-dev-tools libqt5svg5-dev qt5-assistant \
 	libqwt-qt5-dev libpython3-dev \
-	libfreetype6-dev libbz2-dev wget coreutils
+	libfreetype6-dev libbz2-dev wget coreutils \
+	flex bison
 then
 	echo -e "Error: Could not install packages necessary for building."
 	exit -1
