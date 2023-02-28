@@ -48,6 +48,9 @@ class MagnonMod : public SqwBase
 		t_real m_incoh_amp = t_real(0.);
 		t_real m_incoh_sigma = t_real(0.025);
 
+		// polarisation channel, -1: unpolarised
+		int m_channel{-1};
+
 
 	public:
 		MagnonMod();

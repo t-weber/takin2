@@ -80,7 +80,11 @@ std::tuple<std::vector<t_real>, std::vector<t_real>>
 	for(const auto& mode : modes)
 	{
 		energies.push_back(mode.E);
-		weights.push_back(mode.weight);
+
+		if(m_channel >= 0 && m_channel < 3)
+			weights.push_back(mode.weight_channel[m_channel]);
+		else
+			weights.push_back(mode.weight);
 	}
 
 	return std::make_tuple(energies, weights);
@@ -144,6 +148,8 @@ std::vector<MagnonMod::t_var> MagnonMod::GetVars() const
 	vars.push_back(SqwBase::t_var{
 		"cutoff", "real", tl::var_to_str(m_dyn.GetBoseCutoffEnergy())});
 	vars.push_back(SqwBase::t_var{
+		"channel", "int", tl::var_to_str(m_channel)});
+	vars.push_back(SqwBase::t_var{
 		"B_dir", "vector", vec_to_str(B)});
 	vars.push_back(SqwBase::t_var{
 		"B_mag", "real", tl::var_to_str(field.mag)});
@@ -192,6 +198,8 @@ void MagnonMod::SetVars(const std::vector<MagnonMod::t_var>& vars)
 			m_dyn.SetTemperature(tl::str_to_var<t_real>(strVal));
 		else if(strVar == "cutoff")
 			m_dyn.SetBoseCutoffEnergy(tl::str_to_var<t_real>(strVal));
+		else if(strVar == "channel")
+			m_channel = tl::str_to_var<int>(strVal);
 		else if(strVar == "B_dir")
 		{
 			std::vector<t_real> dir = str_to_vec<std::vector<t_real>>(strVal);
@@ -268,6 +276,7 @@ SqwBase* MagnonMod::shallow_copy() const
 	mod->m_incoh_sigma = this->m_incoh_sigma;
 	mod->m_S0 = this->m_S0;
 	mod->m_dyn = this->m_dyn;
+	mod->m_channel = this->m_channel;
 
 	return mod;
 }
