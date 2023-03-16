@@ -27,6 +27,15 @@
  */
 
 
+#ifndef USE_BOOST_REX
+	#include <regex>
+	namespace rex = ::std;
+#else
+	#include <boost/tr1/regex.hpp>
+	namespace rex = ::boost;
+#endif
+
+
 // ============================================================================
 
 

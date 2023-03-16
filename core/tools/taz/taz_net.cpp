@@ -46,7 +46,8 @@ void TazDlg::ShowConnectDlg()
 }
 
 
-void TazDlg::ConnectTo(int iSys, const QString& _strHost, const QString& _strPort,
+void TazDlg::ConnectTo(ControlSystem control_sys,
+	const QString& _strHost, const QString& _strPort,
 	const QString& _strUser, const QString& _strPass)
 {
 	Disconnect();
@@ -56,10 +57,16 @@ void TazDlg::ConnectTo(int iSys, const QString& _strHost, const QString& _strPor
 	std::string strUser = _strUser.toStdString();
 	std::string strPass = _strPass.toStdString();
 
-	if(iSys == 0)
+	if(control_sys == ControlSystem::NICOS)
+	{
+		tl::log_info("Trying to establish NICOS connection to ", strHost, ":", strPort, "...");
 		m_pNetCache = new NicosCache(&m_settings);
-	else if(iSys == 1)
+	}
+	else if(control_sys == ControlSystem::SICS)
+	{
+		tl::log_info("Trying to establish SICS connection to ", strHost, ":", strPort, "...");
 		m_pNetCache = new SicsCache(&m_settings);
+	}
 	else
 	{
 		tl::log_err("Unknown instrument control system selected.");

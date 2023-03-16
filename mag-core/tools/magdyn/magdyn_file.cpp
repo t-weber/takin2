@@ -1,5 +1,5 @@
 /**
- * magnon dynamics
+ * magnetic dynamics
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -108,7 +108,7 @@ void MagDynDlg::SetCurrentFile(const QString& filename)
 {
 	m_recent.SetCurFile(filename);
 
-	QString title = "Magnon Dynamics";
+	QString title = "Magnetic Dynamics";
 	if(filename != "")
 		title += " - " + filename;
 	setWindowTitle(title);
@@ -122,7 +122,7 @@ void MagDynDlg::Load()
 {
 	QString dirLast = m_sett->value("dir", "").toString();
 	QString filename = QFileDialog::getOpenFileName(
-		this, "Load File", dirLast, "Magnon Dynamics Files (*.magdyn *.xml)");
+		this, "Load File", dirLast, "Magnetic Dynamics Files (*.magdyn *.xml)");
 	if(filename=="" || !QFile::exists(filename))
 		return;
 
@@ -163,7 +163,7 @@ bool MagDynDlg::Load(const QString& filename)
 		if(auto optInfo = node.get_optional<std::string>("magdyn.meta.info");
 			!optInfo || !(*optInfo==std::string{"magdyn_tool"}))
 		{
-			QMessageBox::critical(this, "Magnon Dynamics", "Unrecognised file format.");
+			QMessageBox::critical(this, "Magnetic Dynamics", "Unrecognised file format.");
 			return false;
 		}
 
@@ -293,25 +293,59 @@ bool MagDynDlg::Load(const QString& filename)
 			AddVariableTabItem(-1, var.name, var.value);
 		}
 
+		// get site entries for reading additional infos
+		auto sites = magdyn.get_child_optional("atom_sites");
+
 		// atom sites
 		for(const auto &site : m_dyn.GetAtomSites())
 		{
 			t_real S = site.spin_mag;
 
+			// default colour
+			std::string rgb = "auto";
+
+			// get additional data from exchange term entry
+			if(sites && site.index < sites->size())
+			{
+				auto siteiter = (*sites).begin();
+				std::advance(siteiter, site.index);
+
+				// read colour
+				rgb = siteiter->second.get<std::string>("colour", "auto");
+			}
+
 			AddSiteTabItem(-1,
 				site.name,
 				site.pos[0], site.pos[1], site.pos[2],
-				site.spin_dir[0], site.spin_dir[1], site.spin_dir[2], S);
+				site.spin_dir[0], site.spin_dir[1], site.spin_dir[2], S,
+				rgb);
 		}
+
+		// get exchange terms entries for reading additional infos
+		auto terms = magdyn.get_child_optional("exchange_terms");
 
 		// exchange terms
 		for(const auto& term : m_dyn.GetExchangeTerms())
 		{
+			// default colour
+			std::string rgb = "#0x00bf00";
+
+			// get additional data from exchange term entry
+			if(terms && term.index < terms->size())
+			{
+				auto termiter = (*terms).begin();
+				std::advance(termiter, term.index);
+
+				// read colour
+				rgb = termiter->second.get<std::string>("colour", "#0x00bf00");
+			}
+
 			AddTermTabItem(-1,
 				term.name, term.atom1, term.atom2,
 				term.dist[0], term.dist[1], term.dist[2],
 				term.J,
-				term.dmi[0], term.dmi[1], term.dmi[2]);
+				term.dmi[0], term.dmi[1], term.dmi[2],
+				rgb);
 		}
 
 		// saved fields
@@ -330,7 +364,7 @@ bool MagDynDlg::Load(const QString& filename)
 	}
 	catch(const std::exception& ex)
 	{
-		QMessageBox::critical(this, "Magnon Dynamics", ex.what());
+		QMessageBox::critical(this, "Magnetic Dynamics", ex.what());
 		return false;
 	}
 
@@ -358,7 +392,7 @@ void MagDynDlg::SaveAs()
 {
 	QString dirLast = m_sett->value("dir", "").toString();
 	QString filename = QFileDialog::getSaveFileName(
-		this, "Save File", dirLast, "Magnon Dynamics Files (*.magdyn)");
+		this, "Save File", dirLast, "Magnetic Dynamics Files (*.magdyn)");
 	if(filename=="")
 		return;
 
@@ -460,6 +494,44 @@ bool MagDynDlg::Save(const QString& filename)
 			magdyn.add_child("saved_fields.field", itemNode);
 		}
 
+		// get site entries for putting additional infos
+		if(auto sites = magdyn.get_child_optional("atom_sites"); sites)
+		{
+			auto siteiter = (*sites).begin();
+
+			for(std::size_t site_idx = 0; site_idx < std::size_t(m_termstab->rowCount()); ++site_idx)
+			{
+				// set additional data from exchange term entry
+				if(site_idx >= sites->size())
+					break;
+
+				// write colour
+				std::string rgb = m_sitestab->item(site_idx, COL_SITE_RGB)->text().toStdString();
+				siteiter->second.put<std::string>("colour", rgb);
+
+				std::advance(siteiter, 1);
+			}
+		}
+
+		// get exchange terms entries for putting additional infos
+		if(auto terms = magdyn.get_child_optional("exchange_terms"); terms)
+		{
+			auto termiter = (*terms).begin();
+
+			for(std::size_t term_idx = 0; term_idx < std::size_t(m_termstab->rowCount()); ++term_idx)
+			{
+				// set additional data from exchange term entry
+				if(term_idx >= terms->size())
+					break;
+
+				// write colour
+				std::string rgb = m_termstab->item(term_idx, COL_XCH_RGB)->text().toStdString();
+				termiter->second.put<std::string>("colour", rgb);
+
+				std::advance(termiter, 1);
+			}
+		}
+
 		pt::ptree node;
 		node.put_child("magdyn", magdyn);
 
@@ -467,7 +539,7 @@ bool MagDynDlg::Save(const QString& filename)
 		std::ofstream ofstr{filename.toStdString()};
 		if(!ofstr)
 		{
-			QMessageBox::critical(this, "Magnon Dynamics",
+			QMessageBox::critical(this, "Magnetic Dynamics",
 				"Cannot open file for writing.");
 			return false;
 		}
@@ -478,7 +550,7 @@ bool MagDynDlg::Save(const QString& filename)
 	}
 	catch(const std::exception& ex)
 	{
-		QMessageBox::critical(this, "Magnon Dynamics", ex.what());
+		QMessageBox::critical(this, "Magnetic Dynamics", ex.what());
 		return false;
 	}
 
@@ -600,7 +672,7 @@ bool MagDynDlg::ExportSQE(const QString& filename)
 
 	if(!file_opened)
 	{
-		QMessageBox::critical(this, "Magnon Dynamics", "File could not be opened.");
+		QMessageBox::critical(this, "Magnetic Dynamics", "File could not be opened.");
 		return false;
 	}
 

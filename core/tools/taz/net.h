@@ -25,7 +25,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * ----------------------------------------------------------------------------
  */
- 
+
 #ifndef __TAKIN_NET_IF_H__
 #define __TAKIN_NET_IF_H__
 
@@ -42,7 +42,7 @@ class NetCache : public QObject
 	public:
 		virtual ~NetCache() {};
 
-		virtual void connect(const std::string& strHost, const std::string& strPort, 
+		virtual void connect(const std::string& strHost, const std::string& strPort,
 			const std::string& strUser, const std::string& strPass) = 0;
 		virtual void disconnect() = 0;
 

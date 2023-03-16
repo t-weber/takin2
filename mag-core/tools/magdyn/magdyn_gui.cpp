@@ -1,5 +1,5 @@
 /**
- * magnon dynamics -- gui setup
+ * magnetic dynamics -- gui setup
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -127,6 +127,8 @@ void MagDynDlg::CreateSitesPanel()
 		new QTableWidgetItem{"Spin z"});
 	m_sitestab->setHorizontalHeaderItem(COL_SITE_SPIN_MAG,
 		new QTableWidgetItem{"Spin |S|"});
+	m_sitestab->setHorizontalHeaderItem(COL_SITE_RGB,
+		new QTableWidgetItem{"Colour"});
 
 	m_sitestab->setColumnWidth(COL_SITE_NAME, 90);
 	m_sitestab->setColumnWidth(COL_SITE_POS_X, 80);
@@ -136,6 +138,7 @@ void MagDynDlg::CreateSitesPanel()
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_Y, 80);
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_Z, 80);
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_MAG, 80);
+	m_sitestab->setColumnWidth(COL_SITE_RGB, 80);
 	m_sitestab->setSizePolicy(QSizePolicy{
 		QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -339,6 +342,8 @@ void MagDynDlg::CreateExchangeTermsPanel()
 		COL_XCH_DMI_Y, new QTableWidgetItem{"DMI y"});
 	m_termstab->setHorizontalHeaderItem(
 		COL_XCH_DMI_Z, new QTableWidgetItem{"DMI z"});
+	m_termstab->setHorizontalHeaderItem(
+		COL_XCH_RGB, new QTableWidgetItem{"Colour"});
 
 	m_termstab->setColumnWidth(COL_XCH_NAME, 90);
 	m_termstab->setColumnWidth(COL_XCH_ATOM1_IDX, 80);
@@ -350,6 +355,7 @@ void MagDynDlg::CreateExchangeTermsPanel()
 	m_termstab->setColumnWidth(COL_XCH_DMI_X, 80);
 	m_termstab->setColumnWidth(COL_XCH_DMI_Y, 80);
 	m_termstab->setColumnWidth(COL_XCH_DMI_Z, 80);
+	m_termstab->setColumnWidth(COL_XCH_RGB, 80);
 	m_termstab->setSizePolicy(QSizePolicy{
 		QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -1080,7 +1086,7 @@ void MagDynDlg::CreateDispersionPanel()
 	// number of points in plot
 	m_num_points = new QSpinBox(m_disppanel);
 	m_num_points->setMinimum(1);
-	m_num_points->setMaximum(9999.9);
+	m_num_points->setMaximum(9999);
 	m_num_points->setValue(512);
 	m_num_points->setSizePolicy(QSizePolicy{
 		QSizePolicy::Expanding, QSizePolicy::Fixed});
@@ -1285,7 +1291,7 @@ void MagDynDlg::CreateExportPanel()
 	{
 		m_exportNumPoints[i] = new QSpinBox(m_exportpanel);
 		m_exportNumPoints[i]->setMinimum(1);
-		m_exportNumPoints[i]->setMaximum(99999.9);
+		m_exportNumPoints[i]->setMaximum(99999);
 		m_exportNumPoints[i]->setValue(128);
 		m_exportNumPoints[i]->setSizePolicy(QSizePolicy{
 			QSizePolicy::Expanding, QSizePolicy::Fixed});
@@ -1405,7 +1411,7 @@ void MagDynDlg::CreateInfoDlg()
 	std::string strBoost = BOOST_LIB_VERSION;
 	algo::replace_all(strBoost, "_", ".");
 
-	auto labelTitle = new QLabel("Takin / Magnon Dynamics Calculator", infopanel);
+	auto labelTitle = new QLabel("Takin / Magnetic Dynamics Calculator", infopanel);
 	auto fontTitle = labelTitle->font();
 	fontTitle.setBold(true);
 	labelTitle->setFont(fontTitle);

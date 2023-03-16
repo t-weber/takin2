@@ -51,6 +51,14 @@
 #include <boost/scope_exit.hpp>
 #include <boost/program_options.hpp>
 
+#ifndef USE_BOOST_REX
+	#include <regex>
+	namespace rex = ::std;
+#else
+	#include <boost/tr1/regex.hpp>
+	namespace rex = ::boost;
+#endif
+
 #include <locale>
 #include <clocale>
 #include <memory>
@@ -251,10 +259,10 @@ int main(int argc, char** argv)
 		});
 
 
-
 		// --------------------------------------------------------------------
 		// get program options
 		std::vector<std::string> vecTazFiles;
+		std::string connectTo;
 		bool bShowHelp = 0;
 		bool bStartScanviewer = 0;
 		bool bStartMonteconvo = 0;
@@ -267,6 +275,10 @@ int main(int argc, char** argv)
 			new opts::option_description("taz-file",
 			opts::value<decltype(vecTazFiles)>(&vecTazFiles),
 			"loads a Takin session file")));
+		args.add(boost::shared_ptr<opts::option_description>(
+			new opts::option_description("connect",
+			opts::value<decltype(connectTo)>(&connectTo),
+			"connect to an instrument, arg format: system:host:port[:user:pass], where system=nicos or sics")));
 		args.add(boost::shared_ptr<opts::option_description>(
 			new opts::option_description("help",
 			opts::bool_switch(&bShowHelp),
@@ -314,7 +326,6 @@ int main(int argc, char** argv)
 			return 0;
 		}
 		// --------------------------------------------------------------------
-
 
 
 		std::string strLog = QDir::tempPath().toStdString();
@@ -545,6 +556,72 @@ int main(int argc, char** argv)
 			{
 				tl::log_info("Loading \"", vecTazFiles[0], "\"...");
 				pTakDlg->Load(vecTazFiles[0].c_str());
+			}
+
+			// connect to an instrument control system
+			if(connectTo != "")
+			{
+				bool has_valid_connection_infos = false;
+				ControlSystem control_sys = ControlSystem::UNKNOWN;
+				std::string hostname, portnumber;
+				std::string username, userpwd;
+
+				const rex::regex regex_url(
+					"(([A-Za-z0-9]+)(:([A-Za-z0-9]+))?@)?([A-Za-z0-9]+)://([A-Za-z0-9\\.]+)(:([0-9]+))?",
+					rex::regex::ECMAScript);
+				rex::smatch match_url;
+
+				if(rex::regex_match(connectTo, match_url, regex_url))
+				{
+					// connection string is in url format
+
+					if(tl::str_to_lower(std::string(match_url[5])) == "nicos")
+						control_sys = ControlSystem::NICOS;
+					else if(tl::str_to_lower(std::string(match_url[5])) == "sics")
+						control_sys = ControlSystem::SICS;
+
+					hostname = match_url[6];
+					portnumber = match_url[8];
+					username = match_url[2];
+					userpwd = match_url[4];
+
+					has_valid_connection_infos = true;
+				}
+				else
+				{
+					// try simple token format instead
+					std::vector<std::string> vecConnectTo;
+					tl::get_tokens<std::string, std::string>(connectTo, ":", vecConnectTo);
+
+					if(vecConnectTo.size() >= 3)
+					{
+						if(tl::str_to_lower(vecConnectTo[0]) == "nicos")
+							control_sys = ControlSystem::NICOS;
+						else if(tl::str_to_lower(vecConnectTo[0]) == "sics")
+							control_sys = ControlSystem::SICS;
+
+						hostname = vecConnectTo[1];
+						portnumber = vecConnectTo[2];
+
+						if(vecConnectTo.size() > 3)
+							username = vecConnectTo[3];
+						if(vecConnectTo.size() > 4)
+							userpwd = vecConnectTo[4];
+
+						has_valid_connection_infos = true;
+					}
+				}
+
+				if(has_valid_connection_infos)
+				{
+					pTakDlg->ConnectTo(control_sys,
+						hostname.c_str(), portnumber.c_str(),
+						username.c_str(), userpwd.c_str());
+				}
+				else
+				{
+					tl::log_err("Unknown connection string, format is: system:host:port[:user:pass].");
+				}
 			}
 
 			pTakDlg->show();

@@ -41,14 +41,6 @@
 	#include "libs/spacegroups/spacegroup_clp.h"
 #endif
 
-#ifndef USE_BOOST_REX
-	#include <regex>
-	namespace rex = ::std;
-#else
-	#include <boost/tr1/regex.hpp>
-	namespace rex = ::boost;
-#endif
-
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/version.hpp>
 

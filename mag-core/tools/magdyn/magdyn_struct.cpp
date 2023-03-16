@@ -1,5 +1,5 @@
 /**
- * magnon dynamics -- calculations for sites and coupling terms
+ * magnetic dynamics -- calculations for sites and coupling terms
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -165,7 +165,7 @@ void MagDynDlg::GenerateSitesFromSG()
 		auto sgidx = m_comboSG->itemData(m_comboSG->currentIndex()).toInt();
 		if(sgidx < 0 || std::size_t(sgidx) >= m_SGops.size())
 		{
-			QMessageBox::critical(this, "Magnon Dynamics",
+			QMessageBox::critical(this, "Magnetic Dynamics",
 				"Invalid space group selected.");
 			return;
 		}
@@ -175,7 +175,8 @@ void MagDynDlg::GenerateSitesFromSG()
 			std::string,
 			t_real, t_real, t_real,                // position
 			std::string, std::string, std::string, // spin direction
-			t_real                                 // spin magnitude
+			t_real,                                // spin magnitude
+			std::string                            // colour
 			>> generatedsites;
 
 		// avoids multiple occupation of the same site
@@ -229,6 +230,8 @@ void MagDynDlg::GenerateSitesFromSG()
 			auto newsitepos = tl2::apply_ops_hom<t_vec_real, t_mat_real, t_real>(
 				sitepos, ops, g_eps);
 
+			std::string rgb = m_sitestab->item(row, COL_SITE_RGB)->text().toStdString();
+
 			for(std::size_t newsite_idx=0; newsite_idx<newsitepos.size(); ++newsite_idx)
 			{
 				const auto& newsite = newsitepos[newsite_idx];
@@ -236,7 +239,7 @@ void MagDynDlg::GenerateSitesFromSG()
 				generatedsites.emplace_back(std::make_tuple(
 					ident + "_" + tl2::var_to_str(newsite_idx),
 					newsite[0], newsite[1], newsite[2],
-					sx, sy, sz, S));
+					sx, sy, sz, S, rgb));
 			}
 
 			remove_duplicate_sites();
@@ -254,7 +257,7 @@ void MagDynDlg::GenerateSitesFromSG()
 	}
 	catch(const std::exception& ex)
 	{
-		QMessageBox::critical(this, "Magnon Dynamics", ex.what());
+		QMessageBox::critical(this, "Magnetic Dynamics", ex.what());
 	}
 }
 
@@ -279,7 +282,7 @@ void MagDynDlg::GenerateCouplingsFromSG()
 		auto sgidx = m_comboSG2->itemData(m_comboSG2->currentIndex()).toInt();
 		if(sgidx < 0 || std::size_t(sgidx) >= m_SGops.size())
 		{
-			QMessageBox::critical(this, "Magnon Dynamics",
+			QMessageBox::critical(this, "Magnetic Dynamics",
 				"Invalid space group selected.");
 			return;
 		}
@@ -289,7 +292,8 @@ void MagDynDlg::GenerateCouplingsFromSG()
 			t_size, t_size,                        // uc atom indices
 			t_real, t_real, t_real,                // supercell vector
 			std::string,                           // exchange term (not modified)
-			std::string, std::string, std::string  // dmi vector
+			std::string, std::string, std::string, // dmi vector
+			std::string                            // colour
 			>> generatedcouplings;
 
 		// avoids duplicate coupling terms
@@ -363,6 +367,7 @@ void MagDynDlg::GenerateCouplingsFromSG()
 			bool dmi_z_ok = parser.parse(
 				m_termstab->item(row, COL_XCH_DMI_Z)->text().toStdString());
 			t_real dmi_z = parser.eval().real();
+			std::string rgb = m_termstab->item(row, COL_XCH_RGB)->text().toStdString();
 
 			if(!dmi_x_ok || !dmi_y_ok || !dmi_z_ok)
 				std::cerr << "Could not parse DMI vector expression." << std::endl;
@@ -412,7 +417,8 @@ void MagDynDlg::GenerateCouplingsFromSG()
 				generatedcouplings.emplace_back(std::make_tuple(
 					ident + "_" + tl2::var_to_str(op_idx), newsite1_idx, newsite2_idx,
 					sc_dist[0], sc_dist[1], sc_dist[2], oldJ,
-					tl2::var_to_str(newdmi[0]), tl2::var_to_str(newdmi[1]), tl2::var_to_str(newdmi[2])));
+					tl2::var_to_str(newdmi[0]), tl2::var_to_str(newdmi[1]), tl2::var_to_str(newdmi[2]),
+					rgb));
 			}
 
 			remove_duplicate_terms();
@@ -420,7 +426,7 @@ void MagDynDlg::GenerateCouplingsFromSG()
 
 		if(!generatedcouplings.size())
 		{
-			QMessageBox::critical(this, "Magnon Dynamics", "No couplings could be generated.");
+			QMessageBox::critical(this, "Magnetic Dynamics", "No couplings could be generated.");
 			return;
 		}
 
@@ -436,7 +442,7 @@ void MagDynDlg::GenerateCouplingsFromSG()
 	}
 	catch(const std::exception& ex)
 	{
-		QMessageBox::critical(this, "Magnon Dynamics", ex.what());
+		QMessageBox::critical(this, "Magnetic Dynamics", ex.what());
 	}
 }
 

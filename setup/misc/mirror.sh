@@ -31,7 +31,7 @@ mirror_from=org_repo
 
 
 declare -a repo_dirs=(
-	"ill_mirror-takin2-meta"
+	"ill_mirror-takin2-setup"
 	"ill_mirror-takin2-core"
 	"ill_mirror-takin2-mag-core"
 	"ill_mirror-takin2-tlibs"

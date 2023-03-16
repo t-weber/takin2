@@ -209,6 +209,7 @@ class FilePsi : public FileInstrBase<_t_real>
 		virtual const t_vecColNames& GetColNames() const override { return m_vecColNames; }
 		virtual const t_mapParams& GetAllParams() const override { return m_mapParams; }
 
+		static std::vector<std::string> GetScannedVarsFromCommand(const std::string& cmd);
 		virtual std::vector<std::string> GetScannedVars() const override;
 		virtual std::string GetCountVar() const override;
 		virtual std::string GetMonVar() const override;

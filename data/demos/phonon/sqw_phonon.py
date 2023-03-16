@@ -145,8 +145,38 @@ def TakinSqw(h, k, l, E):
 # -----------------------------------------------------------------------------
 
 
+
+#
+# this will be executed when the module loads
+#
 import os
 print("Script working directory: " + os.getcwd())
 
-# test
-#print(TakinSqw(4.1, 3.9, 0., 0.4))
+
+
+#
+# this python file can also be called directly for testing or plotting
+#
+if __name__ == "__main__":
+	# testing the TakinSqw() function
+	print(TakinSqw(4.1, 3.9, 0., 0.4))
+
+	# plotting the transverse dispersion branch
+	qs = np.linspace(-0.75, 0.75, 64)
+	Es_plus = []
+	Es_minus = []
+	for q in qs:
+		[[E_p, E_m], [w_p, w_m]] = TakinDisp(g_h+q, g_k-q, g_l)
+		Es_plus.append(E_p)
+		Es_minus.append(E_m)
+
+	try:
+		import matplotlib.pyplot as plt
+
+		plt.xlabel("q (rlu)")
+		plt.ylabel("E (meV)")
+		plt.plot(qs, Es_plus)
+		plt.plot(qs, Es_minus)
+		plt.show()
+	except ModuleNotFoundError:
+		print("Could not plot dispersion.")

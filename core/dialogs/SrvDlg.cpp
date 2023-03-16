@@ -29,8 +29,8 @@
 #include "SrvDlg.h"
 #include "tlibs/string/string.h"
 
-SrvDlg::SrvDlg(QWidget* pParent, QSettings *pSett)
-		: QDialog(pParent), m_pSettings(pSett)
+
+SrvDlg::SrvDlg(QWidget* pParent, QSettings *pSett) : QDialog(pParent), m_pSettings(pSett)
 {
 	this->setupUi(this);
 
@@ -59,14 +59,35 @@ SrvDlg::SrvDlg(QWidget* pParent, QSettings *pSett)
 		if(m_pSettings->contains("server/port"))
 			editPort->setText(m_pSettings->value("server/port").toString());
 	}
+
+	ControlSysChanged(comboSys->currentIndex());
+	connect(comboSys, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+		this, &SrvDlg::ControlSysChanged);
 }
+
 
 SrvDlg::~SrvDlg()
 {}
 
+
+/**
+ * the selected control system was changed
+ */
+void SrvDlg::ControlSysChanged(int control_sys)
+{
+	if(control_sys == static_cast<int>(ControlSystem::NICOS))
+		groupLogin->setEnabled(false);  // no login necessary
+	else
+		groupLogin->setEnabled(true);
+}
+
+
+/**
+ * connect to the control system
+ */
 void SrvDlg::accept()
 {
-	const int iSys = comboSys->currentIndex();
+	const ControlSystem control_sys = static_cast<ControlSystem>(comboSys->currentIndex());
 	const QString strHost = editHost->text();
 	const QString strPort = editPort->text();
 	const QString strLogin = editLogin->text();
@@ -81,13 +102,14 @@ void SrvDlg::accept()
 		else
 			m_pSettings->setValue("server/pwd", "");
 
-		m_pSettings->setValue("server/system", iSys);
+		m_pSettings->setValue("server/system", static_cast<int>(control_sys));
 		m_pSettings->setValue("server/host", strHost);
 		m_pSettings->setValue("server/port", strPort);
 	}
 
-	emit ConnectTo(iSys, strHost, strPort, strLogin, strPwd);
+	emit ConnectTo(control_sys, strHost, strPort, strLogin, strPwd);
 	QDialog::accept();
 }
+
 
 #include "moc_SrvDlg.cpp"
