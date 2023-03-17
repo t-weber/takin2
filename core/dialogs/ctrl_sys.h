@@ -1,5 +1,5 @@
 /**
- * intrument control systems for server dialog
+ * instrument control systems for server dialog
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 27-aug-2014
  * @license GPLv2
