@@ -1108,7 +1108,19 @@ void ScanViewerDlg::ShowRawFiles(const std::vector<std::string>& files)
 		else
 		{
 			//tl::log_err("Cannot print binary file \"", file, "\".");
-			rawFiles = "<binary data>";
+			std::string file_ext = tl::get_fileext(file);
+			if(file_ext == "nxs" || file_ext == "hdf")
+			{
+				rawFiles = "<binary data>";
+
+				rawFiles += "\n\nHere's a tool to convert NXS TAS files to the old-style text format:\n";
+				rawFiles += "https://code.ill.fr/scientific-software/takin/core/-/raw/master/tools/misc/nxsprint.py\n";
+			}
+			else
+			{
+				rawFiles = "<unknown binary file>";
+			}
+			break;
 		}
 	}
 

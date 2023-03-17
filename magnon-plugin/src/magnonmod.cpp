@@ -1,8 +1,29 @@
 /**
- * S(q,w) module for magnon dynamics
+ * S(q,w) module for magnetic dynamics
  * @author Tobias Weber <tweber@ill.fr>
  * @date jan-2022
  * @license GPLv2, see 'LICENSE' file
+ *
+ * ----------------------------------------------------------------------------
+ * Takin (inelastic neutron scattering software package)
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * ----------------------------------------------------------------------------
  */
 
 // g++ -std=c++20 -I../ext -I../ext/takin -I/usr/include/lapacke -Iext/lapacke/include -Lext/lapacke/lib -I/usr/local/opt/lapack/include -L/usr/local/opt/lapack/lib -shared -fPIC -o magnonmod.so magnonmod.cpp ../ext/takin/tools/monteconvo/sqwbase.cpp ../ext/tlibs/log/log.cpp -llapacke
@@ -80,7 +101,11 @@ std::tuple<std::vector<t_real>, std::vector<t_real>>
 	for(const auto& mode : modes)
 	{
 		energies.push_back(mode.E);
-		weights.push_back(mode.weight);
+
+		if(m_channel >= 0 && m_channel < 3)
+			weights.push_back(mode.weight_channel[m_channel]);
+		else
+			weights.push_back(mode.weight);
 	}
 
 	return std::make_tuple(energies, weights);
@@ -144,6 +169,8 @@ std::vector<MagnonMod::t_var> MagnonMod::GetVars() const
 	vars.push_back(SqwBase::t_var{
 		"cutoff", "real", tl::var_to_str(m_dyn.GetBoseCutoffEnergy())});
 	vars.push_back(SqwBase::t_var{
+		"channel", "int", tl::var_to_str(m_channel)});
+	vars.push_back(SqwBase::t_var{
 		"B_dir", "vector", vec_to_str(B)});
 	vars.push_back(SqwBase::t_var{
 		"B_mag", "real", tl::var_to_str(field.mag)});
@@ -192,6 +219,8 @@ void MagnonMod::SetVars(const std::vector<MagnonMod::t_var>& vars)
 			m_dyn.SetTemperature(tl::str_to_var<t_real>(strVal));
 		else if(strVar == "cutoff")
 			m_dyn.SetBoseCutoffEnergy(tl::str_to_var<t_real>(strVal));
+		else if(strVar == "channel")
+			m_channel = tl::str_to_var<int>(strVal);
 		else if(strVar == "B_dir")
 		{
 			std::vector<t_real> dir = str_to_vec<std::vector<t_real>>(strVal);
@@ -268,6 +297,7 @@ SqwBase* MagnonMod::shallow_copy() const
 	mod->m_incoh_sigma = this->m_incoh_sigma;
 	mod->m_S0 = this->m_S0;
 	mod->m_dyn = this->m_dyn;
+	mod->m_channel = this->m_channel;
 
 	return mod;
 }
@@ -283,7 +313,7 @@ SqwBase* MagnonMod::shallow_copy() const
 
 std::tuple<std::string, std::string, std::string> sqw_info()
 {
-	return std::make_tuple(TAKIN_VER, "magnonmod", "Magnon Dynamics");
+	return std::make_tuple(TAKIN_VER, "magnonmod", "Magnetic Dynamics");
 }
 
 

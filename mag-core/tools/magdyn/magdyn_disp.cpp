@@ -1,5 +1,5 @@
 /**
- * magnon dynamics -- calculations for dispersion plot
+ * magnetic dynamics -- calculations for dispersion plot
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -103,6 +103,9 @@ void MagDynDlg::PlotDispersion()
 
 		for(int i=0; i<3; ++i)
 		{
+			if(!m_plot_channel[i]->isChecked())
+				continue;
+
 			GraphWithWeights *graph = new GraphWithWeights(m_plot->xAxis, m_plot->yAxis);
 			QPen pen = graph->pen();
 			pen.setColor(colChannel[i]);
@@ -385,7 +388,7 @@ void MagDynDlg::CalcDispersion()
 
 
 /**
- * calculate all magnon dynamics
+ * calculate all magnetic dynamics
  */
 void MagDynDlg::CalcAllDynamics()
 {

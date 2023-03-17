@@ -12,14 +12,32 @@
  *   - (Heinsdorf 2021) N. Heinsdorf, manual example calculation for a simple
  *                      ferromagnetic case, personal communications, 2021/2022.
  *
- * This file implements the formalism given by (Toth 2015).
+ * @desc This file implements the formalism given by (Toth 2015).
+ * @desc For further references, see the 'LITERATURE' file.
+ *
+ * ----------------------------------------------------------------------------
+ * tlibs
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
+ *                          Grenoble, France).
+ * Copyright (C) 2015-2017  Tobias WEBER (Technische Universitaet Muenchen
+ *                          (TUM), Garching, Germany).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
  */
 
 #ifndef __TLIBS2_MAGDYN_H__
 #define __TLIBS2_MAGDYN_H__
-
-//#define USE_LAPACK 1
-//#define TL2_MAG_USE_COMPLEX_SPIN
 
 #include <vector>
 #include <tuple>
@@ -49,8 +67,7 @@ namespace tl2_mag {
 // ----------------------------------------------------------------------------
 
 /**
- * rotate spin vector for incommensurate structures,
- * i.e. helices
+ * rotate spin vector for incommensurate structures, i.e. helices
  */
 template<class t_mat, class t_vec, class t_real = typename t_mat::value_type>
 requires tl2::is_mat<t_mat> && tl2::is_vec<t_vec>
@@ -66,6 +83,51 @@ void rotate_spin_incommensurate(t_vec& spin_vec,
 		t_mat sc_rot = tl2::rotation<t_mat, t_vec>(rotaxis, sc_angle);
 		spin_vec = sc_rot * spin_vec;
 	}
+}
+
+
+/**
+ * polarisation matrix
+ * @see https://doi.org/10.1088/1361-6463/aa7573
+ */
+template<class t_mat, class t_cplx = typename t_mat::value_type>
+requires tl2::is_mat<t_mat>
+t_mat get_polarisation(int channel = 0, bool in_chiral_base = true)
+{
+	if(in_chiral_base)
+	{
+		t_mat pol = tl2::zero<t_mat>(3);
+
+		// just pick the selected component on the diagonal
+		if(channel >=0 && channel < 3)
+			pol(channel, channel) = t_cplx(1);
+
+		return pol;
+	}
+	else
+	{
+		constexpr const t_cplx halfi = t_cplx(0, 0.5);
+		constexpr const t_cplx half = t_cplx(0.5, 0);
+
+		// TODO: check coordinate system
+		switch(channel)
+		{
+			case 0: return tl2::create<t_mat>({
+				{   half, +halfi, 0 },
+				{ -halfi,   half, 0 },
+				{      0,      0, 0 } });
+			case 1: return tl2::create<t_mat>({
+				{   half, -halfi, 0 },
+				{ +halfi,   half, 0 },
+				{      0,      0, 0 } });
+			case 2: return tl2::create<t_mat>({
+				{      0,      0, 0 },
+				{      0,      0, 0 },
+				{      0,      0, 1 } });
+		}
+	}
+
+	return tl2::zero<t_mat>(3);
 }
 // ----------------------------------------------------------------------------
 
@@ -261,51 +323,22 @@ public:
 	// --------------------------------------------------------------------
 	// getter
 	// --------------------------------------------------------------------
-	const std::vector<Variable>& GetVariables() const
+	const std::vector<Variable>& GetVariables() const { return m_variables; }
+	const std::vector<AtomSite>& GetAtomSites() const { return m_sites; }
+	const std::vector<AtomSiteCalc>& GetAtomSitesCalc() const { return m_sites_calc; }
+	const std::vector<ExchangeTerm>& GetExchangeTerms() const { return m_exchange_terms; }
+	const std::vector<ExchangeTermCalc>& GetExchangeTermsCalc() const { return m_exchange_terms_calc; }
+
+	const ExternalField& GetExternalField() const { return m_field; }
+	const t_vec_real& GetRotationAxis() const { return m_rotaxis; }
+	const t_vec_real& GetOrderingWavevector() const { return m_ordering; }
+
+	t_real GetTemperature() const { return m_temperature; }
+	t_real GetBoseCutoffEnergy() const { return m_bose_cutoff; }
+
+	bool IsIncommensurate() const
 	{
-		return m_variables;
-	}
-
-
-	const std::vector<AtomSite>& GetAtomSites() const
-	{
-		return m_sites;
-	}
-
-
-	const std::vector<AtomSiteCalc>& GetAtomSitesCalc() const
-	{
-		return m_sites_calc;
-	}
-
-
-	const std::vector<ExchangeTerm>& GetExchangeTerms() const
-	{
-		return m_exchange_terms;
-	}
-
-
-	const std::vector<ExchangeTermCalc>& GetExchangeTermsCalc() const
-	{
-		return m_exchange_terms_calc;
-	}
-
-
-	const ExternalField& GetExternalField() const
-	{
-		return m_field;
-	}
-
-
-	t_real GetTemperature() const
-	{
-		return m_temperature;
-	}
-
-
-	t_real GetBoseCutoffEnergy() const
-	{
-		return m_bose_cutoff;
+		return m_is_incommensurate || m_force_incommensurate;
 	}
 	// --------------------------------------------------------------------
 
@@ -313,28 +346,21 @@ public:
 	// --------------------------------------------------------------------
 	// setter
 	// --------------------------------------------------------------------
-	void SetEpsilon(t_real eps)
-	{
-		m_eps = eps;
-	}
+	void SetEpsilon(t_real eps) { m_eps = eps; }
+	void SetPrecision(int prec) { m_prec = prec; }
 
-
-	void SetPrecision(int prec)
-	{
-		m_prec = prec;
-	}
+		void SetTemperature(t_real T) { m_temperature = T; }
+	void SetBoseCutoffEnergy(t_real E) { m_bose_cutoff = E; }
+	void SetUniteDegenerateEnergies(bool b) { m_unite_degenerate_energies = b; }
+	void SetForceIncommensurate(bool b) { m_force_incommensurate = b; }
 
 
 	void SetExternalField(const ExternalField& field)
 	{
 		m_field = field;
-		//tl2::niceprint(std::cout, -m_field.dir, 1e-4, 4);
-	}
-
-
-	bool IsIncommensurate() const
-	{
-		return m_is_incommensurate || m_force_incommensurate;
+		t_real len = tl2::norm<t_vec_real>(m_field.dir);
+		if(!tl2::equals_0<t_real>(len, m_eps))
+			m_field.dir /= len;
 	}
 
 
@@ -345,29 +371,18 @@ public:
 	}
 
 
-	const t_vec_real& GetOrderingWavevector() const
-	{
-		return m_ordering;
-	}
-
-
 	void SetRotationAxis(const t_vec_real& axis)
 	{
-		t_real len = tl2::norm<t_vec_real>(axis);
-		m_rotaxis = axis / len;
-	}
-
-
-	const t_vec_real& GetRotationAxis() const
-	{
-		return m_rotaxis;
+		m_rotaxis = axis;
+		t_real len = tl2::norm<t_vec_real>(m_rotaxis);
+		if(!tl2::equals_0<t_real>(len, m_eps))
+			m_rotaxis /= len;
 	}
 
 
 	void AddVariable(Variable&& var)
 	{
-		m_variables.emplace_back(
-			std::forward<Variable&&>(var));
+		m_variables.emplace_back(std::forward<Variable&&>(var));
 	}
 
 
@@ -393,43 +408,19 @@ public:
 	}
 
 
-	void AddAtomSite(AtomSite&& site)
+	void AddAtomSite(AtomSite&& site, bool set_index = true)
 	{
-		site.index = GetAtomSites().size();
-		m_sites.emplace_back(
-			std::forward<AtomSite&&>(site));
+		if(set_index)
+			site.index = GetAtomSites().size();
+		m_sites.emplace_back(std::forward<AtomSite&&>(site));
 	}
 
 
-	void AddExchangeTerm(ExchangeTerm&& term)
+	void AddExchangeTerm(ExchangeTerm&& term, bool set_index = true)
 	{
-		term.index = GetExchangeTerms().size();
-		m_exchange_terms.emplace_back(
-			std::forward<ExchangeTerm&&>(term));
-	}
-
-
-	void SetTemperature(t_real T)
-	{
-		m_temperature = T;
-	}
-
-
-	void SetBoseCutoffEnergy(t_real E)
-	{
-		m_bose_cutoff = E;
-	}
-
-
-	void SetUniteDegenerateEnergies(bool b)
-	{
-		m_unite_degenerate_energies = b;
-	}
-
-
-	void SetForceIncommensurate(bool b)
-	{
-		m_force_incommensurate = b;
+		if(set_index)
+			term.index = GetExchangeTerms().size();
+		m_exchange_terms.emplace_back(std::forward<ExchangeTerm&&>(term));
 	}
 	// --------------------------------------------------------------------
 
@@ -683,8 +674,7 @@ public:
 				continue;
 			}
 
-			// exchange interaction matrix with dmi as anti-symmetric part,
-			// see (Toth 2015) p. 2
+			// exchange interaction matrix with dmi as anti-symmetric part, see (Toth 2015) p. 2
 			t_mat J = tl2::diag<t_mat>(
 				tl2::create<t_vec>({term_calc.J, term_calc.J, term_calc.J}));
 
@@ -718,8 +708,7 @@ public:
 			t_mat J_T = tl2::trans(J);
 			t_real factor = /*0.5*/ 1.;
 
-			// include these two terms to fulfill
-			// equation (11) from (Toth 2015)
+			// include these two terms to fulfill equation (11) from (Toth 2015)
 			tl2::add_submat<t_mat>(J_Q, factor * J * phase_Q, term.atom1*3, term.atom2*3);
 			tl2::add_submat<t_mat>(J_Q, factor * J_T * phase_mQ, term.atom2*3, term.atom1*3);
 
@@ -751,16 +740,16 @@ public:
 			t_real S_j = m_sites[j].spin_mag;
 
 			// get the precalculated u and v vectors for the commensurate case
-			const t_vec* u_i = &m_sites_calc[i].u;
-			const t_vec* u_j = &m_sites_calc[j].u;
-			const t_vec* u_conj_j = &m_sites_calc[j].u_conj;
-			const t_vec* v_i = &m_sites_calc[i].v;
+			const t_vec& u_i = m_sites_calc[i].u;
+			const t_vec& u_j = m_sites_calc[j].u;
+			const t_vec& u_conj_j = m_sites_calc[j].u_conj;
+			const t_vec& v_i = m_sites_calc[i].v;
 
 			// equation (26) from (Toth 2015)
 			t_real SiSj = 0.5 * std::sqrt(S_i*S_j);
-			A(i, j) = SiSj * tl2::inner_noconj<t_vec>(*u_i, J_sub_Q * *u_conj_j);
-			A_mQ(i, j) = SiSj * tl2::inner_noconj<t_vec>(*u_i, J_sub_mQ * *u_conj_j);
-			B(i, j) = SiSj * tl2::inner_noconj<t_vec>(*u_i, J_sub_Q * *u_j);
+			A(i, j) = SiSj * tl2::inner_noconj<t_vec>(u_i, J_sub_Q * u_conj_j);
+			A_mQ(i, j) = SiSj * tl2::inner_noconj<t_vec>(u_i, J_sub_mQ * u_conj_j);
+			B(i, j) = SiSj * tl2::inner_noconj<t_vec>(u_i, J_sub_Q * u_j);
 
 			if(i == j)
 			{
@@ -768,25 +757,20 @@ public:
 				{
 					t_real S_k = m_sites[k].spin_mag;
 
-					// get the precalculated u_k and v_k vectors
-					// for the commensurate case
-					const t_vec *v_k = &m_sites_calc[k].v;
+					// get the precalculated v_k vectors for the commensurate case
+					const t_vec& v_k = m_sites_calc[k].v;
 
 					// equation (26) from (Toth 2015)
-					t_mat J_sub_Q0 = tl2::submat<t_mat>(
-						J_Q0, i*3, k*3, 3, 3);
-					C(i, j) += S_k * tl2::inner_noconj<t_vec>(
-						*v_i, J_sub_Q0 * *v_k);
+					t_mat J_sub_Q0 = tl2::submat<t_mat>(J_Q0, i*3, k*3, 3, 3);
+					C(i, j) += S_k * tl2::inner_noconj<t_vec>(v_i, J_sub_Q0 * v_k);
 				}
 
 				// include external field, equation (28) from (Toth 2015)
 				if(use_field)
 				{
-					t_vec B = tl2::convert<t_vec>(
-						-m_field.dir / tl2::norm<t_vec_real>(m_field.dir));
-					B = B * m_field.mag;
+					t_vec B = tl2::convert<t_vec>(-m_field.dir) * m_field.mag;
 
-					t_vec gv = m_sites[i].g * *v_i;
+					t_vec gv = m_sites[i].g * v_i;
 					t_cplx Bgv = tl2::inner_noconj<t_vec>(B, gv);
 
 					A(i, j) -= 0.5 * muB * Bgv;
@@ -833,7 +817,7 @@ public:
 
 			if(chol_ok)
 			{
-				C_mat = _C;
+				C_mat = std::move(_C);
 				break;
 			}
 			else
@@ -843,7 +827,7 @@ public:
 					using namespace tl2_ops;
 					std::cerr << "Warning: Cholesky decomposition failed for Q = "
 						<< Qvec << "." << std::endl;
-					C_mat = _C;
+					C_mat = std::move(_C);
 					break;
 				}
 
@@ -911,9 +895,6 @@ public:
 					return energies_and_correlations[idx1].E >=
 						energies_and_correlations[idx2].E;
 				});
-
-			//for(t_size idx=0; idx<sorting.size(); ++idx)
-			//	std::cout << idx << " -> " << sorting[idx] << std::endl;
 
 			//energies_and_correlations = tl2::reorder(energies_and_correlations, sorting);
 			evecs = tl2::reorder(evecs, sorting);
@@ -1007,10 +988,10 @@ public:
 						t_real S_j = m_sites[j].spin_mag;
 
 						// get the precalculated u vectors
-						const t_vec *u_i = &m_sites_calc[i].u;
-						const t_vec *u_j = &m_sites_calc[j].u;
-						const t_vec *u_conj_i = &m_sites_calc[i].u_conj;
-						const t_vec *u_conj_j = &m_sites_calc[j].u_conj;
+						const t_vec& u_i = m_sites_calc[i].u;
+						const t_vec& u_j = m_sites_calc[j].u;
+						const t_vec& u_conj_i = m_sites_calc[i].u_conj;
+						const t_vec& u_conj_j = m_sites_calc[j].u_conj;
 
 						// TODO: check these
 						t_real SiSj = 4. * std::sqrt(S_i*S_j);
@@ -1021,27 +1002,20 @@ public:
 						phase *= SiSj;
 
 						// matrix elements of equ. (44) from (Toth 2015)
-						Y(i, j) = phase * (*u_i)[x_idx] * (*u_conj_j)[y_idx];
-						V(i, j) = phase * (*u_conj_i)[x_idx] * (*u_conj_j)[y_idx];
-						Z(i, j) = phase * (*u_i)[x_idx] * (*u_j)[y_idx];
-						W(i, j) = phase * (*u_conj_i)[x_idx] * (*u_j)[y_idx];
+						Y(i, j) = phase * u_i[x_idx] * u_conj_j[y_idx];
+						V(i, j) = phase * u_conj_i[x_idx] * u_conj_j[y_idx];
+						Z(i, j) = phase * u_i[x_idx] * u_j[y_idx];
+						W(i, j) = phase * u_conj_i[x_idx] * u_j[y_idx];
 
-						/*std::cout
-							<< "Y[" << i << ", " << j << ", "
+						/*std::cout << "Y[" << i << ", " << j << ", "
 							<< x_idx << ", " << y_idx << "] = "
-							<< Y(i, j).real() << " + " << Y(i, j).imag() << "j"
-							<< std::endl;
-						std::cout
+							<< Y(i, j).real() << " + " << Y(i, j).imag() << "j\n"
 							<< "V[" << i << ", " << j << ", "
 							<< x_idx << ", " << y_idx << "] = "
-							<< V(i, j).real() << " + " << V(i, j).imag() << "j"
-							<< std::endl;
-						std::cout
+							<< V(i, j).real() << " + " << V(i, j).imag() << "j\n"
 							<< "Z[" << i << ", " << j << ", "
 							<< x_idx << ", " << y_idx << "] = "
-							<< Z(i, j).real() << " + " << Z(i, j).imag() << "j"
-							<< std::endl;
-						std::cout
+							<< Z(i, j).real() << " + " << Z(i, j).imag() << "j\n"
 							<< "W[" << i << ", " << j << ", "
 							<< x_idx << ", " << y_idx << "] = "
 							<< W(i, j).real() << " + " << W(i, j).imag() << "j"
@@ -1062,19 +1036,11 @@ public:
 					tl2::set_submat(M, Z, 0, num_sites);
 					tl2::set_submat(M, W, num_sites, num_sites);
 
-					/*using namespace tl2_ops;
-					tl2::set_eps_0<t_mat, t_real>(V, m_eps);
-					tl2::set_eps_0<t_mat, t_real>(W, m_eps);
-					tl2::set_eps_0<t_mat, t_real>(Y, m_eps);
-					tl2::set_eps_0<t_mat, t_real>(Z, m_eps);
-					std::cout << "x_idx=" << x_idx << ", y_idx=" << y_idx;
-					std::cout << ", Q = (" << h << ", " << k << ", " << l << ")." << std::endl;
-					std::cout << "V=" << V << std::endl;
-					std::cout << "W=" << W << std::endl;
-					std::cout << "Y=" << Y << std::endl;
-					std::cout << "Z=" << Z << std::endl;*/
-
 					t_mat M_trafo = trafo_herm * M * trafo;
+
+					/*std::cout << "M_trafo for x=" << x_idx << ", y=" << y_idx << ":\n";
+					tl2::niceprint(std::cout, M_trafo, 1e-4, 4);
+					std::cout << std::endl;*/
 
 					for(t_size i=0; i<energies_and_correlations.size(); ++i)
 						(energies_and_correlations[i].*S)(x_idx, y_idx) += M_trafo(i, i) / t_real(2*num_sites);
@@ -1082,7 +1048,7 @@ public:
 
 				calc_S(&EnergyAndWeight::S, Y, V, Z, W);
 			} // end of coordinate iteration
-		}
+		} // end of weight calculation
 
 		return energies_and_correlations;
 	}
@@ -1111,11 +1077,15 @@ public:
 			E_and_S.weight = std::abs(tl2::trace<t_mat>(E_and_S.S_perp).real());
 			E_and_S.weight_full = std::abs(tl2::trace<t_mat>(E_and_S.S).real());
 
-			// TODO: polarisation channels
+			// polarisation channels
 			for(int i=0; i<3; ++i)
 			{
-				E_and_S.weight_channel[i] = std::abs(E_and_S.S_perp(i, i).real());
-				E_and_S.weight_channel_full[i] = std::abs(E_and_S.S(i, i).real());
+				t_mat pol = get_polarisation<t_mat>(i, false);
+				t_mat Sperp = pol * E_and_S.S_perp;
+				t_mat S = pol * E_and_S.S;
+
+				E_and_S.weight_channel[i] = std::abs(tl2::trace<t_mat>(Sperp).real());
+				E_and_S.weight_channel_full[i] = std::abs(tl2::trace<t_mat>(S).real());
 			}
 		}
 	}
@@ -1287,25 +1257,18 @@ public:
 			t_real k = std::lerp(k_start, k_end, t_real(i)/t_real(num_qs-1));
 			t_real l = std::lerp(l_start, l_end, t_real(i)/t_real(num_qs-1));
 
-
 			auto energies_and_correlations = GetEnergies(h, k, l, false);
 			for(const auto& E_and_S : energies_and_correlations)
 			{
-				t_real E = E_and_S.E;
-				t_real w = E_and_S.weight;
-				t_real w_sf1 = E_and_S.weight_channel[0];
-				t_real w_sf2 = E_and_S.weight_channel[1];
-				t_real w_nsf = E_and_S.weight_channel[2];
-
 				ofstr
 					<< std::setw(m_prec*2) << std::left << h
 					<< std::setw(m_prec*2) << std::left << k
 					<< std::setw(m_prec*2) << std::left << l
-					<< std::setw(m_prec*2) << E
-					<< std::setw(m_prec*2) << w
-					<< std::setw(m_prec*2) << w_sf1
-					<< std::setw(m_prec*2) << w_sf2
-					<< std::setw(m_prec*2) << w_nsf
+					<< std::setw(m_prec*2) << E_and_S.E
+					<< std::setw(m_prec*2) << E_and_S.weight
+					<< std::setw(m_prec*2) << E_and_S.weight_channel[0]
+					<< std::setw(m_prec*2) << E_and_S.weight_channel[1]
+					<< std::setw(m_prec*2) << E_and_S.weight_channel[2]
 					<< std::endl;
 			}
 		}
@@ -1385,7 +1348,7 @@ public:
 				variable.name = *name;
 				variable.value = var.second.get<t_cplx>("value", 0.);
 
-				m_variables.emplace_back(std::move(variable));
+				AddVariable(std::move(variable));
 			}
 		}
 
@@ -1413,7 +1376,7 @@ public:
 				atom_site.spin_mag = site.second.get<t_real>("spin_magnitude", 1.);
 				atom_site.g = -2. * tl2::unit<t_mat>(3);
 
-				m_sites.emplace_back(std::move(atom_site));
+				AddAtomSite(std::move(atom_site), false);
 			}
 		}
 
@@ -1442,17 +1405,19 @@ public:
 				exchange_term.dmi[1] = term.second.get<std::string>("dmi_y", "0");
 				exchange_term.dmi[2] = term.second.get<std::string>("dmi_z", "0");
 
-				m_exchange_terms.emplace_back(std::move(exchange_term));
+				AddExchangeTerm(std::move(exchange_term), false);
 			}
 		}
 
 		// external field
 		if(auto field = node.get_child_optional("field"); field)
 		{
-			m_field.mag = 0.;
-			m_field.align_spins = false;
+			ExternalField thefield;
 
-			m_field.dir = tl2::create<t_vec_real>(
+			thefield.mag = 0.;
+			thefield.align_spins = false;
+
+			thefield.dir = tl2::create<t_vec_real>(
 			{
 				field->get<t_real>("direction_h", 0.),
 				field->get<t_real>("direction_k", 0.),
@@ -1460,10 +1425,12 @@ public:
 			});
 
 			if(auto optVal = field->get_optional<t_real>("magnitude"))
-				m_field.mag = *optVal;
+				thefield.mag = *optVal;
 
 			if(auto optVal = field->get_optional<bool>("align_spins"))
-				m_field.align_spins = *optVal;
+				thefield.align_spins = *optVal;
+
+			SetExternalField(thefield);
 		}
 
 		// temperature
@@ -1584,7 +1551,7 @@ protected:
 	/**
 	 * converts the rotation matrix rotating the local spins to ferromagnetic
 	 * [001] directions into the vectors comprised of the matrix columns
-	 * @see equation (9) from (Toth 2015).
+	 * @see equation (9) from (Toth 2015)
 	 */
 	std::tuple<t_vec, t_vec> R_to_uv(const t_mat& R)
 	{
@@ -1600,38 +1567,21 @@ protected:
 	 * spin rotation of equation (9) from (Toth 2015)
 	 * rotate local spin to ferromagnetic [001] direction
 	 */
-	std::tuple<t_vec, t_vec> spin_to_uv_real(const t_vec_real& spin_re)
+	std::tuple<t_vec, t_vec> spin_to_uv(const t_vec& spin_dir)
 	{
+		auto [spin_re, spin_im] =
+			tl2::split_cplx<t_vec, t_vec_real>(spin_dir);
+
+		if(!tl2::equals_0<t_vec_real>(spin_im, m_eps))
+			std::cerr << "Spin vector should be purely real." << std::endl;
+
+		// only use real part, imaginary part should be zero
+		//spin_re /= tl2::norm<t_vec_real>(spin_re);
 		t_mat_real _rot = tl2::rotation<t_mat_real, t_vec_real>(
 			spin_re, m_zdir, &m_rotaxis, m_eps);
 
-	#ifdef TL2_MAG_USE_COMPLEX_SPIN
-		// TODO: correctly unite matrix
-		t_mat rot = tl2::unite_cplx_real<t_mat, t_mat_real>(_rot);
-	#else
 		t_mat rot = tl2::convert<t_mat, t_mat_real>(_rot);
-	#endif
-
 		return R_to_uv(rot);
-	}
-
-
-	/**
-	 * spin rotation of equation (9) from (Toth 2015)
-	 * rotate local spin to ferromagnetic [001] direction
-	 */
-	std::tuple<t_vec, t_vec> spin_to_uv(const t_vec& spin_dir)
-	{
-#ifdef TL2_MAG_USE_COMPLEX_SPIN
-		t_vec_real spin_re =
-			tl2::split_cplx_real<t_vec, t_vec_real>(spin_dir);
-#else
-		auto [spin_re, spin_im] =
-			tl2::split_cplx<t_vec, t_vec_real>(spin_dir);
-#endif
-
-		//spin_re /= tl2::norm<t_vec_real>(spin_re);
-		return spin_to_uv_real(spin_re);
 	}
 
 

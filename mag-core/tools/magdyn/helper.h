@@ -1,7 +1,7 @@
 /**
- * magnetic dynamics
+ * magnon dynamics -- helper functions
  * @author Tobias Weber <tweber@ill.fr>
- * @date Jan-2022
+ * @date Mar-2023
  * @license GPLv3, see 'LICENSE' file
  * @desc The present version was forked on 28-Dec-2018 from my privately developed "misc" project (https://github.com/t-weber/misc).
  *
@@ -26,34 +26,54 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "magdyn.h"
-#include "tlibs2/libs/qt/gl.h"
-#include "tlibs2/libs/qt/helper.h"
-
-#include <QtWidgets/QApplication>
-
-#include <iostream>
-#include <memory>
+#ifndef __MAG_DYN_HELPERS__
+#define __MAG_DYN_HELPERS__
 
 
-int main(int argc, char** argv)
+#include <string>
+#include <sstream>
+
+#include "tlibs2/libs/str.h"
+
+
+/**
+ * get the rgb colour values from a string
+ */
+template<class t_val>
+bool get_colour(const std::string& _col, t_val *rgb)
 {
-	try
+	std::string col = tl2::trimmed(_col);
+
+	// use default colour
+	if(col == "" || col == "auto")
+		return false;
+
+	std::istringstream istrcolour(col);
+
+	// optional colour code prefix
+	if(istrcolour.peek() == '#')
+		istrcolour.get();
+
+	std::size_t colour = 0;
+	istrcolour >> std::hex >> colour;
+
+	if constexpr(std::is_floating_point_v<t_val>)
 	{
-		tl2::set_gl_format(1, _GL_MAJ_VER, _GL_MIN_VER, 8);
-		tl2::set_locales();
-
-		QApplication::addLibraryPath(QString(".") + QDir::separator() + "qtplugins");
-		auto app = std::make_unique<QApplication>(argc, argv);
-		auto dlg = std::make_unique<MagDynDlg>(nullptr);
-		dlg->show();
-
-		return app->exec();
+		// get the colour values as floats in the range [0, 1]
+		rgb[0] = t_val((colour & 0xff0000) >> 16) / t_val(0xff);
+		rgb[1] = t_val((colour & 0x00ff00) >> 8) / t_val(0xff);
+		rgb[2] = t_val((colour & 0x0000ff) >> 0) / t_val(0xff);
 	}
-	catch(const std::exception& ex)
+	else
 	{
-		std::cerr << ex.what() << std::endl;
+		// get the colour values as bytes in the range [0, 255]
+		rgb[0] = t_val((colour & 0xff0000) >> 16);
+		rgb[1] = t_val((colour & 0x00ff00) >> 8);
+		rgb[2] = t_val((colour & 0x0000ff) >> 0);
 	}
 
-	return 0;
+	return true;
 }
+
+
+#endif

@@ -1061,6 +1061,50 @@ std::string FilePsi<t_real>::GetSpacegroup() const
 
 
 template<class t_real>
+std::vector<std::string> FilePsi<t_real>::GetScannedVarsFromCommand(const std::string& cmd)
+{
+	std::vector<std::string> vecVars;
+
+	std::vector<std::string> vecToks;
+	get_tokens<std::string, std::string>(cmd, " \t", vecToks);
+	for(std::string& strTok : vecToks)
+		tl::trim(strTok);
+
+	std::transform(vecToks.begin(), vecToks.end(), vecToks.begin(), str_to_lower<std::string>);
+	typename std::vector<std::string>::iterator iterTok
+		= std::find(vecToks.begin(), vecToks.end(), "dqh");
+
+	if(iterTok != vecToks.end())
+	{
+		t_real dh = str_to_var<t_real>(*(++iterTok));
+		t_real dk = str_to_var<t_real>(*(++iterTok));
+		t_real dl = str_to_var<t_real>(*(++iterTok));
+		t_real dE = str_to_var<t_real>(*(++iterTok));
+
+		if(!float_equal<t_real>(dh, 0.)) vecVars.push_back("QH");
+		if(!float_equal<t_real>(dk, 0.)) vecVars.push_back("QK");
+		if(!float_equal<t_real>(dl, 0.)) vecVars.push_back("QL");
+		if(!float_equal<t_real>(dE, 0.)) vecVars.push_back("EN");
+	}
+
+	// still nothing found, try regex
+	if(!vecVars.size())
+	{
+		const std::string strRegex = R"REX((sc|scan)[ \t]+([a-z0-9]+)[ \t]+[0-9\.-]+[ \t]+[d|D]([a-z0-9]+).*)REX";
+		rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
+		rex::smatch m;
+		if(rex::regex_search(cmd, m, rx) && m.size() > 3)
+		{
+			const std::string& strSteps = m[3];
+			vecVars.push_back(str_to_upper(strSteps));
+		}
+	}
+
+	return vecVars;
+}
+
+
+template<class t_real>
 std::vector<std::string> FilePsi<t_real>::GetScannedVars() const
 {
 	std::vector<std::string> vecVars;
@@ -1082,43 +1126,7 @@ std::vector<std::string> FilePsi<t_real>::GetScannedVars() const
 	{
 		typename t_mapParams::const_iterator iter = m_mapParams.find("COMND");
 		if(iter != m_mapParams.end())
-		{
-			std::vector<std::string> vecToks;
-			get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
-			for(std::string& strTok : vecToks)
-				tl::trim(strTok);
-
-			std::transform(vecToks.begin(), vecToks.end(), vecToks.begin(), str_to_lower<std::string>);
-			typename std::vector<std::string>::iterator iterTok
-				= std::find(vecToks.begin(), vecToks.end(), "dqh");
-
-			if(iterTok != vecToks.end())
-			{
-				t_real dh = str_to_var<t_real>(*(++iterTok));
-				t_real dk = str_to_var<t_real>(*(++iterTok));
-				t_real dl = str_to_var<t_real>(*(++iterTok));
-				t_real dE = str_to_var<t_real>(*(++iterTok));
-
-				if(!float_equal<t_real>(dh, 0.)) vecVars.push_back("QH");
-				if(!float_equal<t_real>(dk, 0.)) vecVars.push_back("QK");
-				if(!float_equal<t_real>(dl, 0.)) vecVars.push_back("QL");
-				if(!float_equal<t_real>(dE, 0.)) vecVars.push_back("EN");
-			}
-
-
-			// still nothing found, try regex
-			if(!vecVars.size())
-			{
-				const std::string strRegex = R"REX((sc|scan)[ \t]+([a-z0-9]+)[ \t]+[0-9\.-]+[ \t]+[d|D]([a-z0-9]+).*)REX";
-				rex::regex rx(strRegex, rex::regex::ECMAScript|rex::regex_constants::icase);
-				rex::smatch m;
-				if(rex::regex_search(iter->second, m, rx) && m.size() > 3)
-				{
-					const std::string& strSteps = m[3];
-					vecVars.push_back(str_to_upper(strSteps));
-				}
-			}
-		}
+			vecVars = GetScannedVarsFromCommand(iter->second);
 	}
 
 	if(!vecVars.size())
@@ -3070,6 +3078,21 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		m_angles[0] = tl::d2r(m_angles[0]);
 		m_angles[1] = tl::d2r(m_angles[1]);
 		m_angles[2] = tl::d2r(m_angles[2]);
+
+		// try to determine scanned variables from scan comamnd
+		std::vector<std::string> scanned_vars = FilePsi<t_real>::GetScannedVarsFromCommand(m_scancommand);
+		for(auto iterScVar = scanned_vars.rbegin(); iterScVar != scanned_vars.rend(); ++iterScVar)
+		{
+			// bring the scanned variable to the front
+			const std::string& scanned_var = *iterScVar;
+
+			auto iterVar = std::find(m_scanned_vars.begin(), m_scanned_vars.end(), scanned_var);
+			if(iterVar != m_scanned_vars.end())
+			{
+				m_scanned_vars.erase(iterVar);
+				m_scanned_vars.insert(m_scanned_vars.begin(), scanned_var);
+			}
+		}
 
 		h5file.close();
 	}

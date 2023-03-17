@@ -1,5 +1,5 @@
 /**
- * server dialog
+ * instrument control systems for server dialog
  * @author Tobias Weber <tobias.weber@tum.de>
  * @date 27-aug-2014
  * @license GPLv2
@@ -26,33 +26,17 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef __SRV_DLG_H__
-#define __SRV_DLG_H__
-
-#include <QDialog>
-#include <QSettings>
-
-#include "ctrl_sys.h"
-#include "ui/ui_connection.h"
+#ifndef __SRV_DLG_CTRL_SYS_H__
+#define __SRV_DLG_CTRL_SYS_H__
 
 
-class SrvDlg : public QDialog, Ui::SrvDlg
-{ Q_OBJECT
-	protected:
-		QSettings *m_pSettings = 0;
+enum class ControlSystem : int
+{
+	NICOS   = 0,
+	SICS    = 1,
 
-	public:
-		SrvDlg(QWidget* pParent=0, QSettings *pSett=0);
-		virtual ~SrvDlg();
-
-	signals:
-		void ConnectTo(ControlSystem control_sys,
-			const QString& strHost, const QString& strPort,
-			const QString& strUser, const QString& strPass);
-
-	protected:
-		void ControlSysChanged(int control_sys);
-		virtual void accept() override;
+	UNKNOWN = -1,
 };
+
 
 #endif

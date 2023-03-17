@@ -46,11 +46,11 @@ mkdir -p ${INSTDIR}/DEBIAN
 
 
 # control file
-echo -e "Package: takin\nVersion: 2.5.0" > ${INSTDIR}/DEBIAN/control
+echo -e "Package: takin\nVersion: 2.5.1" > ${INSTDIR}/DEBIAN/control
 echo -e "Description: inelastic neutron scattering software" >> ${INSTDIR}/DEBIAN/control
 echo -e "Maintainer: n/a" >> ${INSTDIR}/DEBIAN/control
 echo -e "Architecture: $(dpkg --print-architecture)" >> ${INSTDIR}/DEBIAN/control
-echo -e "Section: base\nPriority: optional" >> ${INSTDIR}/DEBIAN/control
+echo -e "Section: science\nPriority: optional" >> ${INSTDIR}/DEBIAN/control
 echo -e "Depends:" \
 	"libstdc++6," \
 	"libboost-system1.74.0 (>=1.74.0)," \
@@ -77,7 +77,6 @@ echo -e "Depends:" \
 	"liblapacke," \
 	"libqhull-r8.0," \
 	"libqhullcpp8.0," \
-	"liblapacke," \
 	"libhdf5-103-1," \
 	"libhdf5-cpp-103-1," \
 	"libqcustomplot2.0\n" \

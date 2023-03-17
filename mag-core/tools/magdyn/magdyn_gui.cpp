@@ -1,5 +1,5 @@
 /**
- * magnon dynamics -- gui setup
+ * magnetic dynamics -- gui setup
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -127,6 +127,8 @@ void MagDynDlg::CreateSitesPanel()
 		new QTableWidgetItem{"Spin z"});
 	m_sitestab->setHorizontalHeaderItem(COL_SITE_SPIN_MAG,
 		new QTableWidgetItem{"Spin |S|"});
+	m_sitestab->setHorizontalHeaderItem(COL_SITE_RGB,
+		new QTableWidgetItem{"Colour"});
 
 	m_sitestab->setColumnWidth(COL_SITE_NAME, 90);
 	m_sitestab->setColumnWidth(COL_SITE_POS_X, 80);
@@ -136,6 +138,7 @@ void MagDynDlg::CreateSitesPanel()
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_Y, 80);
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_Z, 80);
 	m_sitestab->setColumnWidth(COL_SITE_SPIN_MAG, 80);
+	m_sitestab->setColumnWidth(COL_SITE_RGB, 80);
 	m_sitestab->setSizePolicy(QSizePolicy{
 		QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -339,6 +342,8 @@ void MagDynDlg::CreateExchangeTermsPanel()
 		COL_XCH_DMI_Y, new QTableWidgetItem{"DMI y"});
 	m_termstab->setHorizontalHeaderItem(
 		COL_XCH_DMI_Z, new QTableWidgetItem{"DMI z"});
+	m_termstab->setHorizontalHeaderItem(
+		COL_XCH_RGB, new QTableWidgetItem{"Colour"});
 
 	m_termstab->setColumnWidth(COL_XCH_NAME, 90);
 	m_termstab->setColumnWidth(COL_XCH_ATOM1_IDX, 80);
@@ -350,6 +355,7 @@ void MagDynDlg::CreateExchangeTermsPanel()
 	m_termstab->setColumnWidth(COL_XCH_DMI_X, 80);
 	m_termstab->setColumnWidth(COL_XCH_DMI_Y, 80);
 	m_termstab->setColumnWidth(COL_XCH_DMI_Z, 80);
+	m_termstab->setColumnWidth(COL_XCH_RGB, 80);
 	m_termstab->setSizePolicy(QSizePolicy{
 		QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -416,16 +422,16 @@ void MagDynDlg::CreateExchangeTermsPanel()
 	for(int i=0; i<3; ++i)
 	{
 		m_ordering[i]->setDecimals(4);
-		m_ordering[i]->setMinimum(-1);
-		m_ordering[i]->setMaximum(+1);
+		m_ordering[i]->setMinimum(-9.9999);
+		m_ordering[i]->setMaximum(+9.9999);
 		m_ordering[i]->setSingleStep(0.01);
 		m_ordering[i]->setValue(0.);
 		m_ordering[i]->setSizePolicy(QSizePolicy{
 			QSizePolicy::Expanding, QSizePolicy::Fixed});
 
 		m_normaxis[i]->setDecimals(4);
-		m_normaxis[i]->setMinimum(-1);
-		m_normaxis[i]->setMaximum(+1);
+		m_normaxis[i]->setMinimum(-9.9999);
+		m_normaxis[i]->setMaximum(+9.9999);
 		m_normaxis[i]->setSingleStep(0.01);
 		m_normaxis[i]->setValue(i==0 ? 1. : 0.);
 		m_normaxis[i]->setSizePolicy(QSizePolicy{
@@ -727,7 +733,7 @@ void MagDynDlg::CreateSampleEnvPanel()
 	m_field_mag = new QDoubleSpinBox(m_samplepanel);
 	m_field_mag->setDecimals(3);
 	m_field_mag->setMinimum(0);
-	m_field_mag->setMaximum(+99);
+	m_field_mag->setMaximum(+99.999);
 	m_field_mag->setSingleStep(0.1);
 	m_field_mag->setValue(0.);
 	m_field_mag->setPrefix("|B| = ");
@@ -884,7 +890,7 @@ void MagDynDlg::CreateSampleEnvPanel()
 	m_temperature = new QDoubleSpinBox(m_samplepanel);
 	m_temperature->setDecimals(2);
 	m_temperature->setMinimum(0);
-	m_temperature->setMaximum(+999);
+	m_temperature->setMaximum(+999.99);
 	m_temperature->setSingleStep(0.1);
 	m_temperature->setValue(300.);
 	m_temperature->setPrefix("T = ");
@@ -895,16 +901,16 @@ void MagDynDlg::CreateSampleEnvPanel()
 	for(int i=0; i<3; ++i)
 	{
 		m_field_dir[i]->setDecimals(4);
-		m_field_dir[i]->setMinimum(-99);
-		m_field_dir[i]->setMaximum(+99);
+		m_field_dir[i]->setMinimum(-99.9999);
+		m_field_dir[i]->setMaximum(+99.9999);
 		m_field_dir[i]->setSingleStep(0.1);
 		m_field_dir[i]->setValue(i == 2 ? 1. : 0.);
 		m_field_dir[i]->setSizePolicy(QSizePolicy{
 			QSizePolicy::Expanding, QSizePolicy::Fixed});
 
 		m_rot_axis[i]->setDecimals(4);
-		m_rot_axis[i]->setMinimum(-99);
-		m_rot_axis[i]->setMaximum(+99);
+		m_rot_axis[i]->setMinimum(-99.9999);
+		m_rot_axis[i]->setMaximum(+99.9999);
 		m_rot_axis[i]->setSingleStep(0.1);
 		m_rot_axis[i]->setValue(i == 2 ? 1. : 0.);
 		m_rot_axis[i]->setSizePolicy(QSizePolicy{
@@ -1091,7 +1097,7 @@ void MagDynDlg::CreateDispersionPanel()
 		*comp = new QDoubleSpinBox(m_disppanel);
 		(*comp)->setDecimals(4);
 		(*comp)->setMinimum(0.);
-		(*comp)->setMaximum(+9999.);
+		(*comp)->setMaximum(+9999.9999);
 		(*comp)->setSingleStep(0.1);
 		(*comp)->setSizePolicy(QSizePolicy{
 			QSizePolicy::Expanding, QSizePolicy::Fixed});
@@ -1106,8 +1112,8 @@ void MagDynDlg::CreateDispersionPanel()
 	for(int i=0; i<3; ++i)
 	{
 		m_q_start[i]->setDecimals(4);
-		m_q_start[i]->setMinimum(-99);
-		m_q_start[i]->setMaximum(+99);
+		m_q_start[i]->setMinimum(-99.9999);
+		m_q_start[i]->setMaximum(+99.9999);
 		m_q_start[i]->setSingleStep(0.01);
 		m_q_start[i]->setValue(0.);
 		m_q_start[i]->setSuffix(" rlu");
@@ -1116,8 +1122,8 @@ void MagDynDlg::CreateDispersionPanel()
 		m_q_start[i]->setPrefix(hklPrefix[i]);
 
 		m_q_end[i]->setDecimals(4);
-		m_q_end[i]->setMinimum(-99);
-		m_q_end[i]->setMaximum(+99);
+		m_q_end[i]->setMinimum(-99.9999);
+		m_q_end[i]->setMaximum(+99.9999);
 		m_q_end[i]->setSingleStep(0.01);
 		m_q_end[i]->setValue(0.);
 		m_q_end[i]->setSuffix(" rlu");
@@ -1228,8 +1234,8 @@ void MagDynDlg::CreateHamiltonPanel()
 	for(int i=0; i<3; ++i)
 	{
 		m_q[i]->setDecimals(4);
-		m_q[i]->setMinimum(-99);
-		m_q[i]->setMaximum(+99);
+		m_q[i]->setMinimum(-99.9999);
+		m_q[i]->setMaximum(+99.9999);
 		m_q[i]->setSingleStep(0.01);
 		m_q[i]->setValue(0.);
 		m_q[i]->setSuffix(" rlu");
@@ -1307,8 +1313,8 @@ void MagDynDlg::CreateExportPanel()
 	for(int i=0; i<3; ++i)
 	{
 		m_exportStartQ[i]->setDecimals(4);
-		m_exportStartQ[i]->setMinimum(-99);
-		m_exportStartQ[i]->setMaximum(+99);
+		m_exportStartQ[i]->setMinimum(-99.9999);
+		m_exportStartQ[i]->setMaximum(+99.9999);
 		m_exportStartQ[i]->setSingleStep(0.01);
 		m_exportStartQ[i]->setValue(-1.);
 		m_exportStartQ[i]->setSuffix(" rlu");
@@ -1317,8 +1323,8 @@ void MagDynDlg::CreateExportPanel()
 		m_exportStartQ[i]->setPrefix(hklPrefix[i]);
 
 		m_exportEndQ[i]->setDecimals(4);
-		m_exportEndQ[i]->setMinimum(-99);
-		m_exportEndQ[i]->setMaximum(+99);
+		m_exportEndQ[i]->setMinimum(-99.9999);
+		m_exportEndQ[i]->setMaximum(+99.9999);
 		m_exportEndQ[i]->setSingleStep(0.01);
 		m_exportEndQ[i]->setValue(1.);
 		m_exportEndQ[i]->setSuffix(" rlu");
@@ -1405,7 +1411,7 @@ void MagDynDlg::CreateInfoDlg()
 	std::string strBoost = BOOST_LIB_VERSION;
 	algo::replace_all(strBoost, "_", ".");
 
-	auto labelTitle = new QLabel("Takin / Magnon Dynamics Calculator", infopanel);
+	auto labelTitle = new QLabel("Takin / Magnetic Dynamics Calculator", infopanel);
 	auto fontTitle = labelTitle->font();
 	fontTitle.setBold(true);
 	labelTitle->setFont(fontTitle);
@@ -1521,12 +1527,27 @@ void MagDynDlg::CreateMenuBar()
 	// dispersion menu
 	m_menuDisp = new QMenu("Dispersion", m_menu);
 	m_plot_channels = new QAction("Plot Channels", m_menuDisp);
-	m_plot_channels->setToolTip("Plot individual channels.");
+	m_plot_channels->setToolTip("Plot individual polarisation channels.");
 	m_plot_channels->setCheckable(true);
 	m_plot_channels->setChecked(false);
 	auto acRescalePlot = new QAction("Rescale Axes", m_menuDisp);
 	auto acSaveFigure = new QAction("Save Figure...", m_menuDisp);
 	auto acSaveDisp = new QAction("Save Data...", m_menuDisp);
+
+	// channels sub-menu
+	m_menuChannels = new QMenu("Selected Channels", m_menuDisp);
+	m_plot_channel[0] = new QAction("Spin-Flip Channel 1", m_menuChannels);
+	m_plot_channel[1] = new QAction("Spin-Flip Channel 2", m_menuChannels);
+	m_plot_channel[2] = new QAction("Non-Spin-Flip Channel", m_menuChannels);
+	for(int i=0; i<3; ++i)
+	{
+		m_plot_channel[i]->setCheckable(true);
+		m_plot_channel[i]->setChecked(true);
+	}
+	m_menuChannels->addAction(m_plot_channel[0]);
+	m_menuChannels->addAction(m_plot_channel[1]);
+	m_menuChannels->addAction(m_plot_channel[2]);
+	m_menuChannels->setEnabled(m_plot_channels->isChecked());
 
 	// recent files menu
 	m_menuOpenRecent = new QMenu("Open Recent", menuFile);
@@ -1577,7 +1598,7 @@ void MagDynDlg::CreateMenuBar()
 	m_use_weights = new QAction("Use Spectral Weights", menuCalc);
 	m_use_weights->setToolTip("Enables calculation of the spin correlation function.");
 	m_use_weights->setCheckable(true);
-	m_use_weights->setChecked(false);
+	m_use_weights->setChecked(true);
 	m_use_projector = new QAction("Use Neutron Weights", menuCalc);
 	m_use_projector->setToolTip("Enables the neutron orthogonal projector.");
 	m_use_projector->setCheckable(true);
@@ -1623,6 +1644,7 @@ void MagDynDlg::CreateMenuBar()
 	menuStruct->addAction(acStructView);
 
 	m_menuDisp->addAction(m_plot_channels);
+	m_menuDisp->addMenu(m_menuChannels);
 	m_menuDisp->addSeparator();
 	m_menuDisp->addAction(acRescalePlot);
 	m_menuDisp->addSeparator();
@@ -1698,10 +1720,19 @@ void MagDynDlg::CreateMenuBar()
 			this->CalcAll();
 	});
 
-	connect(m_plot_channels, &QAction::toggled, [this](bool)
+	connect(m_plot_channels, &QAction::toggled, [this](bool checked)
 	{
+		m_menuChannels->setEnabled(checked);
 		this->PlotDispersion();
 	});
+
+	for(int i=0; i<3; ++i)
+	{
+		connect(m_plot_channel[i], &QAction::toggled, [this](bool)
+		{
+			this->PlotDispersion();
+		});
+	}
 
 	connect(acCalc, &QAction::triggered, [this]()
 	{

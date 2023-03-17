@@ -54,7 +54,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <sstream>
 #include <optional>
 
 #include "tlibs2/libs/magdyn.h"
@@ -93,6 +92,7 @@ enum : int
 	COL_SITE_POS_X, COL_SITE_POS_Y, COL_SITE_POS_Z,
 	COL_SITE_SPIN_X, COL_SITE_SPIN_Y, COL_SITE_SPIN_Z,
 	COL_SITE_SPIN_MAG,
+	COL_SITE_RGB,
 
 	NUM_SITE_COLS
 };
@@ -108,6 +108,7 @@ enum : int
 	COL_XCH_DIST_X, COL_XCH_DIST_Y, COL_XCH_DIST_Z,
 	COL_XCH_INTERACTION,
 	COL_XCH_DMI_X, COL_XCH_DMI_Y, COL_XCH_DMI_Z,
+	COL_XCH_RGB,
 
 	NUM_XCH_COLS
 };
@@ -138,7 +139,27 @@ enum : int
 };
 
 
+/**
+ * infos for atom sites
+ */
+struct AtomSiteInfo
+{
+	const t_magdyn::AtomSite* site = nullptr;
+};
 
+
+/**
+ * infos for exchange term
+ */
+struct ExchangeTermInfo
+{
+	const t_magdyn::ExchangeTerm* term = nullptr;
+};
+
+
+/**
+ * magnon calculation dialog
+ */
 class MagDynDlg : public QDialog
 {
 public:
@@ -167,6 +188,8 @@ protected:
 	QAction *m_ignore_annihilation{};
 	QAction *m_force_incommensurate{};
 	QAction *m_plot_channels{};
+	QMenu *m_menuChannels{};
+	QAction *m_plot_channel[3]{};
 
 	// recently opened files
 	tl2::RecentFiles m_recent{};
@@ -249,8 +272,8 @@ protected:
 	QMenu *m_structplot_context{};
 	QLabel *m_labelGlInfos[4]{nullptr, nullptr, nullptr, nullptr};
 	tl2::GlPlot *m_structplot{};
-	std::unordered_map<std::size_t, const t_magdyn::AtomSite*> m_structplot_atoms{};
-	std::unordered_map<std::size_t, const t_magdyn::ExchangeTerm*> m_structplot_terms{};
+	std::unordered_map<std::size_t, AtomSiteInfo> m_structplot_atoms{};
+	std::unordered_map<std::size_t, ExchangeTermInfo> m_structplot_terms{};
 	std::optional<std::size_t> m_structplot_cur_obj{};
 	std::optional<std::size_t> m_structplot_cur_atom{};
 	std::optional<std::size_t> m_structplot_cur_term{};
@@ -286,7 +309,8 @@ protected:
 		const std::string& sx = "0",
 		const std::string& sy = "0",
 		const std::string& sz = "1",
-		t_real S = 1.);
+		t_real S = 1.,
+		const std::string& rgb = "auto");
 
 	void AddTermTabItem(int row = -1,
 		const std::string& name = "n/a",
@@ -295,7 +319,8 @@ protected:
 		const std::string& J = "0",
 		const std::string& dmi_x = "0",
 		const std::string& dmi_y = "0",
-		const std::string& dmi_z = "0");
+		const std::string& dmi_z = "0",
+		const std::string& rgb = "#0x00bf00");
 
 	void AddVariableTabItem(int row = -1,
 		const std::string& name = "var",

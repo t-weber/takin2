@@ -41,7 +41,7 @@ declare -a repos_orig=(
 )
 
 declare -a repos_mirror=(
-	"https://github.com/tweber-ill/ill_mirror-takin2-meta"
+	"https://github.com/tweber-ill/ill_mirror-takin2-setup"
 	"https://github.com/tweber-ill/ill_mirror-takin2-core"
 	"https://github.com/tweber-ill/ill_mirror-takin2-mag-core"
 	"https://github.com/tweber-ill/ill_mirror-takin2-tlibs"

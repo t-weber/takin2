@@ -1,5 +1,5 @@
 /**
- * magnon dynamics -- main dialog handler functions
+ * magnetic dynamics -- main dialog handler functions
  * @author Tobias Weber <tweber@ill.fr>
  * @date Jan-2022
  * @license GPLv3, see 'LICENSE' file
@@ -129,7 +129,8 @@ void MagDynDlg::AddSiteTabItem(int row,
 	const std::string& sx,
 	const std::string& sy,
 	const std::string& sz,
-	t_real S)
+	t_real S,
+	const std::string& rgb)
 {
 	bool bclone = false;
 	m_ignoreTableChanges = true;
@@ -181,6 +182,7 @@ void MagDynDlg::AddSiteTabItem(int row,
 			new tl2::NumericTableWidgetItem<t_real>(sz));
 		m_sitestab->setItem(row, COL_SITE_SPIN_MAG,
 			new tl2::NumericTableWidgetItem<t_real>(S));
+		m_sitestab->setItem(row, COL_SITE_RGB, new QTableWidgetItem(rgb.c_str()));
 	}
 
 	m_sitestab->scrollToItem(m_sitestab->item(row, 0));
@@ -199,9 +201,8 @@ void MagDynDlg::AddTermTabItem(int row,
 	t_size atom_1, t_size atom_2,
 	t_real dist_x, t_real dist_y, t_real dist_z,
 	const std::string& J,
-	const std::string& dmi_x,
-	const std::string& dmi_y,
-	const std::string& dmi_z)
+	const std::string& dmi_x, const std::string& dmi_y, const std::string& dmi_z,
+	const std::string& rgb)
 {
 	bool bclone = 0;
 	m_ignoreTableChanges = true;
@@ -257,6 +258,7 @@ void MagDynDlg::AddTermTabItem(int row,
 			new tl2::NumericTableWidgetItem<t_real>(dmi_y));
 		m_termstab->setItem(row, COL_XCH_DMI_Z,
 			new tl2::NumericTableWidgetItem<t_real>(dmi_z));
+		m_termstab->setItem(row, COL_XCH_RGB, new QTableWidgetItem(rgb.c_str()));
 	}
 
 	m_termstab->scrollToItem(m_termstab->item(row, 0));

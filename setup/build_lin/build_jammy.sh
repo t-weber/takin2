@@ -67,6 +67,7 @@ if [ $setup_externals -ne 0 ]; then
 	pushd "${TAKIN_ROOT}/core"
 		rm -rf tmp
 		./setup/setup_externals.sh
+		./setup/get_3rdparty_licenses.sh
 	popd
 fi
 
