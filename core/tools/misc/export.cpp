@@ -1,4 +1,3 @@
-// gcc -O2 -march=native -DNDEBUG -o export export.cpp -std=c++11 -lstdc++ -lm -I../.. ../../libs/spacegroups/spacegroup.cpp ../../libs/spacegroups/crystalsys.cpp ../../libs/formfactors/formfact.cpp ../../tlibs/log/log.cpp ../../libs/globals.cpp -DNO_QT -lboost_system -lboost_filesystem -lboost_iostreams
 /**
  * exports tables
  * @author Tobias Weber <tobias.weber@tum.de>
@@ -7,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -26,6 +25,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * ----------------------------------------------------------------------------
  */
+
+// gcc -O2 -march=native -DNDEBUG -o export export.cpp -std=c++11 -lstdc++ -lm -I../.. ../../libs/spacegroups/spacegroup.cpp ../../libs/spacegroups/crystalsys.cpp ../../libs/formfactors/formfact.cpp ../../tlibs/log/log.cpp ../../libs/globals.cpp -DNO_QT -lboost_system -lboost_filesystem -lboost_iostreams
 
 #include "libs/spacegroups/spacegroup.h"
 #include "libs/formfactors/formfact.h"

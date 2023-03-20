@@ -779,7 +779,7 @@ bool TazDlg::Import(const char* pcFile)
 //--------------------------------------------------------------------------------
 // CIF importing
 
-#include "libs/xtal/xtl_xml.h"
+#include "libs/spacegroups/xtl_xml.h"
 #include "tlibs/helper/proc.h"
 
 
