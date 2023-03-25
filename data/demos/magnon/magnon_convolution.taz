@@ -57,7 +57,7 @@
 		<scan_2d>0</scan_2d>
 		<scanfile/>
 		<sqw>magnonmod</sqw>
-		<sqw_conf>antiferromagnetic_chain.xml</sqw_conf>
+		<sqw_conf>antiferromagnetic_chain.magdyn</sqw_conf>
 		<sqw_errors>
 			<B_align_spins>0</B_align_spins>
 			<B_dir>0</B_dir>
