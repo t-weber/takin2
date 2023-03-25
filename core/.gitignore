@@ -84,6 +84,7 @@ res/icons/*
 !doc/reso-sqw-native.html
 !doc/reso-sqw-py.html
 !doc/reso-sqw-jl.html
+!doc/tutorials.html
 doc/devel/**
 !doc/devel/.dir
 !doc/.dir

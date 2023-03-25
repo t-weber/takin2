@@ -1,5 +1,3 @@
-// gcc -o domains domains.cpp -std=c++11 -lstdc++ -lm -I../.. -I/usr/include/QtGui/ ../../libs/spacegroups/spacegroup_clp.cpp ../../libs/spacegroups/crystalsys.cpp -DNO_QT -lclipper-core ../../tlibs/log/log.cpp
-
 /**
  * generates positions based on space group
  * @author Tobias Weber <tobias.weber@tum.de>
@@ -8,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -27,6 +25,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * ----------------------------------------------------------------------------
  */
+
+// gcc -o domains domains.cpp -std=c++11 -lstdc++ -lm -I../.. -I/usr/include/QtGui/ ../../libs/spacegroups/spacegroup_clp.cpp ../../libs/spacegroups/crystalsys.cpp -DNO_QT -lclipper-core ../../tlibs/log/log.cpp
 
 #include <clipper/clipper.h>
 #include <vector>

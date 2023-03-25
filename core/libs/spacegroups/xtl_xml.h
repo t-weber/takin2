@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -115,13 +115,13 @@ std::string find_sg_from_ops(const std::vector<t_mat>& ops)
  */
 template<class t_real, class t_vec, class t_mat> 
 std::tuple<
-	bool,						// ok?
+	bool,				// ok?
 	t_real, t_real, t_real, 	// lattice constants
 	t_real, t_real, t_real,	 	// lattice angles
 	std::vector<std::string>,	// nuclei names
-	std::vector<t_vec>,			// nuclei basic positions
+	std::vector<t_vec>,		// nuclei basic positions
 	std::vector<std::vector<t_vec>>, // all symmetry-equivalent nuclei positions
-	std::string					// space group name, if available
+	std::string			// space group name, if available
 	>
 load_xml(std::istream& istr)
 {

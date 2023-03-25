@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -69,8 +69,10 @@ RecipParamDlg::RecipParamDlg(QWidget* pParent, QSettings* pSett)
 	}
 }
 
+
 RecipParamDlg::~RecipParamDlg()
 {}
+
 
 void RecipParamDlg::paramsChanged(const RecipParams& parms)
 {
@@ -151,6 +153,7 @@ void RecipParamDlg::KiChanged()
 	editVi->setText(tl::var_to_str<t_real>(vi*sec/meter, g_iPrec).c_str());
 }
 
+
 void RecipParamDlg::KfChanged()
 {
 	tl::t_wavenumber_si<t_real> kf = tl::str_to_var<t_real>(editKf->text().toStdString()) / angs;
@@ -172,6 +175,7 @@ void RecipParamDlg::SetGOrigin()
 
 	OriginChanged();
 }
+
 
 void RecipParamDlg::OriginChanged()
 {
@@ -217,6 +221,7 @@ void RecipParamDlg::closeEvent(QCloseEvent *pEvt)
 	QDialog::closeEvent(pEvt);
 }
 
+
 void RecipParamDlg::accept()
 {
 	if(m_pSettings)
@@ -227,6 +232,7 @@ void RecipParamDlg::accept()
 
 	QDialog::accept();
 }
+
 
 void RecipParamDlg::showEvent(QShowEvent *pEvt)
 {

@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2021  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -353,7 +353,6 @@ void ScatteringTriangle::paint(QPainter *pPainter, const QStyleOptionGraphicsIte
 
 		pPainter->setPen(penOrg);
 	}
-
 
 
 	// orientation vectors
@@ -1841,6 +1840,7 @@ void ScatteringTriangleScene::drawBackground(QPainter* pPainter, const QRectF& r
 	QGraphicsScene::drawBackground(pPainter, rect);
 }
 
+
 void ScatteringTriangleScene::mouseMoveEvent(QGraphicsSceneMouseEvent *pEvt)
 {
 	bool bHandled = 0;
@@ -1992,6 +1992,7 @@ void ScatteringTriangleView::keyPressEvent(QKeyEvent *pEvt)
 
 	QGraphicsView::keyPressEvent(pEvt);
 }
+
 
 void ScatteringTriangleView::keyReleaseEvent(QKeyEvent *pEvt)
 {

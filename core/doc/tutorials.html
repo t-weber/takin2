@@ -1,0 +1,77 @@
+<!--
+	Documentation for takin
+	@author Tobias Weber <tweber@ill.fr>
+	@date 2016-2023
+	@license GPLv2
+-->
+
+<html>
+<head>
+    <title>Tutorials</title>
+</head>
+
+<body>
+	<h1>Tutorials</h1>
+
+	<p>Demos for using the resolution convolution can be found on-line 
+	<a href="https://code.ill.fr/scientific-software/takin/data/-/tree/master/demos" target="_blank">here</a>.
+	To use the demos, please download the data archive from <a href="https://code.ill.fr/scientific-software/takin/data/-/archive/master/data-master.zip" target="_blank">here</a>.
+	and unpack it.</p>
+
+
+	<h3>Magnon Demo</h3>
+	<p>(1) Open the <a href="convo.html">convolution dialog</a> using "Resolution" -> "Convolution..." in Takin's main menu.</p>
+	<p>(2) Select "File" -> "Open..." in the convolution dialog's menu
+	   and navigate to the folder where you downloaded and extracted the data archive (see above).
+	   Go to the sub-folder "data/demos/magnon" and open the file "magnon_convolution.taz".
+	<p>(3) Click the "Start Sim." button to calculate a resolution-convolution simulation.</p>
+	<p>(4) You can visualise and change the magnetic model by loading it into the magnon caclulation module.
+	   To do so, select "Tools" -> "Magnetic Dynamics" in Takin's main window.</p>
+	<p>(5) In the magnon dialog, select "File" -> "Open..." from the menu and select
+	   the file "antiferromagnetic_chain.magdyn" from the sub-folder "data/demos/magnon"
+	   of the extracted data archive.
+	   You can edit and save the model, and the results will be immediately visible in
+	   the convolution dialog when doing a resimulation.
+	</p>
+
+
+	<h3>Phonon Demo</h3>
+	<p>(1) Open the <a href="convo.html">convolution dialog</a> using "Resolution" -> "Convolution..." in Takin's main menu.</p>
+	<p>(2) Select "File" -> "Open..." in the convolution dialog's menu
+	   and navigate to the folder where you downloaded and extracted the data archive (see above).
+	   Go to the sub-folder "data/demos/phonon" and open the file "phonon_simple_py.taz".
+	<p>(3) Click the "Start Sim." button to calculate a resolution-convolution simulation.</p>
+
+	<p>The demo convolution uses the <a href="reso-sqw-py.html">Python backend</a> for creating S(q,E) models.
+	   In the example, the model file can be found in the file "sqw_phonon.py".
+	   In there, the most important (and only mandatory) interface function for Takin is "TakinSqw(h, k, l, E)",
+	   which receives the (hkl) coordinates (in rlu) and the energy transfer E (in meV)
+	   of each random Monte-Carlo neutron events from Takin, and has to return the
+	   dynamical structure factor S(h, k, l, E) for the queried coordinate.
+	   How the structure factor is calculated is up to the user.
+	   In the example, a simple sinusoidal phonon dispersion branch with a DHO shape in energy is created.
+	</p>
+
+	<p>Each parameter in the Python S(q,E) model script (here: "sqw_phonon.py")
+	   which is global and whose name begins with "g_" is a parameter that can be
+	   changed directly from Takin and that can also be defined as a fit parameter.
+	   In the convolution dialog, they can be inspected and modified by clicking
+	   on the "Parameters..." button.
+	</p>
+
+	<p>(4) Fitting a parameter is done by checking the respective "Fit" column
+	    in the parameters dialog and giving the parameter a non-zero error.
+	    Initial values for fitting can be set via the "Value" column.
+	</p>
+
+	<p>(5) If at least one parameter has been declared a fit parameter,
+	   the convolution fitting can be started by clicking "Start Fit".
+	</p>
+
+	<p>(6) If the curve appears to be completely at zero in the plot window,
+		try increasing the "Scale" factor, for example to "1e4" or "1e5".
+	</p>
+
+</body>
+
+</html>
