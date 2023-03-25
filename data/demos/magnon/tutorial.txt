@@ -1,0 +1,9 @@
+Running the demo convolution
+----------------------------
+
+A demonstration of a magnon convolution can be found in this archive in the sub-directory demos/magnon:
+https://code.ill.fr/scientific-software/takin/data/-/archive/master/data-master.zip.
+
+After extracting the archive, one can test if convolutions work by choosing "Resolution" -> "Convolution..." in the Takin main menu and loading the file "magnon_convolution.taz" from the "File" -> "Load..." menu of the convolution dialog (not the main Takin window).
+
+A click to "Start Sim." should show the scan and the convolution. 
