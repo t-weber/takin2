@@ -51,7 +51,7 @@ echo -e "Description: inelastic neutron scattering software" >> ${INSTDIR}/DEBIA
 echo -e "Maintainer: n/a" >> ${INSTDIR}/DEBIAN/control
 echo -e "Architecture: $(dpkg --print-architecture)" >> ${INSTDIR}/DEBIAN/control
 echo -e "Section: science\nPriority: optional" >> ${INSTDIR}/DEBIAN/control
-echo -e "Depends: libstdc++6, libboost-system1.67.0 (>=1.67.0), libboost-filesystem1.67.0 (>=1.67.0), libboost-iostreams1.67.0 (>=1.67.0), libboost-regex1.67.0 (>=1.67.0), libboost-program-options1.67.0 (>=1.67.0), libboost-python1.67.0 (>=1.67.0), libqt5core5a (>=5.9.5), libqt5gui5 (>=5.9.5), libqt5opengl5 (>=5.9.5), libqt5svg5 (>=5.9.5), libqt5xml5 (>=5.9.5), qt5-assistant, libqwt-qt5-6 (>=6.1.3), libpython3.7 (>=3.7.0), python3.7 (>=3.7.0), python3-numpy, python3-scipy, libfreetype6, gnuplot, gnuplot-qt, libopengl0\n" >> ${INSTDIR}/DEBIAN/control
+echo -e "Depends: libstdc++6, libboost-system1.67.0 (>=1.67.0), libboost-filesystem1.67.0 (>=1.67.0), libboost-iostreams1.67.0 (>=1.67.0), libboost-regex1.67.0 (>=1.67.0), libboost-program-options1.67.0 (>=1.67.0), libboost-python1.67.0 (>=1.67.0), libqt5core5a (>=5.9.5), libqt5gui5 (>=5.9.5), libqt5opengl5 (>=5.9.5), libqt5svg5 (>=5.9.5), libqt5xml5 (>=5.9.5), libqwt-qt5-6 (>=6.1.3), libpython3.7 (>=3.7.0), python3.7 (>=3.7.0), python3-numpy, python3-scipy, libfreetype6, gnuplot, gnuplot-qt, libopengl0\n" >> ${INSTDIR}/DEBIAN/control
 
 
 # copy program files

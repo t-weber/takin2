@@ -1,0 +1,2 @@
+The user documentation has moved to here:
+https://code.ill.fr/scientific-software/takin/core/-/wikis/home

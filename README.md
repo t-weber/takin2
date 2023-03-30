@@ -2,7 +2,7 @@
 Version 2.5.1 (for paper).  
 [![DOI: 10.5281/zenodo.4117437](https://zenodo.org/badge/DOI/10.5281/zenodo.4117437.svg)](https://doi.org/10.5281/zenodo.4117437)
 
-The software documentation can be accessed by opening *documentation.html* or directly via the development repository:  
+The software documentation is available here:  
 https://code.ill.fr/scientific-software/takin/core/-/wikis/home  
 A demonstration of the new magnon module can be found in the *Tutorials* section.
 
