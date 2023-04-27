@@ -510,7 +510,7 @@ void ResoDlg::Calc()
 		tof.det_shape = radioTofDetSph->isChecked() ? TofDetShape::SPH : TofDetShape::CYL;
 
 
-		// Simple
+		// simple
 		simple.sig_ki = t_real_reso(spinSigKi->value()) / angs;
 		simple.sig_kf = t_real_reso(spinSigKf->value()) / angs;
 		simple.sig_ki_perp = t_real_reso(spinSigKi_perp->value()) / angs;
@@ -519,7 +519,7 @@ void ResoDlg::Calc()
 		simple.sig_kf_z = t_real_reso(spinSigKf_z->value()) / angs;
 
 
-		// Calculation
+		// calculation
 		switch(ResoDlg::GetSelectedAlgo())
 		{
 			case ResoAlgo::CN: res = calc_cn(cn); break;
@@ -833,7 +833,7 @@ void ResoDlg::EmitResults()
 
 void ResoDlg::ResoParamsChanged(const ResoParams& params)
 {
-	//tl::log_debug("reso params changed");
+	//tl::log_debug("reso params changed, recalc: ", !m_bDontCalc);
 
 	bool bOldDontCalc = m_bDontCalc;
 	m_bDontCalc = 1;
@@ -846,6 +846,10 @@ void ResoDlg::ResoParamsChanged(const ResoParams& params)
 	if(params.bAnaDChanged) spinAnad->setValue(params.dAnaD);
 
 	m_bDontCalc = bOldDontCalc;
+
+	// need to recalculate the angles in case the d-spacings have changed
+	if(params.bMonoDChanged || params.bAnaDChanged)
+		RefreshQEPos();
 	Calc();
 }
 
@@ -881,7 +885,6 @@ void ResoDlg::RecipParamsChanged(const RecipParams& parms)
 		}
 
 		m_simpleparams.Q = m_tofparams.Q = m_tasparams.Q = dQ / angs;
-
 
 		m_simpleparams.angle_ki_Q = m_tofparams.angle_ki_Q = m_tasparams.angle_ki_Q =
 			/*M_PI*rads -*/ tl::get_angle_ki_Q(m_tasparams.ki, m_tasparams.kf, m_tasparams.Q, 1);

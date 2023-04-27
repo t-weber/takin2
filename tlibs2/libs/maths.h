@@ -332,6 +332,13 @@ t_vec<T> linspace(const T& tmin, const T& tmax, std::size_t iNum)
 	t_vec<T> vec;
 	vec.reserve(iNum);
 
+	if(iNum == 1)
+	{
+		// if just one point is requested, use the lower limit
+		vec.push_back(tmin);
+		return vec;
+	}
+
 	for(std::size_t i=0; i<iNum; ++i)
 		vec.push_back(std::lerp(tmin, tmax, REAL(i)/REAL(iNum-1)));
 	return vec;

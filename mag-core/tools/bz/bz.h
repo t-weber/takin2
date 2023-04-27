@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * "misc" project
  * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
@@ -45,6 +45,7 @@
 
 #include <vector>
 #include <sstream>
+#include <boost/optional.hpp>
 
 #include "globals.h"
 #include "plot_cut.h"
@@ -74,6 +75,27 @@ enum : int
 	COL_FORMULA = 0,
 
 	NUM_FORMULAS_COLS
+};
+
+
+/**
+ * bz configuration for file loading
+ */
+struct BZConfig
+{
+	boost::optional<t_real> xtal_a, xtal_b, xtal_c;
+	boost::optional<t_real> xtal_alpha, xtal_beta, xtal_gamma;
+
+	boost::optional<int> order, cut_order;
+
+	boost::optional<t_real> cut_x, cut_y, cut_z;
+	boost::optional<t_real> cut_nx, cut_ny, cut_nz;
+	boost::optional<t_real> cut_d;
+
+	boost::optional<int> sg_idx;
+
+	std::vector<t_mat> symops;
+	std::vector<std::string> formulas;
 };
 
 
@@ -135,7 +157,9 @@ protected:
 
 	// results panel
 	QPlainTextEdit *m_bzresults = nullptr;
-	std::string m_descrBZ, m_descrBZCut;         // text description of the results
+	QPlainTextEdit *m_bzresultsJSON = nullptr;
+	std::string m_descrBZ, m_descrBZCut{};       // text description of the results
+	std::string m_descrBZJSON{};                 // json description of the results
 
 	// menu
 	QAction *m_acCutHull = nullptr;
@@ -150,14 +174,19 @@ protected:
 		return this->Load(filename);
 	};
 
+	int m_calcOrder{};                           // max. peak order
+	int m_drawOrder{};                           // max. peak order for BZ cuts
+	std::vector<t_vec> m_peaks{};                // peaks for BZ calculation
+	std::vector<t_vec> m_drawingPeaks{};         // peaks for BZ cut calculation
+
 	t_mat m_crystA = tl2::unit<t_mat>(3);        // crystal A matrix
 	t_mat m_crystB = tl2::unit<t_mat>(3);        // crystal B matrix
 	t_mat m_cut_plane = tl2::unit<t_mat>(3);     // cutting plane
 	t_mat m_cut_plane_inv = tl2::unit<t_mat>(3); // and its inverse
 	t_real m_cut_norm_scale = 1.;                // convert 1/A to rlu lengths along the normal
 
-	std::vector<std::vector<t_mat>> m_sg_ops;    // symops per space group
-	std::vector<std::vector<t_vec>> m_bz_polys;  // polygons of the 3d bz
+	std::vector<std::vector<t_mat>> m_sg_ops{};  // symops per space group
+	std::vector<std::vector<t_vec>> m_bz_polys{};// polygons of the 3d bz
 
 	t_real m_min_x = 1., m_max_x = -1.;          // plot ranges for curves
 	t_real m_min_y = 1., m_max_y = -1.;          // plot ranges for curves
@@ -192,8 +221,8 @@ protected:
 	void GetSymOpsFromSG();
 	void SaveCutSVG();
 
-	bool Load(const QString& filename);
-	bool Save(const QString& filename);
+	void SetDrawOrder(int order, bool recalc = true);
+	void SetCalcOrder(int order, bool recalc = true);
 
 	// calculation functions
 	void CalcB(bool full_recalc = true);
@@ -232,6 +261,14 @@ protected:
 	static std::string GetOpProperties(const t_mat& op);
 
 
+public:
+	bool Load(const QString& filename, bool use_stdin = false);
+	bool Save(const QString& filename);
+
+	//loads a configuration xml file
+	static BZConfig LoadBZConfig(const std::string& filename, bool use_stdin = false);
+
+
 private:
 	int m_symOpCursorRow = -1;                   // current sg row
 	int m_formulaCursorRow = -1;                 // current sg row
@@ -240,7 +277,7 @@ private:
 	bool m_ignoreCalc = 0;                       // ignore bz calculation
 
 	long m_curPickedObj = -1;                    // current 3d bz object
-	std::vector<std::size_t> m_plotObjs;         // 3d bz plot objects
+	std::vector<std::size_t> m_plotObjs{};       // 3d bz plot objects
 };
 
 

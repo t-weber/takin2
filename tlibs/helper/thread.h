@@ -102,26 +102,24 @@ class ThreadPool
 						if(pThStartFunc) (*pThStartFunc)();
 						m_signalStartOut.wait();
 
-						while(1)
+						while(true)
 						{
 							std::unique_lock<std::mutex> lock0(m_mtx);
 
 							// is a task available
-							if(m_lstTasks.size() > 0)
-							{
-								// pop task from list
-								std::packaged_task<t_ret()> task =
-								std::move(m_lstTasks.front());
-								m_lstTasks.pop_front();
-
-								lock0.unlock();
-
-								// run start function and task
-								CallStartFunc();
-								task();
-							}
-							else
+							if(m_lstTasks.size() == 0)
 								break;
+
+							// pop task from list
+							std::packaged_task<t_ret()> task =
+								std::move(m_lstTasks.front());
+							m_lstTasks.pop_front();
+
+							lock0.unlock();
+
+							// run start function and task
+							CallStartFunc();
+							task();
 						}
 					})));
 			}

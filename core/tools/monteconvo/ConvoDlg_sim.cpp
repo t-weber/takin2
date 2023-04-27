@@ -327,7 +327,10 @@ void ConvoDlg::StartSim1D(bool bForceDeferred, unsigned int seed)
 							dhklE_mean[i] += vecHKLE[i];
 					}
 
+					// normalise to mc neutron count
 					dS /= t_real(iNumNeutrons*iNumSampleSteps);
+
+					// add background
 					dS += m_pSqw->GetBackground(dCurH, dCurK, dCurL, dCurE);
 
 					for(int i=0; i<4; ++i)
