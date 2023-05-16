@@ -3412,6 +3412,8 @@ requires is_vec<t_vec> && is_mat<t_mat>
 /**
  * project vector vec onto plane through the origin and perpendicular to vector vecNorm
  * (e.g. used to calculate magnetic interaction vector M_perp)
+ *
+ * @see (Stoecker 1999), Chapter "Analytische Geometrie"
  */
 template<class t_vec>
 t_vec ortho_project(const t_vec& vec, const t_vec& vecNorm, bool is_normalised = true)
@@ -3424,6 +3426,8 @@ requires is_vec<t_vec>
 /**
  * project vector vec onto plane perpendicular to vector vecNorm with distance d
  * vecNorm has to be normalised and plane in Hessian form: x*vecNorm = d
+ *
+ * @see (Stoecker 1999), Chapter "Analytische Geometrie"
  */
 template<class t_vec>
 t_vec ortho_project_plane(const t_vec& vec,
@@ -3782,6 +3786,7 @@ requires is_basic_vec<t_vec>
  * lam = (d - <org|n>) / <dir|n>
  *
  * @see http://mathworld.wolfram.com/Line-PlaneIntersection.html
+ * @see (Stoecker 1999), Chapter "Analytische Geometrie"
  */
 template<class t_vec, class t_real = typename t_vec::value_type>
 std::tuple<t_vec, int, t_real>
@@ -4029,6 +4034,7 @@ requires is_vec<t_vec> && is_mat<t_mat>
  * |lam2 lam1> = ((dir2 | -dir1)^T * (dir2 | -dir1))^(-1) * (dir2 | -dir1)^T * (|org1> - |org2>)
  *
  * @see https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+ * @see (Stoecker 1999), Chapter "Analytische Geometrie"
  */
 template<class t_vec, class t_real = typename t_vec::value_type>
 std::tuple<t_vec, t_vec, bool, t_real, t_real, t_real>
@@ -8954,8 +8960,8 @@ requires is_quat<t_quat> && is_vec<t_vec>
 /**
  * quat -> complex 2x2 matrix
  * @see (Scherer 2010), p.173
- * @see (DesktopBronstein08), ch. 4, equations (4.163a) and (4.163b)
- * @see (Bronstein08), ch. 4, p. 296, equation (4.110a) and (4.110b)
+ * @see (Desktop Bronstein 2008), ch. 4, equations (4.163a) and (4.163b)
+ * @see (Bronstein 2008), ch. 4, p. 296, equation (4.110a) and (4.110b)
  */
 template<class t_mat, class t_mat_cplx, class t_quat>
 t_mat_cplx quat_to_cmat(const t_quat& quat)

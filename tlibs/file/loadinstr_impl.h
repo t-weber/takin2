@@ -3246,7 +3246,22 @@ bool FileH5<t_real>::MergeWith(const FileInstrBase<t_real>* pDat)
 	return FileInstrBase<t_real>::MergeWith(pDat);
 }
 
-template<class t_real> std::string FileH5<t_real>::GetCountVar() const { return "Detector"; }
+template<class t_real> std::string FileH5<t_real>::GetCountVar() const
+{
+	// try to match names
+	std::string strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(Detector)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(SingleDetector)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(cnts)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(det)REX", strRet))
+		return strRet;
+
+	return "";
+}
+
 template<class t_real> std::string FileH5<t_real>::GetMonVar() const { return "Monitor1"; }
 template<class t_real> std::string FileH5<t_real>::GetTitle() const { return m_title; }
 template<class t_real> std::string FileH5<t_real>::GetUser() const { return m_username; }

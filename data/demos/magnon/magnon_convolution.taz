@@ -34,7 +34,7 @@
 		<algo>pop</algo>
 		<algo_idx>2</algo_idx>
 		<ana_foc>1</ana_foc>
-		<autosave/>
+		<autosave>out.dat</autosave>
 		<crys>sample.taz</crys>
 		<filter_col>PAL</filter_col>
 		<filter_val>2</filter_val>

@@ -40,7 +40,6 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/process.hpp>
 
 #include <QApplication>
 #include <QMenuBar>
@@ -64,7 +63,6 @@
 
 namespace algo = boost::algorithm;
 namespace fs = boost::filesystem;
-namespace proc = boost::process;
 
 using t_real = t_real_glob;
 const std::string TazDlg::s_strTitle = "Takin";
