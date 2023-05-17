@@ -1,12 +1,12 @@
 /**
  * Scan viewer
  * @author Tobias Weber <tweber@ill.fr>
- * @date mar-2015 - 2022
+ * @date mar-2015 - 2023
  * @license GPLv2
  *
  * ----------------------------------------------------------------------------
  * Takin (inelastic neutron scattering software package)
- * Copyright (C) 2017-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2017-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * Copyright (C) 2013-2017  Tobias WEBER (Technische Universitaet Muenchen
  *                          (TUM), Garching, Germany).
@@ -214,7 +214,7 @@ void ScanViewerDlg::SetAbout()
 {
 	labelVersion->setText("Version " TAKIN_VER ".");
 	labelWritten->setText("Written by Tobias Weber <tweber@ill.fr>.");
-	labelYears->setText("Years: 2015 - 2022.");
+	labelYears->setText("Years: 2015 - 2023.");
 
 	std::string strCC = "Built";
 #ifdef BOOST_PLATFORM
