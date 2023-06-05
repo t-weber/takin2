@@ -6,9 +6,9 @@ Version 2.5.2 (for paper).
 
 
 ## Documentation
-The software documentation is available here:  
+- The software documentation is available here:  
 https://code.ill.fr/scientific-software/takin/core/-/wikis/home  
-A demonstration of the new magnon module can be found in the *Tutorials* section.
+- A demonstration of the new magnon module can be found in the *Tutorials* section.
 
 
 ## Repositories
