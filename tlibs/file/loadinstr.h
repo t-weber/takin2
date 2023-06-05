@@ -593,7 +593,7 @@ class FileH5 : public FileInstrBase<_t_real>
 		// polarisation data
 		void SetAutoParsePolData(bool b);
 		virtual void ParsePolData() override;
-		virtual std::size_t NumPolChannels() const;
+		virtual std::size_t NumPolChannels() const override;
 		virtual const std::vector<std::array<t_real, 6>>& GetPolStates() const override;
 		virtual void SetPolNames(const char* pVec1, const char* pVec2,
 			const char* pCur1, const char* pCur2) override;
