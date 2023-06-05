@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * "misc" project
  * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
@@ -26,25 +26,71 @@
  */
 
 #include "bz.h"
+#include "bzlib.h"
 
 #include <QtWidgets/QMessageBox>
 
 #include <iostream>
 #include <sstream>
 
-#include "../structfact/loadcif.h"
 #include "tlibs2/libs/phys.h"
 #include "tlibs2/libs/algos.h"
 #include "tlibs2/libs/expr.h"
 #include "tlibs2/libs/qt/helper.h"
 
-#if __has_include("pathslib/libs/voronoi.h")
-	#include "pathslib/libs/voronoi.h"
-#else
-	#include "voronoi.h"
-#endif
-
 using namespace tl2_ops;
+
+
+/**
+ * precalculates Q vectors for BZ cut calculation
+ */
+void BZDlg::SetDrawOrder(int order, bool recalc)
+{
+	//std::cout << "draw order: " << order << std::endl;
+
+	// already calculated?
+	if(order != m_drawOrder)
+	{
+		m_drawingPeaks.clear();
+		m_drawingPeaks.reserve((2*order+1)*(2*order+1)*(2*order+1));
+
+		for(t_real h=-order; h<=order; ++h)
+			for(t_real k=-order; k<=order; ++k)
+				for(t_real l=-order; l<=order; ++l)
+					m_drawingPeaks.emplace_back(tl2::create<t_vec>({ h, k, l }));
+
+		m_drawOrder = order;
+	}
+
+	if(recalc)
+		CalcBZCut();
+}
+
+
+/**
+ * precalculates Q vectors for BZ calculation
+ */
+void BZDlg::SetCalcOrder(int order, bool recalc)
+{
+	//std::cout << "calc order: " << order << std::endl;
+
+	// already calculated?
+	if(order != m_calcOrder)
+	{
+		m_peaks.clear();
+		m_peaks.reserve((2*order+1)*(2*order+1)*(2*order+1));
+
+		for(t_real h=-order; h<=order; ++h)
+			for(t_real k=-order; k<=order; ++k)
+				for(t_real l=-order; l<=order; ++l)
+					m_peaks.emplace_back(tl2::create<t_vec>({ h, k, l }));
+
+		m_calcOrder = order;
+	}
+
+	if(recalc)
+		CalcBZ();
+}
 
 
 /**
@@ -109,118 +155,44 @@ void BZDlg::CalcB(bool full_recalc)
  */
 void BZDlg::CalcBZ(bool full_recalc)
 {
-	if(m_ignoreCalc)
+	if(m_ignoreCalc || !m_peaks.size())
 		return;
 
-	const auto maxBZ = m_BZCalcOrder->value();
 	const auto ops_centr = GetSymOps(true);
 
-	std::ostringstream ostr;
-	ostr.precision(g_prec);
+	// set up bz calculator
+	BZCalc<t_mat, t_vec, t_real> bzcalc;
+	bzcalc.SetEps(g_eps);
+	bzcalc.SetSymOps(ops_centr, true);
+	bzcalc.SetCrystalB(m_crystB);
+	bzcalc.SetPeaks(m_peaks);
+	bzcalc.CalcPeaksInvA();
 
-#ifdef DEBUG
-	ostr << "# centring symmetry operations" << std::endl;
-	for(const t_mat& op : ops_centr)
-		ostr << op << std::endl;
-#endif
+	// calculate bz
+	bzcalc.CalcBZ();
 
-	std::vector<t_vec> Qs_invA;
-	Qs_invA.reserve((2*maxBZ+1)*(2*maxBZ+1)*(2*maxBZ+1));
-	std::size_t idx000 = 0;
-	for(t_real h=-maxBZ; h<=maxBZ; ++h)
-	{
-		for(t_real k=-maxBZ; k<=maxBZ; ++k)
-		{
-			for(t_real l=-maxBZ; l<=maxBZ; ++l)
-			{
-				t_vec Q = tl2::create<t_vec>({ h, k, l });
-
-				if(!is_reflection_allowed<t_mat, t_vec, t_real>(
-					Q, ops_centr, g_eps).first)
-					continue;
-
-				if(tl2::equals_0(Q, g_eps))
-					idx000 = Qs_invA.size();
-
-				t_vec Q_invA = m_crystB * Q;
-				//t_real Qabs_invA = tl2::norm(Q_invA);
-				Qs_invA.emplace_back(std::move(Q_invA));
-			}
-		}
-	}
-
-
-	// calculate voronoi diagram
-	auto [voronoi, _triags, _neighbours] =
-		geo::calc_delaunay(3, Qs_invA, false, false, idx000);
-	voronoi = tl2::remove_duplicates(voronoi, g_eps);
-
+	// clear old plot
 	ClearBZPlot();
-	m_bz_polys.clear();
 
-#ifdef DEBUG
-	std::ofstream ofstrSites("sites.dat");
-	std::cout << "cat sites.dat | qvoronoi s p Fv QV" << idx000 << std::endl;
-	ofstrSites << "3 " << Qs_invA.size() << std::endl;
-	for(const t_vec& Q : Qs_invA)
-	{
-		//PlotAddBraggPeak(Q);
-		ofstrSites << "(" << Q[0] << " " << Q[1] << " " << Q[2] << ")" << std::endl;
-	}
-#endif
+	// set bz triangles
+	m_bz_polys = bzcalc.GetTriangles();
 
 	// add gamma point
-	PlotAddBraggPeak(Qs_invA[idx000]);
+	std::size_t idx000 = bzcalc.Get000Peak();
+	const std::vector<t_vec>& Qs_invA = bzcalc.GetPeaksInvA();
+	if(idx000 < Qs_invA.size())
+		PlotAddBraggPeak(Qs_invA[idx000]);
 
 	// add voronoi vertices forming the vertices of the BZ
-	ostr << "# Brillouin zone vertices" << std::endl;
-	for(std::size_t idx=0; idx<voronoi.size(); ++idx)
-	{
-		t_vec& voro = voronoi[idx];
-		tl2::set_eps_0(voro, g_eps);
-
+	for(const t_vec& voro : bzcalc.GetVertices())
 		PlotAddVoronoiVertex(voro);
 
-		ostr << "vertex " << idx << ": (" << voro << ")" << std::endl;
-	}
+	// add voronoi bisectors
+	PlotAddTriangles(bzcalc.GetAllTriangles());
 
-	// calculate the faces of the BZ
-	auto [bz_verts, bz_triags, bz_neighbours] =
-		geo::calc_delaunay(3, voronoi, true, false);
-
-	std::vector<t_vec> bz_all_triags;
-	ostr << "\n# Brillouin zone polygons" << std::endl;
-	for(std::size_t idx_triag=0; idx_triag<bz_triags.size(); ++idx_triag)
-	{
-		auto& triag = bz_triags[idx_triag];
-
-		ostr << "polygon " << idx_triag << ": " << std::endl;
-		for(std::size_t idx_vert=0; idx_vert<triag.size(); ++idx_vert)
-		{
-			t_vec& vert = triag[idx_vert];
-			set_eps_0(vert, g_eps);
-
-			// find index of vert among voronoi vertices
-			std::ptrdiff_t voroidx = -1;
-			if(auto voro_iter = std::find_if(voronoi.begin(), voronoi.end(),
-				[&vert](const t_vec& vec) -> bool
-				{
-					return tl2::equals<t_vec>(vec, vert, g_eps);
-				}); voro_iter != voronoi.end())
-			{
-				voroidx = voro_iter - voronoi.begin();
-			}
-
-			bz_all_triags.push_back(vert);
-			ostr << "\tvertex " << voroidx << ": ("
-				<< vert << ")" << std::endl;
-		}
-	}
-
-	m_bz_polys = std::move(bz_triags);
-	PlotAddTriangles(bz_all_triags);
-
-	m_descrBZ = ostr.str();
+	// set bz description string
+	m_descrBZ = bzcalc.Print(g_prec);
+	m_descrBZJSON = bzcalc.PrintJSON(g_prec);
 
 	if(full_recalc)
 		CalcBZCut();
@@ -231,10 +203,11 @@ void BZDlg::CalcBZ(bool full_recalc)
 
 /**
  * calculate brillouin zone cut
+ * TODO: move calculation into bzlib.h
  */
 void BZDlg::CalcBZCut()
 {
-	if(m_ignoreCalc || !m_bz_polys.size())
+	if(m_ignoreCalc || !m_bz_polys.size() || !m_drawingPeaks.size())
 		return;
 
 	std::ostringstream ostr;
@@ -279,108 +252,103 @@ void BZDlg::CalcBZCut()
 	std::vector<std::tuple<t_vec, t_vec, std::array<t_real, 3>>>
 		cut_lines, cut_lines000;
 
-	const auto order = m_BZDrawOrder->value();
 	const auto ops = GetSymOps(true);
 
-	for(t_real h=-order; h<=order; ++h)
+	for(const t_vec& Q : m_drawingPeaks)
 	{
-		for(t_real k=-order; k<=order; ++k)
+		if(!is_reflection_allowed<t_mat, t_vec, t_real>(
+			Q, ops, g_eps).first)
+			continue;
+
+		// (000) peak?
+		bool is_000 = tl2::equals_0(Q, g_eps);
+		t_vec Q_invA = m_crystB * Q;
+
+		std::vector<t_vec> cut_verts;
+		std::optional<t_real> z_comp;
+
+		for(const auto& _bz_poly : m_bz_polys)
 		{
-			for(t_real l=-order; l<=order; ++l)
+			// centre bz around bragg peak
+			auto bz_poly = _bz_poly;
+			for(t_vec& vec : bz_poly)
+				vec += Q_invA;
+
+			auto vecs = tl2::intersect_plane_poly<t_vec>(
+				norm_invA, d_invA, bz_poly, g_eps);
+			vecs = tl2::remove_duplicates(vecs, g_eps);
+
+			// calculate the hull of the bz cut
+			if(calc_bzcut_hull)
 			{
-				t_vec Q = tl2::create<t_vec>({ h, k, l });
-
-				if(!is_reflection_allowed<t_mat, t_vec, t_real>(
-					Q, ops, g_eps).first)
-					continue;
-
-				// (000) peak?
-				bool is_000 = tl2::equals_0(Q, g_eps);
-				t_vec Q_invA = m_crystB * Q;
-
-				std::vector<t_vec> cut_verts;
-				std::optional<t_real> z_comp;
-
-				for(const auto& _bz_poly : m_bz_polys)
+				for(const t_vec& vec : vecs)
 				{
-					// centre bz around bragg peak
-					auto bz_poly = _bz_poly;
-					for(t_vec& vec : bz_poly)
-						vec += Q_invA;
+					t_vec vec_rot = m_cut_plane_inv * vec;
+					tl2::set_eps_0(vec_rot, g_eps);
 
-					auto vecs = tl2::intersect_plane_poly<t_vec>(
-						norm_invA, d_invA, bz_poly, g_eps);
-					vecs = tl2::remove_duplicates(vecs, g_eps);
+					cut_verts.emplace_back(
+						tl2::create<t_vec>({
+							vec_rot[0],
+							vec_rot[1] }));
 
-					// calculate the hull of the bz cut
-					if(calc_bzcut_hull)
-					{
-						for(const t_vec& vec : vecs)
-						{
-							t_vec vec_rot = m_cut_plane_inv * vec;
-							tl2::set_eps_0(vec_rot, g_eps);
-
-							cut_verts.emplace_back(
-								tl2::create<t_vec>({
-									vec_rot[0],
-									vec_rot[1] }));
-
-							// z component is the same for every vector
-							if(!z_comp)
-								z_comp = vec_rot[2];
-						}
-					}
-					// alternatively use the lines directly
-					else if(vecs.size() >= 2)
-					{
-						t_vec pt1 = m_cut_plane_inv * vecs[0];
-						t_vec pt2 = m_cut_plane_inv * vecs[1];
-						tl2::set_eps_0(pt1, g_eps);
-						tl2::set_eps_0(pt2, g_eps);
-
-						cut_lines.emplace_back(std::make_tuple(
-							pt1, pt2,
-							std::array<t_real,3>{h, k, l}));
-						if(is_000)
-							cut_lines000.emplace_back(std::make_tuple(
-								pt1, pt2,
-								std::array<t_real,3>{h, k, l}));
-					}
+					// z component is the same for every vector
+					if(!z_comp)
+						z_comp = vec_rot[2];
 				}
+			}
+			// alternatively use the lines directly
+			else if(vecs.size() >= 2)
+			{
+				t_vec pt1 = m_cut_plane_inv * vecs[0];
+				t_vec pt2 = m_cut_plane_inv * vecs[1];
+				tl2::set_eps_0(pt1, g_eps);
+				tl2::set_eps_0(pt2, g_eps);
 
-				// calculate the hull of the bz cut
-				if(calc_bzcut_hull)
+				cut_lines.emplace_back(std::make_tuple(
+					pt1, pt2,
+					std::array<t_real,3>{Q[0], Q[1], Q[2]}));
+				if(is_000)
 				{
-					cut_verts = tl2::remove_duplicates(cut_verts, g_eps);
-					if(cut_verts.size() < 3)
-						continue;
+					cut_lines000.emplace_back(std::make_tuple(
+						pt1, pt2,
+						std::array<t_real,3>{Q[0], Q[1], Q[2]}));
+				}
+			}
+		}
 
-					// calculate the faces of the BZ
-					auto [bz_verts, bz_triags, bz_neighbours] =
-						geo::calc_delaunay(2, cut_verts, true, false);
+		// calculate the hull of the bz cut
+		if(calc_bzcut_hull)
+		{
+			cut_verts = tl2::remove_duplicates(cut_verts, g_eps);
+			if(cut_verts.size() < 3)
+				continue;
 
-					for(std::size_t bz_idx=0; bz_idx<bz_verts.size(); ++bz_idx)
-					{
-						std::size_t bz_idx2 = (bz_idx+1) % bz_verts.size();
-						t_vec pt1 = tl2::create<t_vec>({
-							bz_verts[bz_idx][0],
-							bz_verts[bz_idx][1],
-							z_comp ? *z_comp : 0. });
-						t_vec pt2 = tl2::create<t_vec>({
-							bz_verts[bz_idx2][0],
-							bz_verts[bz_idx2][1],
-							z_comp ? *z_comp : 0. });
-						tl2::set_eps_0(pt1, g_eps);
-						tl2::set_eps_0(pt2, g_eps);
+			// calculate the faces of the BZ
+			auto [bz_verts, bz_triags, bz_neighbours] =
+				geo::calc_delaunay(2, cut_verts, true, false);
 
-						cut_lines.emplace_back(std::make_tuple(
-							pt1, pt2,
-							std::array<t_real,3>{h, k, l}));
-						if(is_000)
-							cut_lines000.emplace_back(std::make_tuple(
-								pt1, pt2,
-								std::array<t_real,3>{h, k, l}));
-					}
+			for(std::size_t bz_idx=0; bz_idx<bz_verts.size(); ++bz_idx)
+			{
+				std::size_t bz_idx2 = (bz_idx+1) % bz_verts.size();
+				t_vec pt1 = tl2::create<t_vec>({
+					bz_verts[bz_idx][0],
+					bz_verts[bz_idx][1],
+					z_comp ? *z_comp : 0. });
+				t_vec pt2 = tl2::create<t_vec>({
+					bz_verts[bz_idx2][0],
+					bz_verts[bz_idx2][1],
+					z_comp ? *z_comp : 0. });
+				tl2::set_eps_0(pt1, g_eps);
+				tl2::set_eps_0(pt2, g_eps);
+
+				cut_lines.emplace_back(std::make_tuple(
+					pt1, pt2,
+					std::array<t_real,3>{Q[0], Q[1], Q[2]}));
+				if(is_000)
+				{
+					cut_lines000.emplace_back(std::make_tuple(
+						pt1, pt2,
+						std::array<t_real,3>{Q[0], Q[1], Q[2]}));
 				}
 			}
 		}

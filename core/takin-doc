@@ -2,7 +2,7 @@
 
 PROJECT_NAME           = "Takin"
 PROJECT_BRIEF          = "An inelastic neutron scattering software package."
-OUTPUT_DIRECTORY       = doc/devel
+OUTPUT_DIRECTORY       = doc
 
 EXTRACT_ALL            = YES
 OPTIMIZE_OUTPUT_FOR_C  = YES

@@ -66,8 +66,9 @@ ${GIT} clone https://code.ill.fr/scientific-software/takin/tlibs.git
 ${GIT} clone https://code.ill.fr/scientific-software/takin/tlibs2.git
 ${GIT} clone https://code.ill.fr/scientific-software/takin/data.git
 ${GIT} clone https://code.ill.fr/scientific-software/takin/paths.git
+${GIT} clone https://code.ill.fr/scientific-software/takin/core.wiki.git
 
-mkdir plugins
+mkdir -v plugins
 pushd plugins
 ${GIT} clone https://code.ill.fr/scientific-software/takin/plugins/magnons.git
 ${GIT} clone https://code.ill.fr/scientific-software/takin/plugins/mnsi.git
@@ -104,6 +105,8 @@ ln -sf ../../../mag-core takin2
 popd
 popd
 popd
+
+mv core.wiki docu
 
 
 echo -e "\n--------------------------------------------------------------------------------"

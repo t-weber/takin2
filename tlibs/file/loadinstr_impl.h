@@ -37,6 +37,7 @@
 	#include "../file/comp.h"
 #endif
 #include "../math/math.h"
+#include "../math/stat.h"
 #include "../phys/neutrons.h"
 
 #ifdef USE_HDF5
@@ -69,14 +70,14 @@ void FileInstrBase<t_real>::RenameDuplicateCols()
 		t_mapCols::iterator iter = mapCols.find(strCol);
 		if(iter == mapCols.end())
 		{
-			mapCols.insert(std::make_pair(strCol, 0));
+			mapCols.emplace(std::make_pair(strCol, 0));
 		}
 		else
 		{
-			tl::log_warn("Column \"", strCol, "\" is duplicate, renaming it.");
+			log_warn("Column \"", strCol, "\" is duplicate, renaming it.");
 
 			++iter->second;
-			strCol += "_" + tl::var_to_str(iter->second);
+			strCol += "_" + var_to_str(iter->second);
 		}
 	}
 }
@@ -89,7 +90,7 @@ FileInstrBase<t_real>* FileInstrBase<t_real>::LoadInstr(const char* pcFile)
 	FileInstrBase<t_real>* pDat = nullptr;
 
 	std::string filename = pcFile;
-	std::string ext = tl::str_to_lower(tl::get_fileext(filename));
+	std::string ext = str_to_lower(get_fileext(filename));
 
 	// binary hdf5 files
 	if(ext == "nxs" || ext == "hdf")
@@ -199,7 +200,7 @@ std::array<t_real, 5> FileInstrBase<t_real>::GetScanHKLKiKf(const char* pcH, con
 
 	bool bKiFix = IsKiFixed();
 	t_real kfix = GetKFix();
-	t_real kother = get_other_k<tl::units::si::system, t_real>
+	t_real kother = get_other_k<units::si::system, t_real>
 		(E*get_one_meV<t_real>(), kfix/get_one_angstrom<t_real>(), bKiFix) *
 			get_one_angstrom<t_real>();
 
@@ -343,7 +344,9 @@ void FileInstrBase<t_real>::SetLinPolNames(const char* pFlip1, const char* pFlip
 
 template<class t_real>
 std::size_t FileInstrBase<t_real>::NumPolChannels() const
-{ return 0; }
+{
+	return 0;
+}
 
 template<class t_real>
 const std::vector<std::array<t_real, 6>>& FileInstrBase<t_real>::GetPolStates() const
@@ -365,14 +368,14 @@ std::string FilePsi<t_real>::ReadData(std::istream& istr)
 	// header
 	std::string strHdr;
 	std::getline(istr, strHdr);
-	tl::trim(strHdr);
+	trim(strHdr);
 	++iLine;
 
 	get_tokens<std::string, std::string, t_vecColNames>(strHdr, " \t", m_vecColNames);
 	for(std::string& _str : m_vecColNames)
 	{
-		tl::find_all_and_replace<std::string>(_str, "\n", "");
-		tl::find_all_and_replace<std::string>(_str, "\r", "");
+		find_all_and_replace<std::string>(_str, "\n", "");
+		find_all_and_replace<std::string>(_str, "\r", "");
 	}
 
 	m_vecData.resize(m_vecColNames.size());
@@ -394,7 +397,7 @@ std::string FilePsi<t_real>::ReadData(std::istream& istr)
 			return line;
 		}
 
-		tl::trim(line);
+		trim(line);
 		++iLine;
 
 		if(line.length() == 0 || line[0] == '#')
@@ -470,7 +473,7 @@ void FilePsi<t_real>::GetInternalParams(const std::string& strAll,
 			continue;
 
 		t_real dVal = str_to_var<t_real>(pair.second);
-		mapPara.insert(typename t_mapIParams::value_type(pair.first, dVal));
+		mapPara.emplace(typename t_mapIParams::value_type(pair.first, dVal));
 	}
 
 	// sometimes the "steps" parameters are written without commas
@@ -491,7 +494,7 @@ void FilePsi<t_real>::GetInternalParams(const std::string& strAll,
 					continue;
 
 				t_real val = str_to_var<t_real>(strval);
-				mapPara.insert(typename t_mapIParams::value_type(strkey, val));
+				mapPara.emplace(typename t_mapIParams::value_type(strkey, val));
 			}
 
 			data = m.suffix();
@@ -500,16 +503,37 @@ void FilePsi<t_real>::GetInternalParams(const std::string& strAll,
 }
 
 
-template<class t_real>
-void FilePsi<t_real>::ParsePolData()
+/**
+ * check if a string describes a number
+ */
+static inline bool is_num(const std::string& str)
 {
-	m_vecPolStates.clear();
-	typename t_mapParams::const_iterator iter = m_mapParams.find("POLAN");
-	if(iter == m_mapParams.end())
-		return;
+	for(typename std::string::value_type c : str)
+	{
+		if(c!='0' && c!='1' && c!='2' && c!='3' && c!='4'
+			&& c!='5' && c!='6' && c!='7' && c!='8' && c!='9'
+			&& c!='+'&& c!='-'&& c!='.')
+			return false;
+	}
+
+	return true;
+};
+
+
+/**
+ * parse the incoming and outgoing polarisation states from a .pal script file
+ */
+template<typename t_real = double>
+static std::vector<std::array<t_real, 6>> parse_pol_states(const std::string& polScript,
+	const std::string& strPolVec1, const std::string& strPolVec2,
+	const std::string& strPolCur1, const std::string& strPolCur2,
+	const std::string& strXYZ,
+	const std::string& strFlip1, const std::string& strFlip2)
+{
+	std::vector<std::array<t_real, 6>> vecPolStates;
 
 	std::vector<std::string> vecLines;
-	tl::get_tokens<std::string, std::string>(iter->second, ",", vecLines);
+	get_tokens<std::string, std::string>(polScript, ",", vecLines);
 
 	// initial and final polarisation states
 	t_real Pix = t_real(0), Piy = t_real(0), Piz = t_real(0);
@@ -517,31 +541,17 @@ void FilePsi<t_real>::ParsePolData()
 	t_real Pi_sign = t_real(1);
 	t_real Pf_sign = t_real(1);
 
-
-	// check if a string describes a number
-	auto is_num = [](const std::string& str) -> bool
-	{
-		for(typename std::string::value_type c : str)
-		{
-			if(c!='0' && c!='1' && c!='2' && c!='3' && c!='4'
-				&& c!='5' && c!='6' && c!='7' && c!='8' && c!='9'
-				&& c!='+'&& c!='-'&& c!='.')
-				return false;
-		}
-		return true;
-	};
-
 	bool bIsSphericalPA = 1;
 	bool bSwitchOn = 0;
 
 	// iterate command lines
 	for(std::string& strLine : vecLines)
 	{
-		tl::trim(strLine);
-		strLine = tl::str_to_lower(strLine);
+		trim(strLine);
+		strLine = str_to_lower(strLine);
 
 		std::vector<std::string> vecLine;
-		tl::get_tokens<std::string, std::string>(strLine, " \t", vecLine);
+		get_tokens<std::string, std::string>(strLine, " \t", vecLine);
 
 		if(vecLine.size() == 0)
 			continue;
@@ -560,12 +570,12 @@ void FilePsi<t_real>::ParsePolData()
 
 				if(is_num(strWord))	// value to drive to
 				{
-					t_real dNum = tl::str_to_var<t_real>(strWord);
+					t_real dNum = str_to_var<t_real>(strWord);
 
 					// --------------------------------------------------
 					// for spherical polarisation analysis
 					// --------------------------------------------------
-					if(strCurDev == m_strPolVec1)
+					if(strCurDev == strPolVec1)
 					{
 						// incoming polarisation vector changed
 						switch(iCurComp)
@@ -575,7 +585,7 @@ void FilePsi<t_real>::ParsePolData()
 							case 2: Piz = dNum; break;
 						}
 					}
-					else if(strCurDev == m_strPolVec2)
+					else if(strCurDev == strPolVec2)
 					{	// outgoing polarisation vector changed
 						switch(iCurComp)
 						{
@@ -584,7 +594,7 @@ void FilePsi<t_real>::ParsePolData()
 							case 2: Pfz = dNum; break;
 						}
 					}
-					else if(strCurDev == m_strPolCur1)
+					else if(strCurDev == strPolCur1)
 					{	// sign of polarisation vector 1 changed
 						if(iCurComp == 0)
 						{
@@ -594,7 +604,7 @@ void FilePsi<t_real>::ParsePolData()
 								Pi_sign = t_real(-1);
 						}
 					}
-					else if(strCurDev == m_strPolCur2)
+					else if(strCurDev == strPolCur2)
 					{	// sign of polarisation vector 2 changed
 						if(iCurComp == 0)
 						{
@@ -609,7 +619,7 @@ void FilePsi<t_real>::ParsePolData()
 					// --------------------------------------------------
 					// for linear polarisation analysis
 					// --------------------------------------------------
-					else if(strCurDev == m_strXYZ)
+					else if(strCurDev == strXYZ)
 					{
 						bIsSphericalPA = 0;
 
@@ -644,12 +654,12 @@ void FilePsi<t_real>::ParsePolData()
 
 			std::string strFlip = vecLine[1];
 
-			if(strFlip == m_strFlip1)
+			if(strFlip == strFlip1)
 			{
 				bIsSphericalPA = 0;
 				Pi_sign = bSwitchOn ? t_real(-1) : t_real(1);
 			}
-			else if(strFlip == m_strFlip2)
+			else if(strFlip == strFlip2)
 			{
 				bIsSphericalPA = 0;
 				Pf_sign = bSwitchOn ? t_real(-1) : t_real(1);
@@ -682,19 +692,68 @@ void FilePsi<t_real>::ParsePolData()
 			}
 
 
-			m_vecPolStates.push_back(std::array<t_real,6>({{
+			vecPolStates.push_back(std::array<t_real,6>({{
 				Pi_sign*Pix, Pi_sign*Piy, Pi_sign*Piz,
 				Pf_sign*Pfx, Pf_sign*Pfy, Pf_sign*Pfz }}));
 		}
 	}
 
-
 	// cleanup
-	for(std::size_t iPol=0; iPol<m_vecPolStates.size(); ++iPol)
+	for(std::size_t iPol=0; iPol<vecPolStates.size(); ++iPol)
 	{
 		for(unsigned iComp=0; iComp<6; ++iComp)
-			set_eps_0(m_vecPolStates[iPol][iComp]);
+			set_eps_0(vecPolStates[iPol][iComp]);
 	}
+
+	return vecPolStates;
+}
+
+
+template<class t_real>
+void FilePsi<t_real>::ParsePolData()
+{
+	m_vecPolStates.clear();
+	typename t_mapParams::const_iterator iter = m_mapParams.find("POLAN");
+	if(iter == m_mapParams.end())
+		return;
+
+	m_vecPolStates = parse_pol_states<t_real>(iter->second,
+		m_strPolVec1, m_strPolVec2,
+		m_strPolCur1, m_strPolCur2,
+		m_strXYZ,
+		m_strFlip1, m_strFlip2);
+}
+
+
+template<class t_real>
+void FilePsi<t_real>::SetAutoParsePolData(bool b)
+{
+	m_bAutoParsePol = b;
+}
+
+
+template<class t_real>
+const std::vector<std::array<t_real, 6>>& FilePsi<t_real>::GetPolStates() const
+{
+	return m_vecPolStates;
+}
+
+
+template<class t_real>
+void FilePsi<t_real>::SetPolNames(const char* pVec1, const char* pVec2,
+	const char* pCur1, const char* pCur2)
+{
+	m_strPolVec1 = pVec1; m_strPolVec2 = pVec2;
+	m_strPolCur1 = pCur1; m_strPolCur2 = pCur2;
+}
+
+
+template<class t_real>
+void FilePsi<t_real>::SetLinPolNames(const char* pFlip1, const char* pFlip2,
+	const char* pXYZ)
+{
+	m_strFlip1 = pFlip1; m_strFlip2 = pFlip2;
+	m_strXYZ = pXYZ;
 }
 
 
@@ -841,9 +900,9 @@ std::array<t_real,3> FilePsi<t_real>::GetSampleAngles() const
 	typename t_mapIParams::const_iterator iterB = m_mapParameters.find("BB");
 	typename t_mapIParams::const_iterator iterC = m_mapParameters.find("CC");
 
-	t_real alpha = (iterA!=m_mapParameters.end() ? tl::d2r(iterA->second) : get_pi<t_real>()/2.);
-	t_real beta = (iterB!=m_mapParameters.end() ? tl::d2r(iterB->second) : get_pi<t_real>()/2.);
-	t_real gamma = (iterC!=m_mapParameters.end() ? tl::d2r(iterC->second) : get_pi<t_real>()/2.);
+	t_real alpha = (iterA!=m_mapParameters.end() ? d2r(iterA->second) : get_pi<t_real>()/2.);
+	t_real beta = (iterB!=m_mapParameters.end() ? d2r(iterB->second) : get_pi<t_real>()/2.);
+	t_real gamma = (iterC!=m_mapParameters.end() ? d2r(iterC->second) : get_pi<t_real>()/2.);
 
 	return std::array<t_real,3>{{alpha, beta, gamma}};
 }
@@ -1068,7 +1127,7 @@ std::vector<std::string> FilePsi<t_real>::GetScannedVarsFromCommand(const std::s
 	std::vector<std::string> vecToks;
 	get_tokens<std::string, std::string>(cmd, " \t", vecToks);
 	for(std::string& strTok : vecToks)
-		tl::trim(strTok);
+		trim(strTok);
 
 	std::transform(vecToks.begin(), vecToks.end(), vecToks.begin(), str_to_lower<std::string>);
 	typename std::vector<std::string>::iterator iterTok
@@ -1131,10 +1190,10 @@ std::vector<std::string> FilePsi<t_real>::GetScannedVars() const
 
 	if(!vecVars.size())
 	{
-		tl::log_warn("Could not determine scan variable.");
+		log_warn("Could not determine scan variable.");
 		if(m_vecColNames.size() >= 1)
 		{
-			tl::log_warn("Using first column: \"", m_vecColNames[0], "\".");
+			log_warn("Using first column: \"", m_vecColNames[0], "\".");
 			vecVars.push_back(m_vecColNames[0]);
 		}
 	}
@@ -1211,7 +1270,7 @@ void FileFrm<t_real>::ReadHeader(std::istream& istr)
 			{
 				iPosCreated += strCreatedAt.length();
 				std::string strDate = strLine.substr(iPosCreated);
-				tl::trim(strDate);
+				trim(strDate);
 
 				m_mapParams["file_timestamp"] = strDate;
 			}
@@ -1270,8 +1329,8 @@ void FileFrm<t_real>::ReadData(std::istream& istr)
 		(strLineQuantities, " \t", m_vecQuantities);
 	for(std::string& _str : m_vecQuantities)
 	{
-		tl::find_all_and_replace<std::string>(_str, "\n", "");
-		tl::find_all_and_replace<std::string>(_str, "\r", "");
+		find_all_and_replace<std::string>(_str, "\n", "");
+		find_all_and_replace<std::string>(_str, "\r", "");
 	}
 
 	skip_after_char<char>(istr, '#');
@@ -1396,7 +1455,7 @@ std::array<t_real, 3> FileFrm<t_real>::GetSampleAngles() const
 		return std::array<t_real,3>{{0.,0.,0.}};
 	}
 
-	return std::array<t_real,3>{{tl::d2r(vec[0]), tl::d2r(vec[1]), tl::d2r(vec[2])}};
+	return std::array<t_real,3>{{d2r(vec[0]), d2r(vec[1]), d2r(vec[2])}};
 }
 
 template<class t_real>
@@ -1656,10 +1715,10 @@ std::vector<std::string> FileFrm<t_real>::GetScannedVars() const
 
 	if(!vecVars.size())
 	{
-		tl::log_warn("Could not determine scan variable.");
+		log_warn("Could not determine scan variable.");
 		if(m_vecQuantities.size() >= 1)
 		{
-			tl::log_warn("Using first column: \"", m_vecQuantities[0], "\".");
+			log_warn("Using first column: \"", m_vecQuantities[0], "\".");
 			vecVars.push_back(m_vecQuantities[0]);
 		}
 	}
@@ -1731,7 +1790,7 @@ void FileMacs<t_real>::ReadHeader(std::istream& istr)
 			continue;
 		else if(pairLine.first == "Columns")
 		{
-			tl::get_tokens<std::string, std::string>(pairLine.second, " \t", m_vecQuantities);
+			get_tokens<std::string, std::string>(pairLine.second, " \t", m_vecQuantities);
 			FileInstrBase<t_real>::RenameDuplicateCols();
 
 			continue;
@@ -1841,7 +1900,7 @@ std::array<t_real, 3> FileMacs<t_real>::GetSampleLattice() const
 		return std::array<t_real,3>{{0.,0.,0.}};
 
 	std::vector<t_real> vecToks;
-	tl::get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
+	get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
 	if(vecToks.size() != 6)
 	{
 		log_err("Invalid sample lattice array size.");
@@ -1859,14 +1918,14 @@ std::array<t_real, 3> FileMacs<t_real>::GetSampleAngles() const
 		return std::array<t_real,3>{{0.,0.,0.}};
 
 	std::vector<t_real> vecToks;
-	tl::get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
+	get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
 	if(vecToks.size() != 6)
 	{
 		log_err("Invalid sample lattice array size.");
 		return std::array<t_real,3>{{0.,0.,0.}};
 	}
 
-	return std::array<t_real,3>{{tl::d2r(vecToks[3]), tl::d2r(vecToks[4]), tl::d2r(vecToks[5])}};
+	return std::array<t_real,3>{{d2r(vecToks[3]), d2r(vecToks[4]), d2r(vecToks[5])}};
 }
 
 template<class t_real>
@@ -1895,7 +1954,7 @@ std::array<t_real, 3> FileMacs<t_real>::GetScatterPlane0() const
 		return std::array<t_real,3>{{0.,0.,0.}};
 
 	std::vector<t_real> vecToks;
-	tl::get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
+	get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
 	if(vecToks.size() != 6)
 	{
 		log_err("Invalid sample orientation array size.");
@@ -1913,7 +1972,7 @@ std::array<t_real, 3> FileMacs<t_real>::GetScatterPlane1() const
 		return std::array<t_real,3>{{0.,0.,0.}};
 
 	std::vector<t_real> vecToks;
-	tl::get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
+	get_tokens<t_real, std::string>(iter->second, " \t", vecToks);
 	if(vecToks.size() != 6)
 	{
 		log_err("Invalid sample orientation array size.");
@@ -1941,9 +2000,9 @@ t_real FileMacs<t_real>::GetKFix() const
 	if(vecVals.size() != 0)
 	{
 		bool bImag;
-		t_real k = tl::E2k<tl::units::si::system, t_real>
-			(vecVals[0] * tl::get_one_meV<t_real>(), bImag) *
-				tl::get_one_angstrom<t_real>();
+		t_real k = E2k<units::si::system, t_real>
+			(vecVals[0] * get_one_meV<t_real>(), bImag) *
+				get_one_angstrom<t_real>();
 		return k;
 	}
 
@@ -1952,24 +2011,24 @@ t_real FileMacs<t_real>::GetKFix() const
 	typename t_mapParams::const_iterator iter = m_mapParams.find("FixedE");
 	if(iter==m_mapParams.end())
 	{
-		tl::log_err("Cannot determine kfix.");
+		log_err("Cannot determine kfix.");
 		return 0.;
 	}
 
 	std::vector<std::string> vecToks;
-	tl::get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
+	get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
 
 	if(vecToks.size()<2)
 	{
-		tl::log_err("Cannot determine kfix.");
+		log_err("Cannot determine kfix.");
 		return 0.;
 	}
 
-	t_real dEfix = tl::str_to_var<t_real>(vecToks[1]);
+	t_real dEfix = str_to_var<t_real>(vecToks[1]);
 	bool bImag;
-	t_real k = tl::E2k<tl::units::si::system, t_real>
-		(dEfix * tl::get_one_meV<t_real>(), bImag) *
-			tl::get_one_angstrom<t_real>();
+	t_real k = E2k<units::si::system, t_real>
+		(dEfix * get_one_meV<t_real>(), bImag) *
+			get_one_angstrom<t_real>();
 	return k;
 }
 
@@ -1981,13 +2040,13 @@ bool FileMacs<t_real>::IsKiFixed() const
 		return 0;	// assume ckf
 
 	std::vector<std::string> vecToks;
-	tl::get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
+	get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
 
 	if(vecToks.size()==0)
 		return 0;	// assume ckf
 
 	std::string strFixedE = vecToks[0];
-	tl::trim(strFixedE);
+	trim(strFixedE);
 
 	if(strFixedE == "Ef")
 		return 0;
@@ -2094,7 +2153,7 @@ std::vector<std::string> FileMacs<t_real>::GetScannedVars() const
 	if(iter != m_mapParams.end())
 	{
 		std::vector<std::string> vecToks;
-		tl::get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
+		get_tokens<std::string, std::string>(iter->second, " \t", vecToks);
 
 		if(vecToks.size() >= 2)
 			vecScan.push_back(vecToks[1]);
@@ -2102,10 +2161,10 @@ std::vector<std::string> FileMacs<t_real>::GetScannedVars() const
 
 	if(!vecScan.size())
 	{
-		tl::log_warn("Could not determine scan variable.");
+		log_warn("Could not determine scan variable.");
 		if(m_vecQuantities.size() >= 1)
 		{
-			tl::log_warn("Using first column: \"", m_vecQuantities[0], "\".");
+			log_warn("Using first column: \"", m_vecQuantities[0], "\".");
 			vecScan.push_back(m_vecQuantities[0]);
 		}
 	}
@@ -2340,9 +2399,9 @@ std::array<t_real,3> FileTrisp<t_real>::GetSampleAngles() const
 	typename t_mapParams::const_iterator iterB = m_mapParams.find("BB");
 	typename t_mapParams::const_iterator iterC = m_mapParams.find("CC");
 
-	t_real alpha = (iterA!=m_mapParams.end() ? tl::d2r(str_to_var<t_real>(iterA->second)) : get_pi<t_real>()/2.);
-	t_real beta = (iterB!=m_mapParams.end() ? tl::d2r(str_to_var<t_real>(iterB->second)) : get_pi<t_real>()/2.);
-	t_real gamma = (iterC!=m_mapParams.end() ? tl::d2r(str_to_var<t_real>(iterC->second)) : get_pi<t_real>()/2.);
+	t_real alpha = (iterA!=m_mapParams.end() ? d2r(str_to_var<t_real>(iterA->second)) : get_pi<t_real>()/2.);
+	t_real beta = (iterB!=m_mapParams.end() ? d2r(str_to_var<t_real>(iterB->second)) : get_pi<t_real>()/2.);
+	t_real gamma = (iterC!=m_mapParams.end() ? d2r(str_to_var<t_real>(iterC->second)) : get_pi<t_real>()/2.);
 
 	return std::array<t_real,3>{{alpha, beta, gamma}};
 }
@@ -2418,11 +2477,11 @@ t_real FileTrisp<t_real>::GetKFix() const
 	typename t_mapParams::const_iterator iter = m_mapParams.find(strKey);
 	if(iter==m_mapParams.end())
 	{
-		tl::log_err("Cannot determine kfix.");
+		log_err("Cannot determine kfix.");
 		return 0.;
 	}
 
-	return tl::str_to_var<t_real>(iter->second);
+	return str_to_var<t_real>(iter->second);
 }
 
 template<class t_real>
@@ -2465,14 +2524,14 @@ std::vector<std::string> FileTrisp<t_real>::GetScannedVars() const
 
 	typename t_mapParams::const_iterator iter = m_mapParams.find("scan_vars");
 	if(iter != m_mapParams.end())
-		tl::get_tokens<std::string, std::string>(iter->second, " \t", vecScan);
+		get_tokens<std::string, std::string>(iter->second, " \t", vecScan);
 
 	if(!vecScan.size())
 	{
-		tl::log_warn("Could not determine scan variable.");
+		log_warn("Could not determine scan variable.");
 		if(m_vecQuantities.size() >= 1)
 		{
-			tl::log_warn("Using first column: \"", m_vecQuantities[0], "\".");
+			log_warn("Using first column: \"", m_vecQuantities[0], "\".");
 			vecScan.push_back(m_vecQuantities[0]);
 		}
 	}
@@ -2594,17 +2653,17 @@ std::array<t_real,3> FileRaw<t_real>::GetSampleLattice() const
 	{
 		typename t_map::const_iterator iter = params.find("sample_a");
 		if(iter != params.end())
-			a = tl::str_to_var<t_real>(iter->second);
+			a = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sample_b");
 		if(iter != params.end())
-			b = tl::str_to_var<t_real>(iter->second);
+			b = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sample_c");
 		if(iter != params.end())
-			c = tl::str_to_var<t_real>(iter->second);
+			c = str_to_var<t_real>(iter->second);
 	}
 
 	return std::array<t_real,3>{{a, b, c}};
@@ -2620,17 +2679,17 @@ std::array<t_real,3> FileRaw<t_real>::GetSampleAngles() const
 	{
 		typename t_map::const_iterator iter = params.find("sample_alpha");
 		if(iter != params.end())
-			a = tl::d2r(tl::str_to_var<t_real>(iter->second));
+			a = d2r(str_to_var<t_real>(iter->second));
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sample_beta");
 		if(iter != params.end())
-			b = tl::d2r(tl::str_to_var<t_real>(iter->second));
+			b = d2r(str_to_var<t_real>(iter->second));
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sample_gamma");
 		if(iter != params.end())
-			c = tl::d2r(tl::str_to_var<t_real>(iter->second));
+			c = d2r(str_to_var<t_real>(iter->second));
 	}
 
 	return std::array<t_real,3>{{a, b, c}};
@@ -2646,12 +2705,12 @@ std::array<t_real,2> FileRaw<t_real>::GetMonoAnaD() const
 	{
 		typename t_map::const_iterator iter = params.find("mono_d");
 		if(iter != params.end())
-			m = tl::str_to_var<t_real>(iter->second);
+			m = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("ana_d");
 		if(iter != params.end())
-			a = tl::str_to_var<t_real>(iter->second);
+			a = str_to_var<t_real>(iter->second);
 	}
 
 	return std::array<t_real,2>{{m, a}};
@@ -2667,17 +2726,17 @@ std::array<bool, 3> FileRaw<t_real>::GetScatterSenses() const
 	{
 		typename t_map::const_iterator iter = params.find("sense_m");
 		if(iter != params.end())
-			m = tl::str_to_var<t_real>(iter->second);
+			m = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sense_s");
 		if(iter != params.end())
-			s = tl::str_to_var<t_real>(iter->second);
+			s = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("sense_a");
 		if(iter != params.end())
-			a = tl::str_to_var<t_real>(iter->second);
+			a = str_to_var<t_real>(iter->second);
 	}
 
 	return std::array<bool,3>{{m>0., s>0., a>0.}};
@@ -2693,17 +2752,17 @@ std::array<t_real, 3> FileRaw<t_real>::GetScatterPlane0() const
 	{
 		typename t_map::const_iterator iter = params.find("orient1_x");
 		if(iter != params.end())
-			x = tl::str_to_var<t_real>(iter->second);
+			x = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("orient1_y");
 		if(iter != params.end())
-			y = tl::str_to_var<t_real>(iter->second);
+			y = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("orient1_z");
 		if(iter != params.end())
-			z = tl::str_to_var<t_real>(iter->second);
+			z = str_to_var<t_real>(iter->second);
 	}
 
 	return std::array<t_real,3>{{x, y, z}};
@@ -2719,17 +2778,17 @@ std::array<t_real, 3> FileRaw<t_real>::GetScatterPlane1() const
 	{
 		typename t_map::const_iterator iter = params.find("orient2_x");
 		if(iter != params.end())
-			x = tl::str_to_var<t_real>(iter->second);
+			x = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("orient2_y");
 		if(iter != params.end())
-			y = tl::str_to_var<t_real>(iter->second);
+			y = str_to_var<t_real>(iter->second);
 	}
 	{
 		typename t_map::const_iterator iter = params.find("orient2_z");
 		if(iter != params.end())
-			z = tl::str_to_var<t_real>(iter->second);
+			z = str_to_var<t_real>(iter->second);
 	}
 
 	return std::array<t_real,3>{{x, y, z}};
@@ -2753,7 +2812,7 @@ t_real FileRaw<t_real>::GetKFix() const
 
 	typename t_map::const_iterator iter = params.find("k_fix");
 	if(iter != params.end())
-		k = tl::str_to_var<t_real>(iter->second);
+		k = str_to_var<t_real>(iter->second);
 
 	return k;
 }
@@ -2767,7 +2826,7 @@ bool FileRaw<t_real>::IsKiFixed() const
 
 	typename t_map::const_iterator iter = params.find("is_ki_fixed");
 	if(iter != params.end())
-		b = (tl::str_to_var<int>(iter->second) != 0);
+		b = (str_to_var<int>(iter->second) != 0);
 
 	return b;
 }
@@ -2829,7 +2888,7 @@ template<class t_real> std::vector<std::string> FileRaw<t_real>::GetScannedVars(
 	}
 
 	std::vector<std::string> vecVars;
-	tl::get_tokens<std::string, std::string>(strColVars, ",;", vecVars);
+	get_tokens<std::string, std::string>(strColVars, ",;", vecVars);
 
 	// if nothing is given, default to E
 	if(!vecVars.size())
@@ -2896,6 +2955,9 @@ template<class t_real> std::string FileRaw<t_real>::GetTimestamp() const { retur
 template<class t_real>
 bool FileH5<t_real>::Load(const char* pcFile)
 {
+	const t_real eps = 1e-6;
+	const int prec = 6;
+
 	try
 	{
 		H5::H5File h5file = H5::H5File(pcFile, H5F_ACC_RDONLY);
@@ -2908,38 +2970,38 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		std::vector<std::string> entries;
 		if(!get_h5_entries(h5file, "/", entries) || entries.size() == 0)
 		{
-			tl::log_err("No entries in hdf5 file.");
+			log_err("No entries in hdf5 file.");
 			return false;
 		}
 
 		if(entries.size() > 1)
-			tl::log_warn(entries.size(), " root entries in hdf5 file, expected a single one.");
+			log_warn(entries.size(), " root entries in hdf5 file, expected a single one.");
 
 		const std::string& entry = entries[0];
 
 		// get data matrix
-		if(!tl::get_h5_matrix(h5file, entry + "/data_scan/scanned_variables/data", m_data))
+		if(!get_h5_matrix(h5file, entry + "/data_scan/scanned_variables/data", m_data))
 		{
-			tl::log_err("Cannot load count data.");
+			log_err("Cannot load count data.");
 			return false;
 		}
 
 		// get column names
-		if(!tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/label", m_vecCols))
+		if(!get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/label", m_vecCols))
 		{
-			tl::log_err("Cannot load column names.");
+			log_err("Cannot load column names.");
 			return false;
 
 			/*std::vector<int> axes;
 			std::vector<std::string> names, props;
 
-			bool ok1 = tl::get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", axes);
-			bool ok2 = tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", names);
-			bool ok3 = tl::get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/property", props);
+			bool ok1 = get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", axes);
+			bool ok2 = get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/name", names);
+			bool ok3 = get_h5_string_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/property", props);
 
 			if(!ok1 || !ok2 || !ok3)
 			{
-				tl::log_err("Cannot load column names in old format.");
+				log_err("Cannot load column names in old format.");
 				return false;
 			}
 
@@ -2950,16 +3012,31 @@ bool FileH5<t_real>::Load(const char* pcFile)
 
 		// get scanned variables
 		std::vector<int> scanned;
-		if(!tl::get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/scanned", scanned))
+		if(!get_h5_vector(h5file, entry + "/data_scan/scanned_variables/variables_names/scanned", scanned))
 		{
-			tl::log_err("Cannot load scanned variables.");
+			log_err("Cannot load scanned variables.");
 			return false;
 		}
 
 		for(std::size_t idx = 0; idx<std::min(m_vecCols.size(), scanned.size()); ++idx)
 		{
+			const std::string& col_name = m_vecCols[idx];
+			const t_vecVals& col_vec = GetCol(col_name);
+
+			// add variable to parameter map
+			if(col_vec.size())
+			{
+				t_real dMean = mean_value(col_vec);
+				t_real dStd = std_dev(col_vec);
+
+				std::string col_val = var_to_str(dMean, prec);
+				if(!float_equal(dStd, t_real(0), eps))
+					col_val += " +- " + var_to_str(dStd, prec);
+				m_params.emplace(std::make_pair("var_" + col_name, col_val));
+			}
+
 			if(scanned[idx])
-				m_scanned_vars.push_back(m_vecCols[idx]);
+				m_scanned_vars.push_back(col_name);
 		}
 
 		// if Q, E coordinates are among the scan variables, move them to the front
@@ -2990,7 +3067,7 @@ bool FileH5<t_real>::Load(const char* pcFile)
 
 		// get the name of the instrument if available
 		std::string instr_dir;
-		bool instr_found = tl::get_h5_string(h5file, entry + "/instrument_name", instr_dir);
+		bool instr_found = get_h5_string(h5file, entry + "/instrument_name", instr_dir);
 
 		if(instr_found)
 		{
@@ -3002,10 +3079,10 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		{
 			// get the first group marked with "NXinstrument"
 			std::vector<std::string> main_entries;
-			tl::get_h5_entries(h5file, entry, main_entries);
+			get_h5_entries(h5file, entry, main_entries);
 			for(const std::string& main_entry : main_entries)
 			{
-				std::string nx_class = tl::get_h5_attr<std::string>(h5file, entry + "/" + main_entry, "NX_class", true);
+				std::string nx_class = get_h5_attr<std::string>(h5file, entry + "/" + main_entry, "NX_class", true);
 				if(nx_class == "NXinstrument")
 				{
 					// found an instrument entry
@@ -3019,32 +3096,54 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		if(!instr_found)
 		{
 			instr_dir = "instrument";
-			tl::log_err("No instrument group found, defaulting to \"", instr_dir, "\".");
+			log_err("No instrument group found, defaulting to \"", instr_dir, "\".");
 		}
 
 		// get experiment infos
-		tl::get_h5_string(h5file, entry + "/title", m_title);
-		tl::get_h5_string(h5file, entry + "/start_time", m_timestamp);
-		tl::get_h5_scalar(h5file, entry + "/run_number", m_scannumber);
-		tl::get_h5_string(h5file, entry + "/" + instr_dir + "/command_line/actual_command", m_scancommand);
+		std::string timestamp_end;
+		get_h5_string(h5file, entry + "/title", m_title);
+		get_h5_string(h5file, entry + "/start_time", m_timestamp);
+		get_h5_string(h5file, entry + "/end_time", timestamp_end);
+		get_h5_scalar(h5file, entry + "/run_number", m_scannumber);
+		get_h5_string(h5file, entry + "/" + instr_dir + "/command_line/actual_command", m_scancommand);
+
+		// get polarisation infos
+		get_h5_string(h5file, entry + "/" + instr_dir + "/pal/pal_contents", m_palcommand);
+		if(!get_h5_scalar(h5file, entry + "/data_scan/pal_steps", m_numPolChannels))
+			m_numPolChannels = 0;
 
 		// get user infos
-		tl::get_h5_string(h5file, entry + "/user/name", m_username);
-		tl::get_h5_string(h5file, entry + "/user/namelocalcontact", m_localname);
+		get_h5_string(h5file, entry + "/user/name", m_username);
+		get_h5_string(h5file, entry + "/user/namelocalcontact", m_localname);
 
 		// get instrument infos
 		t_real mono_sense = -1., ana_sense = -1., sample_sense = 1.;
 		t_real ki = 0., kf = 0.;
 		int fx = 2;
 
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/d_spacing", m_dspacings[0]);
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/sens", mono_sense);
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/ki", ki);
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/d_spacing", m_dspacings[1]);
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/sens", ana_sense);
-		tl::get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/kf", kf);
-		tl::get_h5_scalar(h5file, entry + "/sample/sens", sample_sense);
-		tl::get_h5_scalar(h5file, entry + "/sample/fx", fx);
+		get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/d_spacing", m_dspacings[0]);
+		if(!get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/sense", mono_sense))
+			get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/sens", mono_sense);
+		if(!get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/ki", ki))
+		{
+			// if ki does not exist, try to convert from Ei
+			t_real Ei = 0.;
+			if(get_h5_scalar(h5file, entry + "/" + instr_dir + "/Monochromator/ei", Ei))
+				ki = std::sqrt(get_E2KSQ<t_real>() * Ei);
+		}
+		get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/d_spacing", m_dspacings[1]);
+		if(!get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/sense", ana_sense))
+			get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/sens", ana_sense);
+		if(!get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/kf", kf))
+		{
+			// if kf does not exist, try to convert from Ef
+			t_real Ef = 0.;
+			if(get_h5_scalar(h5file, entry + "/" + instr_dir + "/Analyser/ef", Ef))
+				kf = std::sqrt(get_E2KSQ<t_real>() * Ef);
+		}
+		if(!get_h5_scalar(h5file, entry + "/sample/sense", sample_sense))
+			get_h5_scalar(h5file, entry + "/sample/sens", sample_sense);
+		get_h5_scalar(h5file, entry + "/sample/fx", fx);
 
 		m_senses[0] = mono_sense > 0.;
 		m_senses[1] = sample_sense > 0.;
@@ -3054,32 +3153,36 @@ bool FileH5<t_real>::Load(const char* pcFile)
 		m_kfix = (m_iskifixed ? ki : kf);
 
 		// get sample infos
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_a", m_lattice[0]);
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_b", m_lattice[1]);
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_c", m_lattice[2]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_a", m_lattice[0]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_b", m_lattice[1]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_c", m_lattice[2]);
 
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_alpha", m_angles[0]);
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_beta", m_angles[1]);
-		tl::get_h5_scalar(h5file, entry + "/sample/unit_cell_gamma", m_angles[2]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_alpha", m_angles[0]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_beta", m_angles[1]);
+		get_h5_scalar(h5file, entry + "/sample/unit_cell_gamma", m_angles[2]);
 
-		tl::get_h5_scalar(h5file, entry + "/sample/ax", m_plane[0][0]);
-		tl::get_h5_scalar(h5file, entry + "/sample/ay", m_plane[0][1]);
-		tl::get_h5_scalar(h5file, entry + "/sample/az", m_plane[0][2]);
+		get_h5_scalar(h5file, entry + "/sample/ax", m_plane[0][0]);
+		get_h5_scalar(h5file, entry + "/sample/ay", m_plane[0][1]);
+		get_h5_scalar(h5file, entry + "/sample/az", m_plane[0][2]);
 
-		tl::get_h5_scalar(h5file, entry + "/sample/bx", m_plane[1][0]);
-		tl::get_h5_scalar(h5file, entry + "/sample/by", m_plane[1][1]);
-		tl::get_h5_scalar(h5file, entry + "/sample/bz", m_plane[1][2]);
+		get_h5_scalar(h5file, entry + "/sample/bx", m_plane[1][0]);
+		get_h5_scalar(h5file, entry + "/sample/by", m_plane[1][1]);
+		get_h5_scalar(h5file, entry + "/sample/bz", m_plane[1][2]);
 
-		tl::get_h5_scalar(h5file, entry + "/sample/qh", m_initialpos[0]);
-		tl::get_h5_scalar(h5file, entry + "/sample/qk", m_initialpos[1]);
-		tl::get_h5_scalar(h5file, entry + "/sample/ql", m_initialpos[2]);
-		tl::get_h5_scalar(h5file, entry + "/sample/en", m_initialpos[3]);
+		get_h5_scalar(h5file, entry + "/sample/qh", m_initialpos[0]);
+		get_h5_scalar(h5file, entry + "/sample/qk", m_initialpos[1]);
+		get_h5_scalar(h5file, entry + "/sample/ql", m_initialpos[2]);
+		get_h5_scalar(h5file, entry + "/sample/en", m_initialpos[3]);
 
-		m_angles[0] = tl::d2r(m_angles[0]);
-		m_angles[1] = tl::d2r(m_angles[1]);
-		m_angles[2] = tl::d2r(m_angles[2]);
+		m_angles[0] = d2r(m_angles[0]);
+		m_angles[1] = d2r(m_angles[1]);
+		m_angles[2] = d2r(m_angles[2]);
 
-		// try to determine scanned variables from scan comamnd
+		ublas::vector<t_real> plane_1 = make_vec<ublas::vector<t_real>>({ m_plane[0][0],  m_plane[0][1],  m_plane[0][2] });
+		ublas::vector<t_real> plane_2 = make_vec<ublas::vector<t_real>>({ m_plane[1][0],  m_plane[1][1],  m_plane[1][2] });
+		ublas::vector<t_real> plane_n = cross_3(plane_1, plane_2);
+
+		// try to determine scanned variables from scan command
 		std::vector<std::string> scanned_vars = FilePsi<t_real>::GetScannedVarsFromCommand(m_scancommand);
 		for(auto iterScVar = scanned_vars.rbegin(); iterScVar != scanned_vars.rend(); ++iterScVar)
 		{
@@ -3094,21 +3197,84 @@ bool FileH5<t_real>::Load(const char* pcFile)
 			}
 		}
 
+		// check consistency with respect to the number of scan steps
+		std::size_t scan_steps = 0;
+		std::size_t pal_steps = m_numPolChannels ? m_numPolChannels : 1;
+		if(get_h5_scalar(h5file, entry + "/data_scan/actual_step", scan_steps)
+			&& GetScanCount() != scan_steps*pal_steps)
+		{
+			log_warn("Determined ", GetScanCount(),
+				" scan steps, but file reports ", scan_steps*pal_steps, ".");
+		}
+
 		h5file.close();
+
+		// add parameters to metadata map
+		m_params.emplace(std::make_pair("exp_title", m_title));
+		m_params.emplace(std::make_pair("exp_user", m_username));
+		m_params.emplace(std::make_pair("exp_localcontact", m_localname));
+
+		m_params.emplace(std::make_pair("scan_time_start", m_timestamp));
+		m_params.emplace(std::make_pair("scan_time_end", timestamp_end));
+		m_params.emplace(std::make_pair("scan_number", var_to_str(m_scannumber)));
+		m_params.emplace(std::make_pair("scan_command", m_scancommand));
+		m_params.emplace(std::make_pair("scan_command_pol", m_palcommand));
+
+		m_params.emplace(std::make_pair("sample_lattice",
+			var_to_str(m_lattice[0], prec) + ", " +
+			var_to_str(m_lattice[1], prec) + ", " +
+			var_to_str(m_lattice[2], prec)));
+		m_params.emplace(std::make_pair("sample_angles",
+			var_to_str(r2d(m_angles[0]), prec) + ", " +
+			var_to_str(r2d(m_angles[1]), prec) + ", " +
+			var_to_str(r2d(m_angles[2]), prec)));
+		m_params.emplace(std::make_pair("sample_plane_vec1",
+			var_to_str(m_plane[0][0], prec) + ", " +
+			var_to_str(m_plane[0][1], prec) + ", " +
+			var_to_str(m_plane[0][2], prec)));
+		m_params.emplace(std::make_pair("sample_plane_vec2",
+			var_to_str(m_plane[1][0], prec) + ", " +
+			var_to_str(m_plane[1][1], prec) + ", " +
+			var_to_str(m_plane[1][2], prec)));
+		m_params.emplace(std::make_pair("sample_plane_norm",
+			var_to_str(plane_n[0], prec) + ", " +
+			var_to_str(plane_n[1], prec) + ", " +
+			var_to_str(plane_n[2], prec)));
+		m_params.emplace(std::make_pair("sample_hklE",
+			var_to_str(m_initialpos[0], prec) + ", " +
+			var_to_str(m_initialpos[1], prec) + ", " +
+			var_to_str(m_initialpos[2], prec) + ", " +
+			var_to_str(m_initialpos[3], prec)));
+
+		m_params.emplace(std::make_pair("instr_senses",
+			var_to_str(m_senses[0]) + ", " +
+			var_to_str(m_senses[1]) + ", " +
+			var_to_str(m_senses[2])));
+		m_params.emplace(std::make_pair("instr_ki", var_to_str(ki, prec)));
+		m_params.emplace(std::make_pair("instr_kf", var_to_str(kf, prec)));
+		m_params.emplace(std::make_pair("instr_ki_fixed", var_to_str(m_iskifixed)));
+		m_params.emplace(std::make_pair("instr_kf_fixed", var_to_str(!m_iskifixed)));
+		m_params.emplace(std::make_pair("instr_dspacings",
+			var_to_str(m_dspacings[0], prec) + ", " +
+			var_to_str(m_dspacings[1], prec)));
+
+		if(m_bAutoParsePol)
+			ParsePolData();
 	}
 	catch(const H5::Exception& ex)
 	{
-		tl::log_err(ex.getDetailMsg());
+		log_err(ex.getDetailMsg());
 		return false;
 	}
 	catch(const std::exception& ex)
 	{
-		tl::log_err(ex.what());
+		log_err(ex.what());
 		return false;
 	}
 
 	return true;
 }
+
 
 template<class t_real>
 const typename FileInstrBase<t_real>::t_vecVals&
@@ -3116,6 +3282,7 @@ FileH5<t_real>::GetCol(const std::string& strName, std::size_t *pIdx) const
 {
 	return const_cast<FileH5*>(this)->GetCol(strName, pIdx);
 }
+
 
 template<class t_real>
 typename FileInstrBase<t_real>::t_vecVals&
@@ -3136,12 +3303,14 @@ FileH5<t_real>::GetCol(const std::string& strName, std::size_t *pIdx)
 	return vecNull;
 }
 
+
 template<class t_real>
 const typename FileInstrBase<t_real>::t_vecDat&
 FileH5<t_real>::GetData() const
 {
 	return m_data;
 }
+
 
 template<class t_real>
 typename FileInstrBase<t_real>::t_vecDat&
@@ -3150,12 +3319,14 @@ FileH5<t_real>::GetData()
 	return m_data;
 }
 
+
 template<class t_real>
 const typename FileInstrBase<t_real>::t_vecColNames&
 FileH5<t_real>::GetColNames() const
 {
 	return m_vecCols;
 }
+
 
 template<class t_real>
 const typename FileInstrBase<t_real>::t_mapParams&
@@ -3164,11 +3335,13 @@ FileH5<t_real>::GetAllParams() const
 	return m_params;
 }
 
+
 template<class t_real>
 std::array<t_real,3> FileH5<t_real>::GetSampleLattice() const
 {
 	return m_lattice;
 }
+
 
 template<class t_real>
 std::array<t_real,3> FileH5<t_real>::GetSampleAngles() const
@@ -3176,11 +3349,13 @@ std::array<t_real,3> FileH5<t_real>::GetSampleAngles() const
 	return m_angles;
 }
 
+
 template<class t_real>
 std::array<t_real,2> FileH5<t_real>::GetMonoAnaD() const
 {
 	return m_dspacings;
 }
+
 
 template<class t_real>
 std::array<bool, 3> FileH5<t_real>::GetScatterSenses() const
@@ -3188,11 +3363,13 @@ std::array<bool, 3> FileH5<t_real>::GetScatterSenses() const
 	return m_senses;
 }
 
+
 template<class t_real>
 std::array<t_real, 3> FileH5<t_real>::GetScatterPlane0() const
 {
 	return m_plane[0];
 }
+
 
 template<class t_real>
 std::array<t_real, 3> FileH5<t_real>::GetScatterPlane1() const
@@ -3200,11 +3377,13 @@ std::array<t_real, 3> FileH5<t_real>::GetScatterPlane1() const
 	return m_plane[1];
 }
 
+
 template<class t_real>
 std::array<t_real, 4> FileH5<t_real>::GetPosHKLE() const
 {
 	return m_initialpos;
 }
+
 
 template<class t_real>
 t_real FileH5<t_real>::GetKFix() const
@@ -3212,11 +3391,13 @@ t_real FileH5<t_real>::GetKFix() const
 	return m_kfix;
 }
 
+
 template<class t_real>
 bool FileH5<t_real>::IsKiFixed() const
 {
 	return m_iskifixed;
 }
+
 
 template<class t_real>
 std::size_t FileH5<t_real>::GetScanCount() const
@@ -3225,6 +3406,7 @@ std::size_t FileH5<t_real>::GetScanCount() const
 		return m_data[0].size();
 	return 0;
 }
+
 
 template<class t_real>
 std::array<t_real, 5> FileH5<t_real>::GetScanHKLKiKf(std::size_t i) const
@@ -3235,10 +3417,12 @@ std::array<t_real, 5> FileH5<t_real>::GetScanHKLKiKf(std::size_t i) const
 	return FileInstrBase<t_real>::GetScanHKLKiKf("QH", "QK", "QL", "EN", i);
 }
 
+
 template<class t_real> std::vector<std::string> FileH5<t_real>::GetScannedVars() const
 {
 	return m_scanned_vars;
 }
+
 
 template<class t_real>
 bool FileH5<t_real>::MergeWith(const FileInstrBase<t_real>* pDat)
@@ -3246,16 +3430,129 @@ bool FileH5<t_real>::MergeWith(const FileInstrBase<t_real>* pDat)
 	return FileInstrBase<t_real>::MergeWith(pDat);
 }
 
-template<class t_real> std::string FileH5<t_real>::GetCountVar() const { return "Detector"; }
-template<class t_real> std::string FileH5<t_real>::GetMonVar() const { return "Monitor1"; }
-template<class t_real> std::string FileH5<t_real>::GetTitle() const { return m_title; }
-template<class t_real> std::string FileH5<t_real>::GetUser() const { return m_username; }
-template<class t_real> std::string FileH5<t_real>::GetLocalContact() const { return m_localname; }
-template<class t_real> std::string FileH5<t_real>::GetScanNumber() const { return tl::var_to_str(m_scannumber); }
+
+template<class t_real> std::string FileH5<t_real>::GetCountVar() const
+{
+	// try to match names
+	std::string strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(Detector)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(SingleDetector)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(cnts)REX", strRet))
+		return strRet;
+	if(FileInstrBase<t_real>::MatchColumn(R"REX(det)REX", strRet))
+		return strRet;
+
+	return "";
+}
+
+
+template<class t_real>
+void FileH5<t_real>::ParsePolData()
+{
+	std::string palcommand = m_palcommand;
+	find_all_and_replace<std::string>(palcommand, "|", ",");
+
+	m_vecPolStates = parse_pol_states<t_real>(palcommand,
+		m_strPolVec1, m_strPolVec2,
+		m_strPolCur1, m_strPolCur2,
+		m_strXYZ,
+		m_strFlip1, m_strFlip2);
+
+	if(m_vecPolStates.size() && m_numPolChannels != m_vecPolStates.size())
+	{
+		log_warn("Determined ", m_vecPolStates.size(),
+			" polarisation channels, but file reports ", m_numPolChannels, ".");
+		m_numPolChannels = m_vecPolStates.size();
+	}
+}
+
+
+template<class t_real>
+std::size_t FileH5<t_real>::NumPolChannels() const
+{
+	return m_numPolChannels;
+	//return m_vecPolStates.size();
+}
+
+
+template<class t_real>
+const std::vector<std::array<t_real, 6>>& FileH5<t_real>::GetPolStates() const
+{
+	return m_vecPolStates;
+}
+
+
+template<class t_real>
+void FileH5<t_real>::SetPolNames(const char* pVec1, const char* pVec2,
+	const char* pCur1, const char* pCur2)
+{
+	m_strPolVec1 = pVec1; m_strPolVec2 = pVec2;
+	m_strPolCur1 = pCur1; m_strPolCur2 = pCur2;
+}
+
+
+template<class t_real>
+void FileH5<t_real>::SetLinPolNames(const char* pFlip1, const char* pFlip2,
+	const char* pXYZ)
+{
+	m_strFlip1 = pFlip1; m_strFlip2 = pFlip2;
+	m_strXYZ = pXYZ;
+}
+
+
+template<class t_real> void FileH5<t_real>::SetAutoParsePolData(bool b)
+{
+	m_bAutoParsePol = b;
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetMonVar() const
+{
+	return "Monitor1";
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetTitle() const
+{
+	return m_title;
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetUser() const
+{
+	return m_username;
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetLocalContact() const
+{
+	return m_localname;
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetScanNumber() const
+{
+	return var_to_str(m_scannumber);
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetScanCommand() const
+{
+	return m_scancommand;
+}
+
+
+template<class t_real> std::string FileH5<t_real>::GetTimestamp() const
+{
+	return m_timestamp;
+}
+
+
 template<class t_real> std::string FileH5<t_real>::GetSampleName() const { return ""; }
 template<class t_real> std::string FileH5<t_real>::GetSpacegroup() const { return ""; }
-template<class t_real> std::string FileH5<t_real>::GetScanCommand() const { return m_scancommand; }
-template<class t_real> std::string FileH5<t_real>::GetTimestamp() const { return m_timestamp; }
+
 
 #endif
 

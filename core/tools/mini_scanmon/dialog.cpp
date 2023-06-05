@@ -25,12 +25,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  * ----------------------------------------------------------------------------
  */
-// gcc -o dialog dialog.cpp -std=c++11 -lstdc++ -ldialog
 
 #include "dialog.h"
 #include <dialog/dialog.h>
-#include <chrono>
-#include <thread>
 
 
 static void *g_pProgress = nullptr;
@@ -51,6 +48,7 @@ bool open_progress(const std::string& strTitle)
 	return false;
 }
 
+
 void close_progress()
 {
 	if(g_pProgress)
@@ -61,6 +59,7 @@ void close_progress()
 	end_dialog();
 }
 
+
 void set_progress(int iPerc, const std::string& strTxt)
 {
 	if(!g_pProgress) return;
@@ -70,7 +69,13 @@ void set_progress(int iPerc, const std::string& strTxt)
 }
 
 
-/*int main(int argc, char** argv)
+/*
+// g++ -o dialog dialog.cpp -std=c++11 -ldialog
+
+#include <chrono>
+#include <thread>
+
+int main(int argc, char** argv)
 {
 	open_progress("Test");
 	set_progress(10, "abc\ndef\nghi");

@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * "misc" project
  * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
@@ -27,6 +27,7 @@
 
 #include "bz.h"
 
+#include <QtCore/QMimeData>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
@@ -269,15 +270,18 @@ BZDlg::BZDlg(QWidget* pParent) : QDialog{pParent},
 		m_cutX->setValue(1);
 		m_cutNZ->setValue(1);
 
+		int draw_order = 4;
+		int calc_order = 4;
+
 		m_BZDrawOrder = new QSpinBox(bzpanel);
 		m_BZDrawOrder->setMinimum(0);
 		m_BZDrawOrder->setMaximum(99);
-		m_BZDrawOrder->setValue(4);
+		m_BZDrawOrder->setValue(draw_order);
 
 		m_BZCalcOrder = new QSpinBox(bzpanel);
 		m_BZCalcOrder->setMinimum(1);
 		m_BZCalcOrder->setMaximum(99);
-		m_BZCalcOrder->setValue(4);
+		m_BZCalcOrder->setValue(calc_order);
 
 		QPushButton *btnShowBZ = new QPushButton("3D View...", bzpanel);
 
@@ -306,13 +310,16 @@ BZDlg::BZDlg(QWidget* pParent) : QDialog{pParent},
 		// signals
 		connect(m_BZDrawOrder,
 			static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-			[this]() { this->CalcBZCut(); });
+			[this](int order) { this->SetDrawOrder(order); });
 		connect(m_bzview, &BZCutView::SignalMouseCoordinates,
 			this, &BZDlg::BZCutMouseMoved);
 		connect(m_BZCalcOrder,
 			static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-			[this]() { this->CalcBZ(); });
+			[this](int order) { this->SetCalcOrder(order); });
 		connect(btnShowBZ, &QPushButton::clicked, this, &BZDlg::ShowBZPlot);
+
+		SetCalcOrder(calc_order, false);
+		SetDrawOrder(draw_order, false);
 
 		m_tabs_out->addTab(bzpanel, "Brillouin Zone");
 	}
@@ -417,6 +424,23 @@ BZDlg::BZDlg(QWidget* pParent) : QDialog{pParent},
 		grid->addWidget(m_bzresults, 0,0, 1,4);
 
 		m_tabs_out->addTab(resultspanel, "Results");
+	}
+
+
+	{	// brillouin zone calculation results panel (json)
+		auto resultspanel = new QWidget(this);
+		auto grid = new QGridLayout(resultspanel);
+		grid->setSpacing(4);
+		grid->setContentsMargins(4,4,4,4);
+
+		m_bzresultsJSON = new QPlainTextEdit(resultspanel);
+		m_bzresultsJSON->setReadOnly(true);
+		m_bzresultsJSON->setFont(
+			QFontDatabase::systemFont(QFontDatabase::FixedFont));
+
+		grid->addWidget(m_bzresultsJSON, 0,0, 1,4);
+
+		m_tabs_out->addTab(resultspanel, "Results (JSON)");
 	}
 
 
@@ -672,9 +696,42 @@ BZDlg::BZDlg(QWidget* pParent) : QDialog{pParent},
 	}
 
 
+	setAcceptDrops(true);
+
 	m_symOpIgnoreChanges = 0;
 	m_formulaIgnoreChanges = 0;
 }
+
+
+/**
+ * a file is being dragged over the window
+ */
+void BZDlg::dragEnterEvent(QDragEnterEvent *evt)
+{
+	if(evt) evt->accept();
+}
+
+
+/**
+ * a file is being dropped onto the window
+ */
+void BZDlg::dropEvent(QDropEvent *evt)
+{
+	const QMimeData *mime = evt->mimeData();
+	if(!mime)
+		return;
+
+	for(const QUrl& url : mime->urls())
+	{
+		if(!url.isLocalFile())
+			continue;
+
+		Load(url.toLocalFile());
+		evt->accept();
+		break;
+	}
+}
+
 
 
 void BZDlg::closeEvent(QCloseEvent *)
@@ -699,4 +756,7 @@ void BZDlg::UpdateBZDescription()
 	// brillouin zone description
 	std::string descr = m_descrBZ + "\n" + m_descrBZCut;
 	m_bzresults->setPlainText(descr.c_str());
+
+	// brillouin zone json description
+	m_bzresultsJSON->setPlainText(m_descrBZJSON.c_str());
 }

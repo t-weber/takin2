@@ -1,7 +1,7 @@
 /**
- * brillouin zone tool
+ * brillouin zone tool calling test
  * @author Tobias Weber <tweber@ill.fr>
- * @date Maz-2022
+ * @date May-2022
  * @license GPLv3, see 'LICENSE' file
  *
  * ----------------------------------------------------------------------------
@@ -25,26 +25,33 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "globals.h"
-#include <cmath>
+// g++ -std=c++20 -o call_bz call_bz.cpp -lboost_iostreams
+
+#include <iostream>
+#include <cstdio>
+
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+namespace ios = boost::iostreams;
 
 
-t_real g_eps = 1e-6;
-int g_prec = 6;
-int g_prec_gui = 4;
-
-
-/**
- * sets new epsilon and precision values
- */
-void set_eps(t_real eps, int prec)
+int main(int, char**)
 {
-	// determine precision from epsilon
-	if(prec < 0)
-		prec = int(-std::log10(eps));
+	// runs takin using boost.iostreams, see: https://www.boost.org/doc/libs/1_82_0/libs/iostreams/doc/index.html
+	// create stream buffer
+	ios::stream_buffer buf(
+		ios::file_descriptor_source(
+			::fileno(::popen("../build/takin_bz -c -i ../build/0.xml", "r")),
+		ios::close_handle));
 
-	g_eps = eps;
-	g_prec = prec;
+	// create input stream using the stream buffer
+	std::istream istr(&buf);
 
-	//std::cout << "eps = " << g_eps << ", prec = " << g_prec << std::endl;
+	// read results from standard input
+	std::string result, line;
+	while(std::getline(istr, line))
+		result += line + '\n';
+
+	std::cout << result << std::endl;
+	return 0;
 }

@@ -1,8 +1,8 @@
 /**
- * brillouin zone tool
+ * swig interface
  * @author Tobias Weber <tweber@ill.fr>
- * @date Maz-2022
- * @license GPLv3, see 'LICENSE' file
+ * @date 25-april-2023
+ * @license see 'LICENSE' file
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
@@ -25,26 +25,23 @@
  * ----------------------------------------------------------------------------
  */
 
-#include "globals.h"
-#include <cmath>
+%module bzcalc
+%{
+	#include "bzlib.h"
+
+	using t_matD = tl2::mat<double, std::vector>;
+	using t_vecD = tl2::vec<double, std::vector>;
+%}
 
 
-t_real g_eps = 1e-6;
-int g_prec = 6;
-int g_prec_gui = 4;
+%include "std_vector.i"
+%include "std_string.i"
+
+%template(VecD) std::vector<double>;
+%template(VecUI) std::vector<unsigned int>;
+//%template(Vectvec) std::vector<t_vecD>;
 
 
-/**
- * sets new epsilon and precision values
- */
-void set_eps(t_real eps, int prec)
-{
-	// determine precision from epsilon
-	if(prec < 0)
-		prec = int(-std::log10(eps));
+%include "bzlib.h"
 
-	g_eps = eps;
-	g_prec = prec;
-
-	//std::cout << "eps = " << g_eps << ", prec = " << g_prec << std::endl;
-}
+%template(BZCalcD) BZCalc<t_matD, t_vecD, double>;

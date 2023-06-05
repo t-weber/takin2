@@ -6,7 +6,7 @@
  *
  * ----------------------------------------------------------------------------
  * mag-core (part of the Takin software suite)
- * Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+ * Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
  *                          Grenoble, France).
  * "misc" project
  * Copyright (C) 2017-2021  Tobias WEBER (privately developed).
@@ -51,6 +51,9 @@ using t_mat_gl = tl2::t_mat_gl;
 extern t_real g_eps;
 extern int g_prec;
 extern int g_prec_gui;
+
+
+extern void set_eps(t_real eps, int prec = -1);
 
 
 #endif

@@ -40,7 +40,6 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/process.hpp>
 
 #include <QApplication>
 #include <QMenuBar>
@@ -64,13 +63,10 @@
 
 namespace algo = boost::algorithm;
 namespace fs = boost::filesystem;
-namespace proc = boost::process;
 
 using t_real = t_real_glob;
 const std::string TazDlg::s_strTitle = "Takin";
 const t_real_glob TazDlg::s_dPlaneDistTolerance = std::cbrt(tl::get_epsilon<t_real_glob>());
-
-//#define NO_HELP_ASSISTANT
 
 
 TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
@@ -770,7 +766,7 @@ TazDlg::TazDlg(QWidget* pParent, const std::string& strLogFile)
 	pMenuHelp->addAction(pHelp);
 
 	QAction *pDevelDoc = new QAction("Show Developer Help...", this);
-	if(find_resource("doc/devel/html/index.html", 0) == "")
+	if(find_resource("doc/html/index.html", 0) == "")
 		pDevelDoc->setEnabled(0);
 	pDevelDoc->setIcon(load_icon("res/icons/help-browser.svg"));
 	pMenuHelp->addAction(pDevelDoc);
@@ -1690,49 +1686,14 @@ void TazDlg::ShowLog()
 
 void TazDlg::ShowHelp()
 {
-#ifndef NO_HELP_ASSISTANT
-	std::string strHelp = find_resource("res/doc/takin.qhc");
-	if(strHelp != "")
-	{
-		std::vector<std::string> vecHelpProg{{
-			std::string{"assistant-qt5"},
-			std::string{"assistant"}
-		}};
-
-		for(const std::string& strHelpProg : vecHelpProg)
-		{
-			fs::path pathAssistant = proc::search_path(strHelpProg);
-			if(fs::exists(pathAssistant) && pathAssistant!="")
-			{
-				tl::log_debug("Trying to launch help viewer: ", pathAssistant, ".");
-				proc::spawn(pathAssistant, "-collectionFile", strHelp);
-				return;
-			}
-		}
-
-		tl::log_warn("Help viewer not found, trying associated application.");
-	}
-#endif
-
-
-	// try opening html files directly
-	std::string strHelpHtml = find_resource("doc/index_help.html");
-	if(strHelpHtml == "")	// try alternate directory
-		strHelpHtml = find_resource("res/doc/index_help.html");
-	if(strHelpHtml != "")
-	{
-		std::string strFile = "file:///" + fs::absolute(strHelpHtml).string();
-		if(QDesktopServices::openUrl(QUrl(strFile.c_str())))
-			return;
-	}
-
-	QMessageBox::critical(this, "Error", "Help could not be displayed.");
+	QDesktopServices::openUrl(QUrl(
+		"https://code.ill.fr/scientific-software/takin/core/-/wikis/home"));
 }
 
 
 void TazDlg::ShowDevelDoc()
 {
-	std::string strHelpHtml = find_resource("doc/devel/html/index.html");
+	std::string strHelpHtml = find_resource("doc/html/index.html");
 	if(strHelpHtml != "")
 	{
 		std::string strFile = "file:///" + fs::absolute(strHelpHtml).string();

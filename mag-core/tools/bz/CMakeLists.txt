@@ -5,7 +5,7 @@
 #
 # ----------------------------------------------------------------------------
 # mag-core (part of the Takin software suite)
-# Copyright (C) 2018-2022  Tobias WEBER (Institut Laue-Langevin (ILL),
+# Copyright (C) 2018-2023  Tobias WEBER (Institut Laue-Langevin (ILL),
 #                          Grenoble, France).
 #
 # This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ list(APPEND CMAKE_MODULE_PATH
 )
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
-option(BUILD_LIB "build as dynamic library" FALSE)
+option(USE_SCRIPTING "use scripting" FALSE)
 
 # system specific settings
 message("Building for ${CMAKE_SYSTEM_NAME} systems.")
@@ -50,7 +50,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	add_compile_options(-mmacosx-version-min=10.15)
 endif()
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 add_compile_options(${Boost_CXX_FLAGS})
 
 find_package(Qhull)
@@ -89,6 +89,7 @@ add_executable(takin_bz
 	globals.cpp globals.h
 	bz_formulas.cpp
 	plot_cut.cpp plot_cut.h
+	bzlib.h
 	../../tlibs2/libs/qt/recent.cpp ../../tlibs2/libs/qt/recent.h
 	../../tlibs2/libs/qt/gl.cpp ../../tlibs2/libs/qt/gl.h
 	../../tlibs2/libs/qt/glplot.cpp ../../tlibs2/libs/qt/glplot.h)
@@ -105,3 +106,39 @@ target_link_libraries(takin_bz
 	${Qhull_LIBRARIES}
 	${QtLibraries}
 )
+
+
+if(USE_SCRIPTING)
+	find_package(Python3 COMPONENTS Interpreter Development)
+	find_package(SWIG COMPONENTS python)
+	#find_package(SWIG COMPONENTS javascript)
+
+	if(SWIG_FOUND AND SWIG_python_FOUND)
+		message("Scripting using python version ${Python3_VERSION} enabled; packages: ${Python3_SITEARCH}.")
+
+		cmake_policy(SET CMP0078 NEW)
+		cmake_policy(SET CMP0086 NEW)
+
+		set(UseSWIG_TARGET_NAME_PREFERENCE STANDARD)
+		include(${SWIG_USE_FILE})
+
+		set_source_files_properties(bzlib.i PROPERTIES CPLUSPLUS TRUE)
+		set_source_files_properties(bzlib.i PROPERTIES SWIG_FLAGS "-I ${PROJECT_SOURCE_DIR}")
+		#set_source_files_properties(bzlib.i PROPERTIES SWIG_FLAGS -node)
+		set_source_files_properties(
+			${PROJECT_BINARY_DIR}/CMakeFiles/bz_py.dir/bzlibPYTHON_wrap.cxx
+			#${PROJECT_BINARY_DIR}/CMakeFiles/bz_py.dir/bzlibJAVASCRIPT_wrap.cxx
+			PROPERTIES SKIP_AUTOMOC TRUE SKIP_AUTOUIC TRUE)
+
+		swig_add_library(bz_py LANGUAGE python SOURCES bzlib.i)
+		#swig_add_library(bz_py LANGUAGE javascript SOURCES bzlib.i)
+
+		target_link_libraries(bz_py
+			Python3::Python
+			${Boost_LIBRARIES}
+			${Qhull_LIBRARIES}
+		)
+	endif()
+else()
+	message("Scripting disabled.")
+endif()

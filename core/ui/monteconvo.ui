@@ -674,7 +674,7 @@
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>Enter a TAS scan data file.</string>
+             <string>Enter a TAS scan data file. Multiple files can be entered by separating them with semicolon (;).</string>
             </property>
             <property name="placeholderText">
              <string>Scan Data File</string>
