@@ -47,6 +47,7 @@
 #include "exporters.h"
 
 #include "tlibs/math/math.h"
+#include "tlibs/math/linalg.h"
 #include "tlibs/math/stat.h"
 #include "tlibs/string/spec_char.h"
 #include "tlibs/file/file.h"
@@ -66,6 +67,8 @@ using tl::t_real_min;
 
 
 using t_real = t_real_glob;
+using t_vec = tl::ublas::vector<t_real>;
+
 namespace fs = boost::filesystem;
 
 
@@ -993,6 +996,11 @@ void ScanViewerDlg::PlotScan()
 	std::array<t_real, 3> arrPlaneX = m_pInstr->GetScatterPlane0();
 	std::array<t_real, 3> arrPlaneY = m_pInstr->GetScatterPlane1();
 
+	// scattering plane normal
+	t_vec plane_1 = tl::make_vec<t_vec>({ arrPlaneX[0],  arrPlaneX[1], arrPlaneX[2] });
+	t_vec plane_2 = tl::make_vec<t_vec>({ arrPlaneY[0],  arrPlaneY[1], arrPlaneY[2] });
+	t_vec plane_n = tl::cross_3(plane_1, plane_2);
+
 	editA->setText(tl::var_to_str(arrLatt[0], g_iPrec).c_str());
 	editB->setText(tl::var_to_str(arrLatt[1], g_iPrec).c_str());
 	editC->setText(tl::var_to_str(arrLatt[2], g_iPrec).c_str());
@@ -1006,6 +1014,9 @@ void ScanViewerDlg::PlotScan()
 	editPlaneY0->setText(tl::var_to_str(arrPlaneY[0], g_iPrec).c_str());
 	editPlaneY1->setText(tl::var_to_str(arrPlaneY[1], g_iPrec).c_str());
 	editPlaneY2->setText(tl::var_to_str(arrPlaneY[2], g_iPrec).c_str());
+	editPlaneZ0->setText(tl::var_to_str(plane_n[0], g_iPrec).c_str());
+	editPlaneZ1->setText(tl::var_to_str(plane_n[1], g_iPrec).c_str());
+	editPlaneZ2->setText(tl::var_to_str(plane_n[2], g_iPrec).c_str());
 
 	labelKfix->setText(m_pInstr->IsKiFixed()
 		? QString::fromWCharArray(L"ki (1/\x212b):")

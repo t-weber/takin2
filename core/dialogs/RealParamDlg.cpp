@@ -100,12 +100,24 @@ static t_vec get_vec(const QLineEdit* pEdit)
 // ----------------------------------------------------------------------------
 
 
+void RealParamDlg::SetSampleSense(bool bPos)
+{
+	m_bSamplePosSense = bPos;
+
+	// TODO: update edit2ThetaS
+}
+
+
 void RealParamDlg::paramsChanged(const RealParams& parms)
 {
+	t_real dSampleTT = parms.dSampleTT;
+	if(!m_bSamplePosSense)
+		dSampleTT = -dSampleTT;
+
 	this->edit2ThetaM->setText(tl::var_to_str<t_real>(tl::r2d(parms.dMonoTT), g_iPrec).c_str());
 	this->editThetaM->setText(tl::var_to_str<t_real>(tl::r2d(parms.dMonoT), g_iPrec).c_str());
 
-	this->edit2ThetaS->setText(tl::var_to_str<t_real>(tl::r2d(parms.dSampleTT), g_iPrec).c_str());
+	this->edit2ThetaS->setText(tl::var_to_str<t_real>(tl::r2d(dSampleTT), g_iPrec).c_str());
 	this->editThetaS->setText(tl::var_to_str<t_real>(tl::r2d(parms.dSampleT), g_iPrec).c_str());
 
 	this->edit2ThetaA->setText(tl::var_to_str<t_real>(tl::r2d(parms.dAnaTT), g_iPrec).c_str());

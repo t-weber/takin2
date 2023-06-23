@@ -365,7 +365,7 @@ void GotoDlg::EditedAngles()
 	{
 		//log_err(ex.what());
 		labelStatus->setText((std::string("Error (hkl): ") + ex.what()).c_str());
-		bFailed = 1;
+		bFailed = true;
 	}
 
 	const std::wstring strAA = tl::get_spec_char_utf16("AA") +
@@ -392,8 +392,8 @@ void GotoDlg::EditedAngles()
 	m_dAna2Theta = th_a*2.;
 	m_dSample2Theta = tt_s;
 	m_dSampleTheta = th_s;
-	m_bMonoAnaOk = 1;
-	m_bSampleOk = 1;
+	m_bMonoAnaOk = true;
+	m_bSampleOk = true;
 
 	if(m_bMonoAnaOk && m_bSampleOk)
 		labelStatus->setText("Position OK.");
@@ -484,27 +484,24 @@ bool GotoDlg::ApplyCurPos()
 	CrystalOptions crys;
 	TriangleOptions triag;
 
-	triag.bChangedMonoTwoTheta = 1;
+	triag.bChangedMonoTwoTheta = true;
 	triag.dMonoTwoTheta = this->m_dMono2Theta;
 
-	triag.bChangedAnaTwoTheta = 1;
+	triag.bChangedAnaTwoTheta = true;
 	triag.dAnaTwoTheta = this->m_dAna2Theta;
 
-	triag.bChangedTheta = 1;
+	triag.bChangedTheta = true;
 	triag.dTheta = this->m_dSampleTheta;
 
-	triag.bChangedAngleKiVec0 = 1;
+	triag.bChangedAngleKiVec0 = true;
+	triag.dAngleKiVec0 = tl::get_pi<t_real>()/2. - m_dSampleTheta;
 
-	t_real dSampleTheta = m_dSampleTheta;
-	if(!m_bSenseS) dSampleTheta = -dSampleTheta;
-	triag.dAngleKiVec0 = tl::get_pi<t_real>()/2. - dSampleTheta;
-	//log_info("kivec0 = ", triag.dAngleKiVec0/M_PI*180.);
-	//log_info("th = ", m_dSampleTheta/M_PI*180.);
-
-	triag.bChangedTwoTheta = 1;
+	triag.bChangedTwoTheta = true;
 	triag.dTwoTheta = this->m_dSample2Theta;
-	// TODO: correct hack in taz.cpp
-	if(!m_bSenseS) triag.dTwoTheta = -triag.dTwoTheta;
+
+	/*tl::log_info("kivec0 = ", triag.dAngleKiVec0/M_PI*180.);
+	tl::log_info("th = ", triag.dTheta/M_PI*180.);
+	tl::log_info("2th = ", triag.dTwoTheta/M_PI*180.);*/
 
 	emit vars_changed(crys, triag);
 	return true;
@@ -749,7 +746,7 @@ void GotoDlg::Load(tl::Prop<std::string>& xml, const std::string& strXmlRoot)
 	// favlist
 	ClearList();
 	unsigned int iItem=0;
-	while(1)
+	while(true)
 	{
 		std::ostringstream ostrItemBase;
 		ostrItemBase << "goto_favlist/pos_" << iItem << "/";

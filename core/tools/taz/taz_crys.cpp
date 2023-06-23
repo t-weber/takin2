@@ -337,7 +337,7 @@ void TazDlg::CalcPeaks()
 void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& triag)
 {
 	// update crystal
-	bool bRecalcPeaks = 0;
+	bool bRecalcPeaks = false;
 
 	if(crys.bChangedSampleName)
 		editDescr->setText(tl::trimmed(crys.strSampleName).c_str());
@@ -354,7 +354,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 			editB->setText(qstr1);
 			editC->setText(qstr2);
 
-			bRecalcPeaks = 1;
+			bRecalcPeaks = true;
 		}
 	}
 
@@ -370,7 +370,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 			editBeta->setText(qstr1);
 			editGamma->setText(qstr2);
 
-			bRecalcPeaks = 1;
+			bRecalcPeaks = true;
 		}
 	}
 
@@ -383,7 +383,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 		else
 			comboSpaceGroups->setCurrentIndex(0);
 
-		bRecalcPeaks = 1;
+		bRecalcPeaks = true;
 	}
 
 	if(crys.bChangedPlane1)
@@ -398,7 +398,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 			editScatX1->setText(qstr1);
 			editScatX2->setText(qstr2);
 
-			bRecalcPeaks = 1;
+			bRecalcPeaks = true;
 		}
 	}
 	if(crys.bChangedPlane2)
@@ -413,7 +413,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 			editScatY1->setText(qstr1);
 			editScatY2->setText(qstr2);
 
-			bRecalcPeaks = 1;
+			bRecalcPeaks = true;
 		}
 	}
 
@@ -455,7 +455,7 @@ void TazDlg::VarsChanged(const CrystalOptions& crys, const TriangleOptions& tria
 	}
 
 
-	// hack!
+	// negative sign already handled in scattering sense
 	if(triag.bChangedTwoTheta && !checkSenseS->isChecked())
 		const_cast<TriangleOptions&>(triag).dTwoTheta = -triag.dTwoTheta;
 

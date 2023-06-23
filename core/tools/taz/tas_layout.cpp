@@ -63,7 +63,6 @@ void TasLayoutNode::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, Q
 
 QVariant TasLayoutNode::itemChange(GraphicsItemChange change, const QVariant &val)
 {
-	//std::cout << change << std::endl;
 	QVariant var = QGraphicsItem::itemChange(change, val);
 
 	if(change == QGraphicsItem::ItemPositionHasChanged)
@@ -95,7 +94,7 @@ TasLayout::TasLayout(TasLayoutScene& scene) : m_scene(scene),
 	m_pAna->setPos(-m_dLenSampleAna*m_dScaleFactor, 0.);
 	m_pDet->setPos(-100., -m_dLenAnaDet*m_dScaleFactor);
 
-	AllowMouseMove(1);
+	AllowMouseMove(true);
 
 	scene.addItem(m_pSrc.get());
 	scene.addItem(m_pMono.get());
@@ -104,12 +103,12 @@ TasLayout::TasLayout(TasLayoutScene& scene) : m_scene(scene),
 	scene.addItem(m_pDet.get());
 
 	setAcceptedMouseButtons(Qt::NoButton);
-	m_bUpdate = m_bReady = 1;
+	m_bUpdate = m_bReady = true;
 }
 
 TasLayout::~TasLayout()
 {
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 }
 
 void TasLayout::AllowMouseMove(bool bAllow)
@@ -125,7 +124,7 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 	if(!m_bReady) return;
 
 	// prevents recursive calling of update
-	static bool bAllowUpdate = 1;
+	static bool bAllowUpdate = true;
 	if(!bAllowUpdate) return;
 
 	const t_vec vecSrc = qpoint_to_vec(mapFromItem(m_pSrc.get(), 0, 0));
@@ -134,16 +133,16 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 	const t_vec vecAna = qpoint_to_vec(mapFromItem(m_pAna.get(), 0, 0));
 	const t_vec vecDet = qpoint_to_vec(mapFromItem(m_pDet.get(), 0, 0));
 
-	bAllowUpdate = 0;
+	bAllowUpdate = false;
 	if(pNode == m_pSample.get())
 	{
 		t_real dTwoTheta = m_dTwoTheta;
 		t_real dAnaTwoTheta = m_dAnaTwoTheta;
 
-		t_vec vecSrcMono = vecMono-vecSrc;
+		t_vec vecSrcMono = vecMono - vecSrc;
 		vecSrcMono /= ublas::norm_2(vecSrcMono);
 
-		t_vec vecMonoSample = vecSample-vecMono;
+		t_vec vecMonoSample = vecSample - vecMono;
 		if(m_bAllowChanges)
 			m_dLenMonoSample = ublas::norm_2(vecMonoSample)/m_dScaleFactor;
 		vecMonoSample /= ublas::norm_2(vecMonoSample);
@@ -165,7 +164,6 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 		m_pAna->setPos(vec_to_qpoint(vecAnaNew));
 
 
-
 		vecSampleAna /= ublas::norm_2(vecSampleAna);
 
 		t_vec vecAnaDet =
@@ -177,7 +175,7 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 
 
 		TriangleOptions opts;
-		opts.bChangedMonoTwoTheta = 1;
+		opts.bChangedMonoTwoTheta = true;
 		opts.dMonoTwoTheta = m_dMonoTwoTheta;
 		m_scene.emitUpdate(opts);
 	}
@@ -216,7 +214,7 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 		t_vec vecSampleAna = vecAna - vecSample;
 		vecSampleAna /= ublas::norm_2(vecSampleAna);
 
-		t_vec vecAnaDet = vecDet-vecAna;
+		t_vec vecAnaDet = vecDet - vecAna;
 		if(m_bAllowChanges)
 			m_dLenAnaDet = ublas::norm_2(vecAnaDet)/m_dScaleFactor;
 		vecAnaDet /= ublas::norm_2(vecAnaDet);
@@ -229,7 +227,7 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 		}
 
 		TriangleOptions opts;
-		opts.bChangedAnaTwoTheta = 1;
+		opts.bChangedAnaTwoTheta = true;
 		opts.dAnaTwoTheta = m_dAnaTwoTheta;
 		m_scene.emitUpdate(opts);
 	}
@@ -259,12 +257,14 @@ void TasLayout::nodeMoved(const TasLayoutNode *pNode)
 		}
 
 		TriangleOptions opts;
-		opts.bChangedTwoTheta = 1;
+		opts.bChangedTwoTheta = true;
 		opts.dTwoTheta = m_dTwoTheta;
+		if(!m_scene.GetSampleSense())
+			opts.dTwoTheta = -opts.dTwoTheta;
 		m_scene.emitUpdate(opts);
 	}
 
-	bAllowUpdate = 1;
+	bAllowUpdate = true;
 
 	if(m_bUpdate)
 	{
@@ -286,7 +286,7 @@ QRectF TasLayout::boundingRect() const
  */
 void TasLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	const bool bDisplayLengths = 0;
+	const bool bDisplayLengths = false;
 	pPainter->setFont(g_fontGfx);
 
 	QPointF ptSrc = mapFromItem(m_pSrc.get(), 0, 0) * m_dZoom;
@@ -426,7 +426,7 @@ void TasLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidg
 
 	// ------------------------------------------------------------------------
 	// dead angles
-	bool bBeamObstructed = 0;
+	bool bBeamObstructed = false;
 
 	struct DeadAngleArc
 	{
@@ -526,7 +526,7 @@ void TasLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidg
 				dArcSize, dArcSize), deadarc.dAngleStart*16., deadarc.dAngleRange*16.);
 
 			if(!bBeamObstructed && deadarc.intersects())
-				bBeamObstructed = 1;
+				bBeamObstructed = true;
 		}
 	}
 	// ------------------------------------------------------------------------
@@ -673,6 +673,8 @@ void TasLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidg
 void TasLayout::SetSampleTwoTheta(t_real dAngle)
 {
 	m_dTwoTheta = dAngle;
+	if(!m_scene.GetSampleSense())
+		m_dTwoTheta = -m_dTwoTheta;
 
 	t_vec vecMono = qpoint_to_vec(mapFromItem(m_pMono.get(), 0, 0));
 	t_vec vecSample = qpoint_to_vec(mapFromItem(m_pSample.get(), 0, 0));
@@ -687,18 +689,19 @@ void TasLayout::SetSampleTwoTheta(t_real dAngle)
 	vecKf *= dLenKf;
 
 
-	m_bReady = m_bUpdate = 0;
+	m_bReady = m_bUpdate = false;
 	m_pAna->setPos(vec_to_qpoint(vecSample + vecKf));
-	m_bReady = 1;
+	m_bReady = true;
 
 	// don't call update twice
 	nodeMoved(m_pSample.get());
-	m_bUpdate = 1;
+	m_bUpdate = true;
 	nodeMoved(m_pAna.get());
 }
 
 void TasLayout::SetSampleTheta(t_real dAngle)
 {
+	//tl::log_info("sample theta: ", dAngle/M_PI*180.);
 	m_dTheta = dAngle;
 	nodeMoved();
 }
@@ -782,6 +785,9 @@ void TasLayoutScene::emitAllParams()
 	parms.dLenSampleAna = m_pTas->GetLenSampleAna();
 	parms.dLenAnaDet = m_pTas->GetLenAnaDet();
 
+	if(!GetSampleSense())
+		parms.dSampleTT = -parms.dSampleTT;
+
 	//log_info(parms.dSampleT/M_PI*180.);
 	//log_debug("tas: emitAllParams");
 	emit paramsChanged(parms);
@@ -792,9 +798,8 @@ void TasLayoutScene::triangleChanged(const TriangleOptions& opts)
 	if(!m_pTas || !m_pTas->IsReady())
 		return;
 
-	//tl::log_debug("triangle changed");
-	m_bDontEmitChange = 1;
-	m_pTas->AllowChanges(0);
+	m_bDontEmitChange = true;
+	m_pTas->AllowChanges(false);
 
 	if(opts.bChangedMonoTwoTheta)
 		m_pTas->SetMonoTwoTheta(opts.dMonoTwoTheta);
@@ -805,8 +810,8 @@ void TasLayoutScene::triangleChanged(const TriangleOptions& opts)
 	if(opts.bChangedTwoTheta)
 		m_pTas->SetSampleTwoTheta(opts.dTwoTheta);
 
-	m_pTas->AllowChanges(1);
-	m_bDontEmitChange = 0;
+	m_pTas->AllowChanges(true);
+	m_bDontEmitChange = false;
 }
 
 void TasLayoutScene::recipParamsChanged(const RecipParams& params)
@@ -818,7 +823,6 @@ void TasLayoutScene::emitUpdate(const TriangleOptions& opts)
 {
 	if(!m_pTas || !m_pTas->IsReady() || m_bDontEmitChange)
 		return;
-
 	emit tasChanged(opts);
 }
 
@@ -881,7 +885,6 @@ void TasLayoutView::keyReleaseEvent(QKeyEvent *pEvt)
 {
 	QGraphicsView::keyReleaseEvent(pEvt);
 }
-
 
 void TasLayoutView::wheelEvent(QWheelEvent *pEvt)
 {

@@ -94,10 +94,10 @@
 		<doi>https://dx.doi.org/10.5281/zenodo.4117437</doi>
 		<info>Created with Takin.</info>
 		<module>takin</module>
-		<timestamp>1659006826.863754</timestamp>
+		<timestamp>1687500792.32451</timestamp>
 		<url>https://code.ill.fr/scientific-software/takin</url>
-		<user>t_weber</user>
-		<version>2.2</version>
+		<user>tw</user>
+		<version>2.5.2</version>
 	</meta>
 	<plane>
 		<real_x0>1</real_x0>
@@ -115,9 +115,9 @@
 	</plane>
 	<real>
 		<analyser_x>419.2387464387006</analyser_x>
-		<analyser_y>17.67458071579618</analyser_y>
+		<analyser_y>17.67458071579622</analyser_y>
 		<detector_x>430.3076060305081</detector_x>
-		<detector_y>-31.08483219429588</detector_y>
+		<detector_y>-31.08483219429582</detector_y>
 		<enable_realQDir>1</enable_realQDir>
 		<enable_ws>1</enable_ws>
 		<monochromator_x>297.6500033475202</monochromator_x>
@@ -135,12 +135,12 @@
 		<enable_bz>1</enable_bz>
 		<enable_q>0</enable_q>
 		<ewald_sphere>1</ewald_sphere>
-		<kfQ_x>103.3418636049274</kfQ_x>
-		<kfQ_y>-103.3418636049274</kfQ_y>
+		<kfQ_x>103.3418636049275</kfQ_x>
+		<kfQ_y>-103.3418636049275</kfQ_y>
 		<kiQ_x>0</kiQ_x>
 		<kiQ_y>0</kiQ_y>
-		<kikf_x>-1.645245917484905</kikf_x>
-		<kikf_y>-104.9871095224123</kikf_y>
+		<kikf_x>104.9871095224123</kikf_x>
+		<kikf_y>1.645245917484909</kikf_y>
 		<pixels_per_A-1>75</pixels_per_A-1>
 		<show_all_peaks>1</show_all_peaks>
 		<snap_q>1</snap_q>

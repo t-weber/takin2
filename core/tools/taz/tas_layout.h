@@ -151,7 +151,8 @@ class TasLayoutScene : public QGraphicsScene
 {	Q_OBJECT
 	protected:
 		std::unique_ptr<TasLayout> m_pTas;
-		bool m_bDontEmitChange = 1;
+		bool m_bDontEmitChange = true;
+		bool m_bSamplePosSense = true;
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent *pEvt) override;
@@ -161,6 +162,9 @@ class TasLayoutScene : public QGraphicsScene
 	public:
 		TasLayoutScene(QObject *pParent=nullptr);
 		virtual ~TasLayoutScene();
+
+		bool GetSampleSense() const { return m_bSamplePosSense; }
+		void SetSampleSense(bool bPos) { m_bSamplePosSense = bPos; }
 
 		void SetEmitChanges(bool bEmit) { m_bDontEmitChange = !bEmit; }
 		void emitUpdate(const TriangleOptions& opts);

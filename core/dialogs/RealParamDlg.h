@@ -60,6 +60,8 @@ class RealParamDlg : public QDialog, Ui::RealParamDlg
 		// metric
 		ublas::matrix<t_real_glob> m_matGCov, m_matGCont;
 
+		bool m_bSamplePosSense = true;
+
 	public:
 		RealParamDlg(QWidget* pParent=0, QSettings* pSett=0);
 		virtual ~RealParamDlg();
@@ -70,6 +72,8 @@ class RealParamDlg : public QDialog, Ui::RealParamDlg
 		void CrystalChanged(const xtl::LatticeCommon<t_real_glob>&);
 		void CalcVecs();
 		void CalcCrystalRot();
+
+		void SetSampleSense(bool bPos);
 
 	protected:
 		virtual void closeEvent(QCloseEvent *pEvt) override;

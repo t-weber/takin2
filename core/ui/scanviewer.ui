@@ -475,6 +475,34 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_9z">
+                <property name="text">
+                 <string>z (up):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="editPlaneZ0">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLineEdit" name="editPlaneZ1">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="editPlaneZ2">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -1158,6 +1186,9 @@
   <tabstop>editPlaneY0</tabstop>
   <tabstop>editPlaneY1</tabstop>
   <tabstop>editPlaneY2</tabstop>
+  <tabstop>editPlaneZ0</tabstop>
+  <tabstop>editPlaneZ1</tabstop>
+  <tabstop>editPlaneZ2</tabstop>
   <tabstop>tableProps</tabstop>
   <tabstop>editSearch</tabstop>
   <tabstop>comboExport</tabstop>

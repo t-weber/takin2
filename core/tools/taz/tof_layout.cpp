@@ -89,19 +89,19 @@ TofLayout::TofLayout(TofLayoutScene& scene) : m_scene(scene)
 	m_pSample->setPos(0., 0.);
 	m_pDet->setPos(-m_dLenSampleDet*m_dScaleFactor, 0.);
 
-	AllowMouseMove(1);
+	AllowMouseMove(true);
 
 	scene.addItem(m_pSrc);
 	scene.addItem(m_pSample);
 	scene.addItem(m_pDet);
 
 	setAcceptedMouseButtons(Qt::NoButton);
-	m_bUpdate = m_bReady = 1;
+	m_bUpdate = m_bReady = true;
 }
 
 TofLayout::~TofLayout()
 {
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 
 	delete m_pSrc;
 	delete m_pSample;
@@ -120,14 +120,14 @@ void TofLayout::nodeMoved(const TofLayoutNode *pNode)
 	if(!m_bReady) return;
 
 	// prevents recursive calling of update
-	static bool bAllowUpdate = 1;
+	static bool bAllowUpdate = true;
 	if(!bAllowUpdate) return;
 
 	const t_vec vecSrc = qpoint_to_vec(mapFromItem(m_pSrc, 0, 0));
 	const t_vec vecSample = qpoint_to_vec(mapFromItem(m_pSample, 0, 0));
 	const t_vec vecDet = qpoint_to_vec(mapFromItem(m_pDet, 0, 0));
 
-	bAllowUpdate = 0;
+	bAllowUpdate = false;
 	if(pNode == m_pSample)
 	{
 		t_real dTwoTheta = m_dTwoTheta;
@@ -139,7 +139,7 @@ void TofLayout::nodeMoved(const TofLayoutNode *pNode)
 
 
 		t_vec vecSampleDet =
-				ublas::prod(tl::rotation_matrix_2d(-dTwoTheta), vecSrcSample);
+			ublas::prod(tl::rotation_matrix_2d(-dTwoTheta), vecSrcSample);
 		vecSampleDet /= ublas::norm_2(vecSampleDet);
 		vecSampleDet *= m_dLenSampleDet*m_dScaleFactor;
 
@@ -148,13 +148,15 @@ void TofLayout::nodeMoved(const TofLayoutNode *pNode)
 
 
 		TriangleOptions opts;
-		opts.bChangedTwoTheta = 1;
+		opts.bChangedTwoTheta = true;
 		opts.dTwoTheta = dTwoTheta;
+		if(!m_scene.GetSampleSense())
+			opts.dTwoTheta = -opts.dTwoTheta;
 		m_scene.emitUpdate(opts);
 	}
 	if(pNode == m_pDet)
 	{
-		t_vec vecSampleDet = vecDet-vecSample;
+		t_vec vecSampleDet = vecDet - vecSample;
 		if(pNode==m_pDet && m_bAllowChanges)
 			m_dLenSampleDet = ublas::norm_2(vecSampleDet)/m_dScaleFactor;
 		vecSampleDet /= ublas::norm_2(vecSampleDet);
@@ -170,12 +172,14 @@ void TofLayout::nodeMoved(const TofLayoutNode *pNode)
 		}
 
 		TriangleOptions opts;
-		opts.bChangedTwoTheta = 1;
+		opts.bChangedTwoTheta = true;
 		opts.dTwoTheta = m_dTwoTheta;
+		if(!m_scene.GetSampleSense())
+			opts.dTwoTheta = -opts.dTwoTheta;
 		m_scene.emitUpdate(opts);
 	}
 
-	bAllowUpdate = 1;
+	bAllowUpdate = true;
 
 	if(m_bUpdate)
 	{
@@ -194,7 +198,7 @@ QRectF TofLayout::boundingRect() const
 void TofLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidget*)
 {
 	pPainter->setFont(g_fontGfx);
-	const bool bDisplayLengths = 0;
+	const bool bDisplayLengths = false;
 
 	QPointF ptSrc = mapFromItem(m_pSrc, 0, 0) * m_dZoom;
 	QPointF ptSample = mapFromItem(m_pSample, 0, 0) * m_dZoom;
@@ -349,12 +353,12 @@ void TofLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidg
 
 
 	// angle arcs
-	const QLineF* pLines1[] = {&lineKi, &lineRot};
-	const QLineF* pLines2[] = {&lineKf, &lineKi};
-	const QPointF* pPoints[] = {&ptSample, &ptSample};
-	const QPointF* pPoints_ext[] = {&ptSrc, &ptThP};
-	const t_real dAngles[] = {m_dTwoTheta, -m_dTheta};
-	const t_real dAngleOffs[] = {0., 180.};
+	const QLineF* pLines1[] = { &lineKi, &lineRot };
+	const QLineF* pLines2[] = { &lineKf, &lineKi };
+	const QPointF* pPoints[] = { &ptSample, &ptSample };
+	const QPointF* pPoints_ext[] = { &ptSrc, &ptThP };
+	const t_real dAngles[] = { m_dTwoTheta, -m_dTheta };
+	const t_real dAngleOffs[] = { 0., 180. };
 
 	QPen* arcPens[] = {&penBlue, &penRed};
 	const std::wstring& strDEG = tl::get_spec_char_utf16("deg");
@@ -442,6 +446,9 @@ void TofLayout::paint(QPainter *pPainter, const QStyleOptionGraphicsItem*, QWidg
 void TofLayout::SetSampleTwoTheta(t_real dAngle)
 {
 	m_dTwoTheta = dAngle;
+	if(!m_scene.GetSampleSense())
+		m_dTwoTheta = -m_dTwoTheta;
+
 	t_vec vecSrc = qpoint_to_vec(mapFromItem(m_pSrc, 0, 0));
 	t_vec vecSample = qpoint_to_vec(mapFromItem(m_pSample, 0, 0));
 	t_vec vecDet = qpoint_to_vec(mapFromItem(m_pDet, 0, 0));
@@ -454,13 +461,13 @@ void TofLayout::SetSampleTwoTheta(t_real dAngle)
 	vecKf /= ublas::norm_2(vecKf);
 	vecKf *= dLenKf;
 
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	m_pDet->setPos(vec_to_qpoint(vecSample + vecKf));
-	m_bReady = 1;
+	m_bReady = true;
 
 	// don't call update twice
 	nodeMoved(m_pSample);
-	m_bUpdate = 1;
+	m_bUpdate = true;
 	nodeMoved(m_pDet);
 }
 
@@ -521,6 +528,9 @@ void TofLayoutScene::emitAllParams()
 	parms.dSampleTT = m_pTof->GetSampleTwoTheta();
 	parms.dSampleT = m_pTof->GetSampleTheta();
 
+	if(!GetSampleSense())
+		parms.dSampleTT = -parms.dSampleTT;
+
 	emit paramsChanged(parms);
 }
 
@@ -529,16 +539,16 @@ void TofLayoutScene::triangleChanged(const TriangleOptions& opts)
 	if(!m_pTof || !m_pTof->IsReady())
 		return;
 
-	m_bDontEmitChange = 1;
-	m_pTof->AllowChanges(0);
+	m_bDontEmitChange = true;
+	m_pTof->AllowChanges(false);
 
 	if(opts.bChangedTheta)
 		m_pTof->SetSampleTheta(opts.dTheta);
 	if(opts.bChangedTwoTheta)
 		m_pTof->SetSampleTwoTheta(opts.dTwoTheta);
 
-	m_pTof->AllowChanges(1);
-	m_bDontEmitChange = 0;
+	m_pTof->AllowChanges(true);
+	m_bDontEmitChange = false;
 }
 
 void TofLayoutScene::recipParamsChanged(const RecipParams& params)
@@ -580,7 +590,6 @@ TofLayoutView::TofLayoutView(QWidget* pParent) : QGraphicsView(pParent)
 	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
 		QPainter::SmoothPixmapTransform | QPainter::HighQualityAntialiasing);
 	setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }

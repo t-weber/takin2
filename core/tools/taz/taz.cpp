@@ -1184,7 +1184,8 @@ void TazDlg::ShowNeutronDlg()
 	if(!m_pNeutronDlg)
 	{
 		m_pNeutronDlg = new NeutronDlg(this, &m_settings);
-		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged, m_pNeutronDlg, &NeutronDlg::paramsChanged);
+		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged,
+			m_pNeutronDlg, &NeutronDlg::paramsChanged);
 		m_sceneRecip.emitAllParams();
 	}
 
@@ -1220,7 +1221,8 @@ void TazDlg::ShowPowderDlg()
 	if(!m_pPowderDlg)
 	{
 		m_pPowderDlg = new PowderDlg(this, &m_settings);
-		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged, m_pPowderDlg, &PowderDlg::paramsChanged);
+		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged,
+			m_pPowderDlg, &PowderDlg::paramsChanged);
 		m_sceneRecip.emitAllParams();
 	}
 
@@ -1251,7 +1253,8 @@ void TazDlg::ShowDynPlaneDlg()
 	if(!m_pDynPlaneDlg)
 	{
 		m_pDynPlaneDlg = new DynPlaneDlg(this, &m_settings);
-		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged, m_pDynPlaneDlg, &DynPlaneDlg::RecipParamsChanged);
+		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged,
+			m_pDynPlaneDlg, &DynPlaneDlg::RecipParamsChanged);
 		m_sceneRecip.emitAllParams();
 	}
 
@@ -1286,6 +1289,8 @@ void TazDlg::UpdateDs()
 void TazDlg::UpdateSampleSense()
 {
 	const bool bSense = checkSenseS->isChecked();
+	m_sceneReal.SetSampleSense(bSense);
+	m_sceneTof.SetSampleSense(bSense);
 	m_sceneRecip.SetSampleSense(bSense);
 
 	if(m_pGotoDlg)
@@ -1294,8 +1299,10 @@ void TazDlg::UpdateSampleSense()
 		m_pGotoDlg->CalcSample();
 	}
 
+	m_dlgRealParam.SetSampleSense(bSense);
+
 	ResoParams params;
-	params.bSensesChanged[1] = 1;
+	params.bSensesChanged[1] = true;
 	params.bScatterSenses[1] = bSense;
 	emit ResoParamsChanged(params);
 
@@ -1343,7 +1350,7 @@ void TazDlg::RecipNodeEvent(bool bStarted)
 {
 	// optimises reso dialog update policy
 	if(m_pReso)
-			m_pReso->SetUpdateOn(!bStarted, 1);
+		m_pReso->SetUpdateOn(!bStarted, 1);
 }
 
 
@@ -1396,7 +1403,8 @@ void TazDlg::Show3D()
 		m_pRecip3d->SetPlaneDistTolerance(dTol);
 
 		// also track current Q position
-		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged, m_pRecip3d, &Recip3DDlg::RecipParamsChanged);
+		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged,
+			m_pRecip3d, &Recip3DDlg::RecipParamsChanged);
 		m_sceneRecip.emitAllParams();
 	}
 
@@ -1430,7 +1438,8 @@ void TazDlg::Show3DBZ()
 		m_pBZ3d = new BZ3DDlg(this, &m_settings);
 
 		// also track current q position
-		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged, m_pBZ3d, &BZ3DDlg::RecipParamsChanged);
+		QObject::connect(&m_sceneRecip, &ScatteringTriangleScene::paramsChanged,
+			m_pBZ3d, &BZ3DDlg::RecipParamsChanged);
 		m_sceneRecip.emitAllParams();
 	}
 
@@ -1579,7 +1588,6 @@ void TazDlg::ShowRealParams()
 {
 	focus_dlg(&m_dlgRealParam);
 }
-
 
 
 
