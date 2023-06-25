@@ -68,7 +68,7 @@ class TofLayoutScene;
 class TofLayout : public QGraphicsItem
 {
 	protected:
-		bool m_bReady = 0, m_bUpdate = 0;
+		bool m_bReady = false, m_bUpdate = false;
 		TofLayoutScene& m_scene;
 
 		TofLayoutNode *m_pSrc = nullptr;
@@ -89,8 +89,8 @@ class TofLayout : public QGraphicsItem
 		t_real_glob m_dScaleFactor = 1.4; 	// pixels per cm for zoom == 1
 		t_real_glob m_dZoom = 1.;
 
-		bool m_bRealQVisible = 1;
-		bool m_bAllowChanges = 1;
+		bool m_bRealQVisible = true;
+		bool m_bAllowChanges = true;
 
 	public:
 		t_real_glob GetSampleTwoTheta() const { return m_dTwoTheta; }
@@ -138,7 +138,8 @@ class TofLayoutScene : public QGraphicsScene
 {	Q_OBJECT
 	protected:
 		TofLayout *m_pTof;
-		bool m_bDontEmitChange = 1;
+		bool m_bDontEmitChange = true;
+		bool m_bSamplePosSense = true;
 
 	protected:
 		virtual void mousePressEvent(QGraphicsSceneMouseEvent *pEvt) override;
@@ -148,6 +149,9 @@ class TofLayoutScene : public QGraphicsScene
 	public:
 		TofLayoutScene(QObject *pParent=nullptr);
 		virtual ~TofLayoutScene();
+
+		bool GetSampleSense() const { return m_bSamplePosSense; }
+		void SetSampleSense(bool bPos) { m_bSamplePosSense = bPos; }
 
 		void SetEmitChanges(bool bEmit) { m_bDontEmitChange = !bEmit; }
 		void emitUpdate(const TriangleOptions& opts);

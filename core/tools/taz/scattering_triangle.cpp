@@ -128,7 +128,7 @@ RecipPeak::RecipPeak()
 QRectF RecipPeak::boundingRect() const
 {
 	return QRectF(-4*g_dFontSize, -g_dFontSize,	// l, t
-		8.*g_dFontSize, 5.*g_dFontSize);		// w, h
+		8.*g_dFontSize, 5.*g_dFontSize);	// w, h
 }
 
 
@@ -183,13 +183,13 @@ ScatteringTriangle::ScatteringTriangle(ScatteringTriangleScene& scene)
 	m_scene.addItem(m_pNodeGq.get());
 
 	setAcceptedMouseButtons(Qt::NoButton);
-	m_bReady = m_bUpdate = 1;
+	m_bReady = m_bUpdate = true;
 }
 
 
 ScatteringTriangle::~ScatteringTriangle()
 {
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	ClearPeaks();
 }
 
@@ -393,12 +393,12 @@ void ScatteringTriangle::paint(QPainter *pPainter, const QStyleOptionGraphicsIte
 			const int ik = std::get<1>(powderpeak);
 			const int il = std::get<2>(powderpeak);
 			t_real dF = std::get<4>(powderpeak);
-			bool bHasF = 1;
+			bool bHasF = true;
 
 			if(ih==0 && ik==0 && il==0) continue;
 			if(dF < t_real(0))
 			{
-				bHasF = 0;
+				bHasF = false;
 				dF = t_real(1);
 			}
 
@@ -666,15 +666,15 @@ void ScatteringTriangle::paint(QPainter *pPainter, const QStyleOptionGraphicsIte
 			t_real dTotalAngle = -dBeginArcAngle-dArcAngle*0.5 + 180.;
 			t_real dTransScale = 50. * m_dZoom * vecArcScale[i];
 			pPainter->save();
-				pPainter->translate(*vecPoints[i]);
-				pPainter->rotate(dTotalAngle);
-				pPainter->translate(-dTransScale, +4.*0.1*0.5*g_dFontSize);
-				if(flip_text(dTotalAngle))
-				{
-					pPainter->translate(dTransScale*0.5, -8.*0.1*0.5*g_dFontSize);
-					pPainter->rotate(180.);
-				}
-				pPainter->drawText(QPointF(0.,0.), QString::fromWCharArray(ostrAngle.str().c_str()));
+			pPainter->translate(*vecPoints[i]);
+			pPainter->rotate(dTotalAngle);
+			pPainter->translate(-dTransScale, +4.*0.1*0.5*g_dFontSize);
+			if(flip_text(dTotalAngle))
+			{
+				pPainter->translate(dTransScale*0.5, -8.*0.1*0.5*g_dFontSize);
+				pPainter->rotate(180.);
+			}
+			pPainter->drawText(QPointF(0.,0.), QString::fromWCharArray(ostrAngle.str().c_str()));
 			pPainter->restore();
 
 		}
@@ -765,13 +765,7 @@ t_real ScatteringTriangle::GetAngleKiQ(bool bPosSense) const
 	try
 	{
 		t_real dTT = GetTwoTheta(bPosSense);
-		t_real dAngle = tl::get_angle_ki_Q(GetKi()/angs, GetKf()/angs, GetQ()/angs, bPosSense) / rads;
-		//std::cout << "tt=" << dTT << ", kiQ="<<dAngle << std::endl;
-
-		if(std::fabs(dTT) > tl::get_pi<t_real>())
-			dAngle = -dAngle;
-
-		return dAngle;
+		return tl::get_angle_ki_Q(GetKi()/angs, GetKf()/angs, GetQ()/angs, bPosSense) / rads;
 	}
 	catch(const std::exception& ex)
 	{
@@ -786,12 +780,8 @@ t_real ScatteringTriangle::GetAngleKfQ(bool bPosSense) const
 	try
 	{
 		t_real dTT = GetTwoTheta(bPosSense);
-		t_real dAngle = tl::get_pi<t_real>()-tl::get_angle_kf_Q(GetKi()/angs, GetKf()/angs, GetQ()/angs, bPosSense) / rads;
-
-		if(std::fabs(dTT) > tl::get_pi<t_real>())
-			dAngle = -dAngle;
-
-		return dAngle;
+		return tl::get_pi<t_real>()
+			- tl::get_angle_kf_Q(GetKi()/angs, GetKf()/angs, GetQ()/angs, bPosSense) / rads;
 	}
 	catch(const std::exception& ex)
 	{
@@ -808,8 +798,7 @@ t_real ScatteringTriangle::GetTheta(bool bPosSense) const
 	vecKi /= ublas::norm_2(vecKi);
 
 	t_real dTh = tl::vec_angle(vecKi) - tl::get_pi<t_real>()/2.;
-	if(!bPosSense)
-		dTh = -dTh;
+	dTh = std::fmod(dTh, 2.*tl::get_pi<t_real>());
 
 	//tl::log_info("theta: ", dTh/M_PI*180.);
 	return dTh;
@@ -827,13 +816,13 @@ t_real ScatteringTriangle::GetTwoTheta(bool bPosSense) const
 	vecKf /= ublas::norm_2(vecKf);
 
 	t_real dTT = tl::vec_angle(vecKi) - tl::vec_angle(vecKf);
+	if(!bPosSense)
+		dTT = -dTT;
 	if(dTT < 0.)
 		dTT += 2.*tl::get_pi<t_real>();
 	dTT = std::fmod(dTT, 2.*tl::get_pi<t_real>());
 
-	if(!bPosSense)
-		dTT = -dTT;
-
+	//tl::log_info("2theta: ", dTT/M_PI*180.);
 	return dTT;
 }
 
@@ -872,9 +861,9 @@ void ScatteringTriangle::SetAnaTwoTheta(t_real dTT, t_real dAnaD)
 	vecKf /= ublas::norm_2(vecKf);
 	t_vec vecKf_new = vecKf * dKf;
 
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	m_pNodeKfQ->setPos(vec_to_qpoint(vecNodeKiKf + vecKf_new));
-	m_bUpdate = m_bReady = 1;
+	m_bUpdate = m_bReady = true;
 
 	nodeMoved(m_pNodeKfQ.get());
 }
@@ -882,10 +871,8 @@ void ScatteringTriangle::SetAnaTwoTheta(t_real dTT, t_real dAnaD)
 
 void ScatteringTriangle::SetMonoTwoTheta(t_real dTT, t_real dMonoD)
 {
-	const t_real dSampleTT = GetTwoTheta(1);
-
 	dTT = std::fabs(dTT);
-	t_real dKi  = tl::get_pi<t_real>() / std::sin(dTT/2.) / dMonoD;
+	t_real dKi = tl::get_pi<t_real>() / std::sin(dTT/2.) / dMonoD;
 	dKi *= m_dScaleFactor;
 
 	const t_vec vecNodeKiKf = qpoint_to_vec(mapFromItem(m_pNodeKiKf.get(),0,0));
@@ -902,14 +889,14 @@ void ScatteringTriangle::SetMonoTwoTheta(t_real dTT, t_real dMonoD)
 
 	t_vec vecNodeKiKf_new = vecNodeKiQ - vecKi_new;
 
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	m_pNodeKiKf->setPos(vec_to_qpoint(vecNodeKiKf_new));
 	m_pNodeKfQ->setPos(vec_to_qpoint(vecNodeKiKf_new + vecKf));
-	m_bReady = 1;
+	m_bReady = true;
 
 	// don't call update twice!
 	nodeMoved(m_pNodeKiKf.get());
-	m_bUpdate = 1;
+	m_bUpdate = true;
 	nodeMoved(m_pNodeKfQ.get());
 }
 
@@ -927,9 +914,9 @@ void ScatteringTriangle::SetTwoTheta(t_real dTT)
 	vecKf_new /= ublas::norm_2(vecKf_new);
 	vecKf_new *= ublas::norm_2(vecKf);
 
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	m_pNodeKfQ->setPos(vec_to_qpoint(vecNodeKiKf + vecKf_new));
-	m_bUpdate = m_bReady = 1;
+	m_bUpdate = m_bReady = true;
 
 	nodeMoved(m_pNodeKfQ.get());
 }
@@ -937,10 +924,8 @@ void ScatteringTriangle::SetTwoTheta(t_real dTT)
 
 void ScatteringTriangle::RotateKiVec0To(bool bSense, t_real dAngle)
 {
-	t_real dAngleCorr = bSense ? -tl::get_pi<t_real>()/2. : tl::get_pi<t_real>()/2.;
-	t_real dCurAngle = GetTheta(bSense) + dAngleCorr;
-	if(bSense) dCurAngle = -dCurAngle;
-	//std::cout << "old: " << dCurAngle/M_PI*180. << "new: " << dAngle/M_PI*180. << std::endl;
+	t_real dCurAngle = -GetTheta(bSense) + tl::get_pi<t_real>()/2.;
+	//tl::log_info("kivec0 old: ", dCurAngle/M_PI*180., "new: ", dAngle/M_PI*180.);
 
 	t_vec vecNodeKiKf = qpoint_to_vec(mapFromItem(m_pNodeKiKf.get(),0,0));
 	t_vec vecNodeKfQ = qpoint_to_vec(mapFromItem(m_pNodeKfQ.get(),0,0));
@@ -949,14 +934,14 @@ void ScatteringTriangle::RotateKiVec0To(bool bSense, t_real dAngle)
 	vecNodeKiKf = ublas::prod(matRot, vecNodeKiKf);
 	vecNodeKfQ = ublas::prod(matRot, vecNodeKfQ);
 
-	m_bUpdate = m_bReady = 0;
+	m_bUpdate = m_bReady = false;
 	m_pNodeKiKf->setPos(vec_to_qpoint(vecNodeKiKf));
 	m_pNodeKfQ->setPos(vec_to_qpoint(vecNodeKfQ));
-	m_bReady = 1;
+	m_bReady = true;
 
 	// don't call update twice
 	nodeMoved(m_pNodeKiKf.get());
-	m_bUpdate = 1;
+	m_bUpdate = true;
 	nodeMoved(m_pNodeKfQ.get());
 }
 
@@ -1060,8 +1045,8 @@ void ScatteringTriangle::CalcPeaks(const xtl::LatticeCommon<t_real>& recipcommon
 				const t_real h=t_real(ih); const t_real k=t_real(ik); const t_real l=t_real(il);
 				const t_vec vecPeakHKL = tl::make_vec<t_vec>({h,k,l});
 
-				bool bHasRefl = 1;
-				bool bHasGenRefl = 1;
+				bool bHasRefl = true;
+				bool bHasGenRefl = true;
 
 				if(recipcommon.pSpaceGroup)
 				{
@@ -1386,7 +1371,7 @@ void ScatteringTriangle::ClearPeaks()
 		{
 			m_scene.removeItem(pPeak);
 			delete pPeak;
-			pPeak = 0;
+			pPeak = nullptr;
 		}
 	}
 	m_vecPeaks.clear();
@@ -1426,7 +1411,7 @@ get_nearest_elastic_kikf_pos(const QPointF& ptKiKf, const QPointF& ptKiQ, const 
 	t_vec vecDrop = lineQMidPerp.GetDroppedPerp(vecKiKf);
 	ptRet = vec_to_qpoint(vecDrop);
 
-	bOk = 1;
+	bOk = true;
 	return pairRet;
 }
 
@@ -1442,7 +1427,7 @@ get_nearest_node(const QPointF& pt,
 
 	t_real dMinLen = std::numeric_limits<t_real>::max();
 	int iMinIdx = -1;
-	bool bHasPowderPeak = 0;
+	bool bHasPowderPeak = false;
 
 	// Bragg peaks
 	for(int iNode=0; iNode<nodes.size(); ++iNode)
@@ -1461,11 +1446,13 @@ get_nearest_node(const QPointF& pt,
 
 	const QGraphicsItem* pNodeOrigin = nullptr;
 	for(const QGraphicsItem* pNode : nodes)
+	{
 		if(pNode->data(TRIANGLE_NODE_TYPE_KEY) == NODE_KIQ)
 		{
 			pNodeOrigin = pNode;
 			break;
 		}
+	}
 
 
 
@@ -1492,7 +1479,7 @@ get_nearest_node(const QPointF& pt,
 
 			if(std::fabs(drad-dDistToOrigin) < dMinLen)
 			{
-				bHasPowderPeak = 1;
+				bHasPowderPeak = true;
 				dMinLen = std::fabs(drad-dDistToOrigin);
 
 				t_vec vecPowder = vecOrigin + vecOriginPt*drad;
@@ -1562,16 +1549,17 @@ bool ScatteringTriangle::KeepAbsKiKf(t_real dQx, t_real dQy)
 		t_real dKf = ublas::norm_2(vecKf)/m_dScaleFactor;
 		t_real dNewQ = ublas::norm_2(vecNewQ)/m_dScaleFactor;
 
-		t_real dAngKiQ = tl::get_angle_ki_Q(dKi/angs, dKf/angs, dNewQ/angs) / tl::radians;
+		bool bPosSense = m_scene.GetSampleSense();
+		t_real dAngKiQ = tl::get_angle_ki_Q(dKi/angs, dKf/angs, dNewQ/angs, bPosSense) / tl::radians;
 
 		t_mat matRot = tl::rotation_matrix_2d(-dAngKiQ);
 		vecKi = ublas::prod(matRot, vecNewQ) / ublas::norm_2(vecNewQ);
 		vecKi *= dKi * m_dScaleFactor;
 		t_vec vecPtKiKf = vecKiQ - vecKi;
 
-		m_bReady = 0;
+		m_bReady = false;
 		m_pNodeKiKf->setPos(vec_to_qpoint(vecPtKiKf));
-		m_bReady = 1;
+		m_bReady = true;
 
 		return 1;	// allowed
 	}
@@ -1613,10 +1601,10 @@ void ScatteringTriangleScene::emitUpdate()
 		return;
 
 	TriangleOptions opts;
-	opts.bChangedMonoTwoTheta = 1;
-	opts.bChangedAnaTwoTheta = 1;
-	opts.bChangedTwoTheta = 1;
-	opts.bChangedTheta = 1;
+	opts.bChangedMonoTwoTheta = true;
+	opts.bChangedAnaTwoTheta = true;
+	opts.bChangedTwoTheta = true;
+	opts.bChangedTheta = true;
 
 	try
 	{
@@ -1757,7 +1745,7 @@ void ScatteringTriangleScene::tasChanged(const TriangleOptions& opts)
 	if(!m_pTri || !m_pTri->IsReady())
 		return;
 
-	m_bDontEmitChange = 1;
+	m_bDontEmitChange = true;
 
 	if(opts.bChangedMonoTwoTheta)
 	{
@@ -1770,20 +1758,23 @@ void ScatteringTriangleScene::tasChanged(const TriangleOptions& opts)
 
 	if(opts.bChangedTwoTheta)
 	{
-		m_pTri->SetTwoTheta(m_bSamplePosSense?opts.dTwoTheta:-opts.dTwoTheta);
+		m_pTri->SetTwoTheta(m_bSamplePosSense ? opts.dTwoTheta : -opts.dTwoTheta);
 	}
-	if(opts.bChangedAngleKiVec0)
-		m_pTri->RotateKiVec0To(m_bSamplePosSense, opts.dAngleKiVec0);
 
-	m_bDontEmitChange = 0;
+	if(opts.bChangedAngleKiVec0)
+	{
+		m_pTri->RotateKiVec0To(m_bSamplePosSense, opts.dAngleKiVec0);
+	}
+
+	m_bDontEmitChange = false;
 }
 
 
 void ScatteringTriangleScene::SetSampleSense(bool bPos)
 {
+	t_real tt = m_pTri->GetTwoTheta(m_bSamplePosSense);
 	m_bSamplePosSense = bPos;
-	emitUpdate();
-	emitAllParams();
+	m_pTri->SetTwoTheta(m_bSamplePosSense ? tt : -tt);
 }
 
 
@@ -1812,7 +1803,7 @@ void ScatteringTriangleScene::scaleChanged(t_real dTotalScale)
 
 void ScatteringTriangleScene::mousePressEvent(QGraphicsSceneMouseEvent *pEvt)
 {
-	m_bMousePressed = 1;
+	m_bMousePressed = true;
 	QGraphicsScene::mousePressEvent(pEvt);
 	emit nodeEvent(1);
 }
@@ -1820,7 +1811,7 @@ void ScatteringTriangleScene::mousePressEvent(QGraphicsSceneMouseEvent *pEvt)
 
 void ScatteringTriangleScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *pEvt)
 {
-	m_bMousePressed = 0;
+	m_bMousePressed = false;
 	QGraphicsScene::mouseReleaseEvent(pEvt);
 	emit nodeEvent(0);
 }
@@ -1843,8 +1834,8 @@ void ScatteringTriangleScene::drawBackground(QPainter* pPainter, const QRectF& r
 
 void ScatteringTriangleScene::mouseMoveEvent(QGraphicsSceneMouseEvent *pEvt)
 {
-	bool bHandled = 0;
-	bool bAllowed = 1;
+	bool bHandled = false;
+	bool bAllowed = true;
 
 	// tooltip
 	if(m_pTri)
@@ -1900,7 +1891,7 @@ void ScatteringTriangleScene::mouseMoveEvent(QGraphicsSceneMouseEvent *pEvt)
 				if(std::get<0>(tupNearest))
 				{
 					pCurItem->setPos(std::get<2>(tupNearest));
-					bHandled = 1;
+					bHandled = true;
 				}
 			}
 			else if(iNodeType == NODE_KIKF && m_bSnapKiKfToElastic)
@@ -1913,7 +1904,7 @@ void ScatteringTriangleScene::mouseMoveEvent(QGraphicsSceneMouseEvent *pEvt)
 				if(pairNearest.first)
 				{
 					pCurItem->setPos(pairNearest.second);
-					bHandled = 1;
+					bHandled = true;
 				}
 			}
 
@@ -1936,9 +1927,9 @@ void ScatteringTriangleScene::mouseMoveEvent(QGraphicsSceneMouseEvent *pEvt)
 void ScatteringTriangleScene::keyPressEvent(QKeyEvent *pEvt)
 {
 	if(pEvt->key() == Qt::Key_Control)
-		m_bSnap = 1;
+		m_bSnap = true;
 	if(pEvt->key() == Qt::Key_Shift)
-		m_bSnapKiKfToElastic = 1;
+		m_bSnapKiKfToElastic = true;
 
 	QGraphicsScene::keyPressEvent(pEvt);
 }
@@ -1947,9 +1938,9 @@ void ScatteringTriangleScene::keyPressEvent(QKeyEvent *pEvt)
 void ScatteringTriangleScene::keyReleaseEvent(QKeyEvent *pEvt)
 {
 	if(pEvt->key() == Qt::Key_Control)
-		m_bSnap = 0;
+		m_bSnap = false;
 	if(pEvt->key() == Qt::Key_Shift)
-		m_bSnapKiKfToElastic = 0;
+		m_bSnapKiKfToElastic = false;
 
 	QGraphicsScene::keyReleaseEvent(pEvt);
 }

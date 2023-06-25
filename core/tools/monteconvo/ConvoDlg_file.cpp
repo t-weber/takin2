@@ -67,6 +67,8 @@ void ConvoDlg::New()
 	editSlope->setText("0");
 	editOffs->setText("0");
 
+	ClearPlot1D();
+
 	setWindowTitle(s_strTitle.c_str());
 }
 

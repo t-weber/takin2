@@ -287,6 +287,8 @@ class ScatteringTriangleScene : public QGraphicsScene
 		void SetMonoSense(bool bPos);
 		void SetAnaSense(bool bPos);
 
+		bool GetSampleSense() const { return m_bSamplePosSense; }
+
 		const ScatteringTriangle* GetTriangle() const { return m_pTri.get(); }
 		ScatteringTriangle* GetTriangle() { return m_pTri.get(); }
 

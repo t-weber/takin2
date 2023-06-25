@@ -28,21 +28,24 @@
 find_path(Qhull_INCLUDE_DIRS
 	NAMES Qhull.h
 	PATH_SUFFIXES libqhullcpp libqhull_r qhull
-	HINTS /usr/local/include/ /usr/include/ /opt/local/include
+	HINTS ${PROJECT_SOURCE_DIR}/externals/qhull-inst/usr/local/include
+		/usr/local/include/ /usr/include/ /opt/local/include
 	DOC "Qhull include directories"
 )
 
 
 find_library(Qhull_c_LIBRARY
 	NAMES qhull_r
-	HINTS /usr/local/lib64 /usr/local/lib /usr/lib64 /usr/lib /opt/local/lib
+	HINTS ${PROJECT_SOURCE_DIR}/externals/qhull-inst/usr/local/lib
+		/usr/local/lib64 /usr/local/lib /usr/lib64 /usr/lib /opt/local/lib
 	DOC "Qhull C library"
 )
 
 
 find_library(Qhull_cpp_LIBRARY
 	NAMES qhullcpp
-	HINTS /usr/local/lib64 /usr/local/lib /usr/lib64 /usr/lib /opt/local/lib
+	HINTS ${PROJECT_SOURCE_DIR}/externals/qhull-inst/usr/local/lib
+		/usr/local/lib64 /usr/local/lib /usr/lib64 /usr/lib /opt/local/lib
 	DOC "Qhull C++ library"
 )
 

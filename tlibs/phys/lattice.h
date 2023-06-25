@@ -181,7 +181,7 @@ void Lattice<T>::RotateEulerRecip(const t_vec& vecRecipX,
 {
 	// get real vectors
 	const std::size_t iDim=3;
-	t_mat matReal = column_matrix({vecRecipX, vecRecipY, vecRecipZ});
+	t_mat matReal = column_matrix({ vecRecipX, vecRecipY, vecRecipZ });
 	if(matReal.size1()!=matReal.size2() || matReal.size1()!=iDim)
 		throw Err("Invalid real matrix.");
 
@@ -237,7 +237,7 @@ template<typename T> T Lattice<T>::GetC() const { return veclen(m_vecs[2]); }
 template<typename T>
 T Lattice<T>::GetVol() const
 {
-	return get_volume(column_matrix({m_vecs[0], m_vecs[1], m_vecs[2]}));
+	return get_volume(column_matrix({ m_vecs[0], m_vecs[1], m_vecs[2] }));
 }
 
 
@@ -261,7 +261,7 @@ typename Lattice<T>::t_vec Lattice<T>::GetPos(T h, T k, T l) const
 template<typename T>
 typename Lattice<T>::t_vec Lattice<T>::GetHKL(const t_vec& vec) const
 {
-	t_mat mat = column_matrix({m_vecs[0], m_vecs[1], m_vecs[2]});
+	t_mat mat = column_matrix({ m_vecs[0], m_vecs[1], m_vecs[2] });
 
 	t_mat matInv;
 	if(!inverse(mat, matInv))
@@ -275,7 +275,7 @@ template<typename T>
 Lattice<T> Lattice<T>::GetRecip() const
 {
 	const std::size_t iDim = 3;
-	t_mat matReal = column_matrix({m_vecs[0], m_vecs[1], m_vecs[2]});
+	t_mat matReal = column_matrix({ m_vecs[0], m_vecs[1], m_vecs[2] });
 	if(matReal.size1()!=matReal.size2() || matReal.size1()!=iDim)
 		throw Err("Invalid real lattice matrix.");
 
@@ -284,7 +284,7 @@ Lattice<T> Lattice<T>::GetRecip() const
 		throw Err("Reciprocal lattice could not be calculated.");
 
 	// warning: first axis does not (necessarily) coincide with assumed first
-	//			orientation vector [0,0,1] anymore!
+	// orientation vector [0,0,1] anymore!
 	return Lattice<T>(get_column(matRecip,0), get_column(matRecip,1),
 		get_column(matRecip,2));
 }
@@ -302,7 +302,7 @@ Lattice<T> Lattice<T>::GetAligned() const
 template<typename T>
 typename Lattice<T>::t_mat Lattice<T>::GetBaseMatrixCov() const
 {
-	t_mat matBase = column_matrix({m_vecs[0], m_vecs[1], m_vecs[2]});
+	t_mat matBase = column_matrix({ m_vecs[0], m_vecs[1], m_vecs[2] });
 	set_eps_0(matBase);
 	return matBase;
 }
@@ -408,7 +408,7 @@ ublas::matrix<T> get_U(const ublas::vector<T>& _vec1, const ublas::vector<T>& _v
 	}
 
 	// U: scattering plane coordinate system
-	t_mat matU = row_matrix(get_ortho_rhs({vec1, vec2}));
+	t_mat matU = row_matrix(get_ortho_rhs({ vec1, vec2 }));
 	return matU;
 }
 
@@ -446,7 +446,7 @@ void get_tas_angles(const Lattice<T>& lattice_real,
 	T dh, T dk, T dl,
 	bool bSense,
 	T *pTheta, T *pTwoTheta,
-	ublas::vector<T>* pVecQ = 0)
+	ublas::vector<T>* pVecQ = nullptr)
 {
 	// distance for point to be considered inside scattering plane
 	static const T dDelta = std::cbrt(get_epsilon<T>());
@@ -457,7 +457,7 @@ void get_tas_angles(const Lattice<T>& lattice_real,
 
 	t_mat matUB = get_UB(lattice_real, _vec1, _vec2);
 
-	t_vec vechkl = make_vec({dh, dk, dl});
+	t_vec vechkl = make_vec({ dh, dk, dl });
 	t_vec vecQ = prod_mv(matUB, vechkl);
 	if(pVecQ) *pVecQ = vecQ;
 
@@ -472,13 +472,13 @@ void get_tas_angles(const Lattice<T>& lattice_real,
 
 	T dQ = veclen(vecQ);
 	*pTwoTheta = get_sample_twotheta(dKi/angs, dKf/angs, dQ/angs, bSense) / rad;
-	T dKiQ = get_angle_ki_Q(dKi/angs, dKf/angs, dQ/angs, /*bSense*/1) / rad;
+	T dKiQ = get_angle_ki_Q(dKi/angs, dKf/angs, dQ/angs, bSense) / rad;
 	vecQ.resize(2, true);
 
-	// sample rotation = angle between ki and first orientation reflex (plus an arbitrary, but fixed constant)
+	// sample rotation = angle between ki and first orientation reflex
+	// (plus an arbitrary, but fixed constant)
 	T dAngleKiOrient1 = dKiQ + vec_angle(vecQ);
-	*pTheta = dAngleKiOrient1 - get_pi<T>()/T(2);	// a3 convention would be: kiorient1 - pi
-	if(bSense) *pTheta = -*pTheta;
+	*pTheta = -dAngleKiOrient1 + get_pi<T>()/T(2);	// a3 convention would be: kiorient1 - pi
 }
 
 
@@ -493,7 +493,7 @@ void get_hkl_from_tas_angles(const Lattice<T>& lattice_real,
 	bool bSense_m, bool bSense_a, bool bSense_s,
 	T* h, T* k, T* l,
 	T* pki=0, T* pkf=0, T* pE=0, T* pQ=0,
-	ublas::vector<T>* pVecQ = 0)
+	ublas::vector<T>* pVecQ = nullptr)
 {
 	static const auto angs = get_one_angstrom<T>();
 	static const auto rad = get_one_radian<T>();
@@ -502,21 +502,18 @@ void get_hkl_from_tas_angles(const Lattice<T>& lattice_real,
 
 	T th_s = _th_s;
 	T tt_s = _tt_s;
-	if(!bSense_s)
+	/*if(!bSense_s)
 	{
 		th_s = -th_s;
 		tt_s = -tt_s;
-	}
+	}*/
 
 	T ki = get_mono_k(th_m*rad, dm*angs, bSense_m)*angs;
 	T kf = get_mono_k(th_a*rad, da*angs, bSense_a)*angs;
 	T E = get_energy_transfer(ki/angs, kf/angs) / get_one_meV<T>();
 	T Q = get_sample_Q(ki/angs, kf/angs, tt_s*rad)*angs;
-	T kiQ = get_angle_ki_Q(ki/angs, kf/angs, Q/angs, /*bSense_s*/1) / rad;
-
-	th_s += get_pi<T>()/T(2);			// theta here
-	T Qvec1 = get_pi<T>() - th_s - kiQ;	// a3 convention
-
+	T kiQ = get_angle_ki_Q(ki/angs, kf/angs, Q/angs, bSense_s) / rad;
+	T Qvec1 = get_pi<T>()/T(2) - th_s - kiQ;	// a3 convention
 
 	t_mat matUB = get_UB(lattice_real, _vec1, _vec2);
 	t_mat matUBinv;
@@ -524,7 +521,7 @@ void get_hkl_from_tas_angles(const Lattice<T>& lattice_real,
 		throw Err("Cannot invert UB.");
 
 	t_mat rot = rotation_matrix_3d_z(Qvec1);
-	t_vec vecQ = prod_mv(rot, make_vec({Q,0.,0.}));
+	t_vec vecQ = prod_mv(rot, make_vec({ Q, 0., 0. }));
 	t_vec vechkl = prod_mv(matUBinv, vecQ);
 
 	if(pVecQ) *pVecQ = vecQ;
@@ -557,8 +554,8 @@ math::quaternion<T> get_hkl_orient(const Lattice<T>& lattice_real,
 	T dh_new, T dk_new, T dl_new,	// Bragg peak to rotate into
 	T up_h = 0, T up_k = 0, T up_l = 1,
 	ublas::vector<T>* pvecG = nullptr,
-	const ublas::vector<T>& vecQx_rlu = make_vec<ublas::vector<T>>({T(1), T(0), T(0)}),	// front
-	const ublas::vector<T>& vecQy_rlu = make_vec<ublas::vector<T>>({T(0), T(1), T(0)}))	// side
+	const ublas::vector<T>& vecQx_rlu = make_vec<ublas::vector<T>>({ T(1), T(0), T(0) }),	// front
+	const ublas::vector<T>& vecQy_rlu = make_vec<ublas::vector<T>>({ T(0), T(1), T(0) }))	// side
 {
 	using t_vec = ublas::vector<T>;
 	using t_mat = ublas::matrix<T>;
@@ -569,10 +566,10 @@ math::quaternion<T> get_hkl_orient(const Lattice<T>& lattice_real,
 
 	t_mat matUB = get_UB(lattice_real, vecQx_rlu, vecQy_rlu);
 
-	t_vec vecG_rlu = make_vec({dh, dk, dl});
+	t_vec vecG_rlu = make_vec({ dh, dk, dl });
 	t_vec vecG = prod_mv(matUB, vecG_rlu);
 
-	t_vec vecGnew_rlu = make_vec({dh_new, dk_new, dl_new});
+	t_vec vecGnew_rlu = make_vec({ dh_new, dk_new, dl_new });
 	t_vec vecGnew = prod_mv(matUB, vecGnew_rlu);
 
 	// scattering plane
@@ -587,11 +584,11 @@ math::quaternion<T> get_hkl_orient(const Lattice<T>& lattice_real,
 
 
 	// ------------------------------------------------------------------------
-	t_vec vechklUp = make_vec({up_h, up_k, up_l});
+	t_vec vechklUp = make_vec({ up_h, up_k, up_l });
 	t_vec vecUp = prod_mv(matUB, vechklUp);
 
 	// get angle between vecUp and vecQz
-	t_vec vec0 = make_vec<t_vec>({T(0), T(0), T(0)});
+	t_vec vec0 = make_vec<t_vec>({ T(0), T(0), T(0) });
 	Plane<T> plane(vec0, vecQx, vecQz);
 	T angle = plane.GetAngle(vecUp);
 
@@ -615,8 +612,8 @@ math::quaternion<T> get_euler_angles(const Lattice<T>& lattice_real,
 	T dh_new, T dk_new, T dl_new,	// Bragg peak to rotate into
 	T *pRelTheta, T *pThetaX, T *pTwoTheta, T *pChi, T *pPsi,
 	T up_h = 0, T up_k = 0, T up_l = 1,
-	const ublas::vector<T>& vecQx_rlu = make_vec<ublas::vector<T>>({T(1), T(0), T(0)}),	// front
-	const ublas::vector<T>& vecQy_rlu = make_vec<ublas::vector<T>>({T(0), T(1), T(0)}))	// side
+	const ublas::vector<T>& vecQx_rlu = make_vec<ublas::vector<T>>({ T(1), T(0), T(0) }),	// front
+	const ublas::vector<T>& vecQy_rlu = make_vec<ublas::vector<T>>({ T(0), T(1), T(0) }))	// side
 {
 	static const auto angs = get_one_angstrom<T>();
 	static const auto rad = get_one_radian<T>();
@@ -639,7 +636,7 @@ math::quaternion<T> get_euler_angles(const Lattice<T>& lattice_real,
 
 
 	// theta angle of vecQx
-	bool bSense = 1;
+	bool bSense = true;
 	t_mat matUB = get_UB(lattice_real, vecQx_rlu, vecQy_rlu);
 	t_vec vecQx = prod_mv(matUB, vecQx_rlu);	
 	T dKiQ = get_angle_ki_Q(dKi/angs, dKi/angs, dG/angs, bSense) / rad;
