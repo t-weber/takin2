@@ -98,6 +98,11 @@ T j0_avg(T Q, const t_vec<T>& A, const t_vec<T>& a)
 }
 
 
+/**
+ * Magnetic form factors
+ * @see (ILL Neutron Data Booklet), sec. 2.5-1 (p. 60)
+ * @see https://www.ill.eu/sites/ccsl/ffacts/
+ */
 template<class T=double, template<class...> class t_vec=std::initializer_list>
 T j2_avg(T Q, const t_vec<T>& A, const t_vec<T>& a)
 {
@@ -106,6 +111,11 @@ T j2_avg(T Q, const t_vec<T>& A, const t_vec<T>& a)
 }
 
 
+/**
+ * Magnetic form factors
+ * @see (ILL Neutron Data Booklet), sec. 2.5-1 (p. 60)
+ * @see https://www.ill.eu/sites/ccsl/ffacts/
+ */
 template<class T=double, template<class...> class t_vec=std::initializer_list>
 T mag_formfact(T Q, T L, T S,
 	const t_vec<T>& A0, const t_vec<T>& a0,
