@@ -5,19 +5,9 @@ Version 2.5.3 (for paper).
 <img src="https://raw.githubusercontent.com/ILLGrenoble/takin/master/data/res/icons/takin.svg" width="10%" height="10%" title="Logo" alt="">
 
 
-## Documentation
-- The software documentation for this version is available here:  
-https://github.com/ILLGrenoble/takin/wiki
-- The latest documentation is available here:  
-https://code.ill.fr/scientific-software/takin/core/-/wikis/home  
-- A demonstration of the new magnon module can be found in the *Tutorials* section.
-
-
-## Repositories
-- *Takin's* main repository can be found here:  
-  [https://github.com/ILLGrenoble/takin](https://github.com/ILLGrenoble/takin).
-- *Takin's* internal development repository group can be found here:  
-  [https://code.ill.fr/scientific-software/takin](https://code.ill.fr/scientific-software/takin).
+## Links
+- *Takin's* main repository can be found [here](https://github.com/ILLGrenoble/takin).
+- *Takin's* user documentation is available [here](https://github.com/ILLGrenoble/takin/wiki).
 
 
 ## DOIs
