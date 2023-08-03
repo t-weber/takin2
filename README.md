@@ -14,9 +14,9 @@ https://code.ill.fr/scientific-software/takin/core/-/wikis/home
 
 
 ## Repositories
-- *Takin's* unified release repository for this version can be found here:  
+- *Takin's* main repository can be found here:  
   [https://github.com/ILLGrenoble/takin](https://github.com/ILLGrenoble/takin).
-- *Takin's* development repository group for the latest version can be found here:  
+- *Takin's* internal development repository group can be found here:  
   [https://code.ill.fr/scientific-software/takin](https://code.ill.fr/scientific-software/takin).
 
 
