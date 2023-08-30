@@ -4,6 +4,10 @@ Version 2.5.3 (for paper).
 
 <img src="https://raw.githubusercontent.com/ILLGrenoble/takin/master/data/res/icons/takin.svg" width="10%" height="10%" title="Logo" alt="">
 
+***
+**This is an older version of *Takin* used for a paper, please go to the [main repository](https://github.com/ILLGrenoble/takin) for the current one.** 
+***
+
 
 ## Links
 - *Takin's* main repository can be found [here](https://github.com/ILLGrenoble/takin).
@@ -15,3 +19,4 @@ Version 2.5.3 (for paper).
 - DOI for Takin 1: [10.5281/zenodo.3961491](https://dx.doi.org/10.5281/zenodo.3961491).  
 - DOI for Tlibs: [10.5281/zenodo.5717779](https://doi.org/10.5281/zenodo.5717779).  
 - DOI for TAS-Paths: [10.5281/zenodo.4625649](https://doi.org/10.5281/zenodo.4625649).  
+
