@@ -43,6 +43,10 @@ func mat 3 3 rotate_z(scalar phi)
 }
 
 
+#
+# fractional crystal coordinates
+# @see https://en.wikipedia.org/wiki/Fractional_coordinates
+#
 func mat 3 3 A_matrix(scalar a, scalar b, scalar c, scalar alpha, scalar beta, scalar gamma)
 {
 	mat 3 3 rot_z_gamma = rotate_z(gamma);
