@@ -1169,7 +1169,7 @@ public:
 			std::vector<EnergyAndWeight> EandWs_p = GetEnergiesFromHamiltonian(
 				H_p, Qvec + m_ordering, only_energies);
 			std::vector<EnergyAndWeight> EandWs_m = GetEnergiesFromHamiltonian(
-				H_p, Qvec - m_ordering, only_energies);
+				H_m, Qvec - m_ordering, only_energies);
 
 			if(!only_energies)
 			{
