@@ -1156,8 +1156,9 @@ public:
 				tl2::projector<t_mat_real, t_vec_real>(
 					m_rotaxis, true));
 
+			t_real phase_sign = -1.;
 			t_mat rot_incomm = tl2::unit<t_mat>(3);
-			rot_incomm -= s_imag * tl2::skewsymmetric<t_mat, t_vec>(m_rotaxis);
+			rot_incomm -= s_imag * phase_sign * tl2::skewsymmetric<t_mat, t_vec>(m_rotaxis);
 			rot_incomm -= proj_norm;
 			rot_incomm *= 0.5;
 
