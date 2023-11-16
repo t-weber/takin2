@@ -768,13 +768,14 @@ public:
 				// include external field, equation (28) from (Toth 2015)
 				if(use_field)
 				{
+					t_real factor = /*0.5*/ 1.;
 					t_vec B = tl2::convert<t_vec>(-m_field.dir) * m_field.mag;
 
 					t_vec gv = m_sites[i].g * v_i;
 					t_cplx Bgv = tl2::inner_noconj<t_vec>(B, gv);
 
-					A(i, j) -= 0.5 * muB * Bgv;
-					A_mQ(i, j) -= 0.5 * muB * Bgv;
+					A(i, j) -= factor * muB * Bgv;
+					A_mQ(i, j) -= factor * muB * Bgv;
 				}
 			}
 		}

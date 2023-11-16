@@ -5,7 +5,8 @@ Version 2.5.3 (for paper).
 <img src="https://raw.githubusercontent.com/ILLGrenoble/takin/master/data/res/icons/takin.svg" width="10%" height="10%" title="Logo" alt="">
 
 ***
-**This is an older version of *Takin* used for a paper, please go to the [main repository](https://github.com/ILLGrenoble/takin) for the current one.** 
+**This is an older version of *Takin* used for a paper, please refer to the 
+[main repository](https://github.com/ILLGrenoble/takin) for the current one.** 
 ***
 
 
