@@ -90,4 +90,11 @@ struct PopParams : public CNParams
 extern ResoResults calc_pop(const PopParams& pop);
 extern ResoResults calc_pop_cn(const CNParams& pop);
 
+
+// add sample mosaic or other uncertainty to covariance matrix
+extern void add_cov_variance(ublas::matrix<t_real_reso>& cov, t_real_reso& R0,
+	t_real_reso fwhm_Qx, t_real_reso fwhm_Qy, t_real_reso fwhm_Qz, t_real_reso fwhm_E,
+	bool calc_R0 = true);
+
+
 #endif

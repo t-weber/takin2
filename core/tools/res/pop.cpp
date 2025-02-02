@@ -118,6 +118,28 @@ static inline PopPosIdx get_ki_pos(PopPosIdx posidx)
 }
 
 
+/**
+ * add sample mosaic or other uncertainty to covariance matrix
+ * @see [zhe07], equs. 12-16
+ */
+void add_cov_variance(t_mat& cov, t_real& R0,
+	t_real fwhm_Qx, t_real fwhm_Qy, t_real fwhm_Qz, t_real fwhm_E,
+	bool calc_R0)
+{
+	t_real det_cov_before = 1.;
+	if(calc_R0)
+		det_cov_before = tl::determinant(cov);
+
+	cov(0, 0) += fwhm_Qx;
+	cov(1, 1) += fwhm_Qy;
+	cov(2, 2) += fwhm_Qz;
+	cov(3, 3) += fwhm_E;
+
+	if(calc_R0)
+		R0 /= tl::determinant(cov) / det_cov_before;
+}
+
+
 ResoResults calc_pop(const PopParams& pop)
 {
 	ResoResults res;
@@ -479,11 +501,12 @@ ResoResults calc_pop(const PopParams& pop)
 	t_mat BA = ublas::prod(B_trafo_QE, A_div_kikf_trafo);
 	t_mat cov = tl::transform_inv(H_Gi_div, BA, true);
 
-	// include sample mosaic, see [zhe07], equs. 12-14
+	// include sample mosaic or other uncertainty, see [zhe07], equs. 12-16
+	// ignore R0 scaling, as this is already normalised in the MC neutron generation
 	t_real mos_h = pop.Q*pop.Q*angs*angs * pop.sample_mosaic*pop.sample_mosaic /rads/rads;
 	t_real mos_v = pop.Q*pop.Q*angs*angs * sample_mosaic_v*sample_mosaic_v /rads/rads;
-	cov(1, 1) += mos_h;
-	cov(2, 2) += mos_v;
+	t_real R0_sample_mos = 1.;
+	add_cov_variance(cov, R0_sample_mos, 0., mos_h, mos_v, 0., false);
 
 	if(!tl::inverse(cov, res.reso))
 	{
@@ -510,13 +533,7 @@ ResoResults calc_pop(const PopParams& pop)
 	}*/
 
 	res.dResVol = tl::get_ellipsoid_volume(res.reso);
-	res.dR0 = dmono_refl * dana_effic * dxsec * dmonitor;
-
-	// include sample mosaic, see [zhe07], equs. 12-14
-	// typically this correction is too small to give any difference
-	res.dR0 /= std::sqrt(1. + cov(1, 1)*mos_h - mos_h*mos_h)
-		* std::sqrt(1. + cov(2, 2)*mos_v - mos_v*mos_v);
-
+	res.dR0 = dmono_refl * dana_effic * dxsec * dmonitor * R0_sample_mos;
 
 	// --------------------------------------------------------------------
 	// mono parts of the matrices, see: [zhe07], p. 10

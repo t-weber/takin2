@@ -375,7 +375,7 @@ bool fit(t_func&& func,
 				params.Fix(vecParamNames[iParam]);
 		}
 
-		ROOT::Minuit2::MnMigrad migrad(chi2, params, 2);
+		ROOT::Minuit2::MnMigrad migrad(chi2, params, ROOT::Minuit2::MnStrategy{2});
 		ROOT::Minuit2::FunctionMinimum mini = migrad();
 		bool bValidFit = mini.IsValid() && mini.HasValidParameters() && mini.UserState().IsValid();
 
@@ -428,7 +428,7 @@ bool minimise(t_func&& func, const std::vector<std::string>& vecParamNames,
 				params.Fix(vecParamNames[iParam]);
 		}
 
-		ROOT::Minuit2::MnMigrad migrad(chi2, params, 2);
+		ROOT::Minuit2::MnMigrad migrad(chi2, params, ROOT::Minuit2::MnStrategy{2});
 		ROOT::Minuit2::FunctionMinimum mini = migrad();
 		bool bMinimumValid = mini.IsValid() && mini.HasValidParameters() && mini.UserState().IsValid();
 
