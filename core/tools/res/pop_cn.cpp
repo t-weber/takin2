@@ -285,25 +285,30 @@ ResoResults calc_pop_cn(const CNParams& pop)
 	res.dResVol = tl::get_ellipsoid_volume(res.reso);
 	res.dR0 = dmono_refl * dana_effic * dxsec * dmonitor * R0_sample_mos;
 
+
 	// --------------------------------------------------------------------
-	// mono parts of the matrices, see: [zhe07], p. 10
-	t_mat G_mono_collis = G_collis;
-	G_mono_collis.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
+	// source-mono-monitor parts of the matrices, see: [zhe07], p. 10
+	// --------------------------------------------------------------------
+	t_mat G_monitor_collis = G_collis;
+	G_monitor_collis.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
 
-	t_mat F_mono_mosaics = F_mosaics;
-	F_mono_mosaics.resize(POP_MONO_V+1, POP_MONO_V+1, true);
+	t_mat F_monitor_mosaics = F_mosaics;
+	F_monitor_mosaics.resize(POP_MONO_V+1, POP_MONO_V+1, true);
 
-	t_mat C_mono_trafo = C_trafo;
-	C_mono_trafo.resize(POP_MONO_V+1, POP_PRESAMPLE_V+1, true);
+	t_mat C_monitor_trafo = C_trafo;
+	C_monitor_trafo.resize(POP_MONO_V+1, POP_PRESAMPLE_V+1, true);
 
-	t_mat H_mono = G_mono_collis + tl::transform(F_mono_mosaics, C_mono_trafo, true);
-	//t_mat H_mono = H;
-	//H_mono.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
+	t_mat H_monitor = G_monitor_collis + tl::transform(F_monitor_mosaics, C_monitor_trafo, true);
+	//t_mat H_monitor = H;
+	//H_monitor.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
 	// --------------------------------------------------------------------
 
 	const t_real pi = tl::get_pi<t_real>();
 
+
+	// --------------------------------------------------------------------
 	// R0 calculation methods
+	// --------------------------------------------------------------------
 	// cancels out in [pop75] equ. 5 and equ. 9
 	//t_real dDetG = tl::determinant(G_collis);
 	t_real dDetF = tl::determinant(F_mosaics);
@@ -317,13 +322,13 @@ ResoResults calc_pop_cn(const CNParams& pop)
 	if(pop.flags & CALC_MON)
 	{
 		// cancels out in [pop75] equ. 5 and equ. 9
-		//t_real dDetG_mono = tl::determinant(G_mono_collis);
+		//t_real dDetG_mono = tl::determinant(G_monitor_collis);
 
 		// [zhe07], equ. 9
-		t_real dDetF_mono = tl::determinant(F_mono_mosaics);
-		t_real dDetH_mono = tl::determinant(H_mono);
+		t_real dDetF_monitor = tl::determinant(F_monitor_mosaics);
+		t_real dDetH_monitor = tl::determinant(H_monitor);
 
-		res.dR0 /= std::sqrt(dDetF_mono / dDetH_mono);
+		res.dR0 /= std::sqrt(dDetF_monitor / dDetH_monitor);
 		res.dR0 *= t_real(2.)/pi * s_th_m / dmono_refl;
 	}
 
@@ -337,6 +342,7 @@ ResoResults calc_pop_cn(const CNParams& pop)
 	// except for the (unimportant) prefactors this is the same as dividing by the resolution volume
 	//res.dR0 /= res.dResVol * pi * t_real(3.);
 	// --------------------------------------------------------------------
+
 
 	// Bragg widths
 	const std::vector<t_real> vecFwhms = calc_bragg_fwhms(res.reso);

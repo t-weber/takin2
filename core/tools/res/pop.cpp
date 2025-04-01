@@ -74,6 +74,11 @@ enum PopPosIdx : std::size_t
 	POP_NUM_POS
 };
 
+enum PopPosIdxExtra : std::size_t
+{
+	POP_MONITOR_Y = POP_SAMPLE_X, POP_MONITOR_Z = POP_SAMPLE_Y
+};
+
 enum PopCoordIdx : std::size_t
 {
 	POP_MONO_H = 0, POP_MONO_V,
@@ -252,26 +257,30 @@ ResoResults calc_pop(const PopParams& pop)
 	A_div_kikf_trafo(POP_KF_Z, POP_POSTSAMPLE_V) = sign_z * pop.kf * angs;
 
 
+	// see: https://en.wikipedia.org/wiki/Continuous_uniform_distribution
+	const t_real var_lin = t_real(1. / 12.);   // variance of uniform distribution
+	const t_real var_circ = t_real(1. / 16.);  // variance of circular distribution
+
 	// covariance matrix of component geometries, S, [pop75], Appendices 2 and 3
-	t_real dMultSrc = pop.bSrcRect ? 1./12. : 1./16.;
-	t_real dMultSample = pop.bSampleCub ? 1./12. : 1./16.;
-	t_real dMultDet = pop.bDetRect ? 1./12. : 1./16.;
+	t_real dMultSrc = pop.bSrcRect ? var_lin : var_circ;
+	t_real dMultSample = pop.bSampleCub ? var_lin : var_circ;
+	t_real dMultDet = pop.bDetRect ? var_lin : var_circ;
 
 	t_mat SI_geo = tl::zero_matrix(POP_NUM_POS, POP_NUM_POS);
 	SI_geo(POP_SRC_Y, POP_SRC_Y) = dMultSrc * pop.src_w*pop.src_w /cm/cm;
 	SI_geo(POP_SRC_Z, POP_SRC_Z) = dMultSrc * pop.src_h*pop.src_h /cm/cm;
 
-	SI_geo(POP_MONO_X, POP_MONO_X) = t_real(1./12.) * pop.mono_thick*pop.mono_thick /cm/cm;
-	SI_geo(POP_MONO_Y, POP_MONO_Y) = t_real(1./12.) * pop.mono_w*pop.mono_w /cm/cm;
-	SI_geo(POP_MONO_Z, POP_MONO_Z) = t_real(1./12.) * pop.mono_h*pop.mono_h /cm/cm;
+	SI_geo(POP_MONO_X, POP_MONO_X) = var_lin * pop.mono_thick*pop.mono_thick /cm/cm;
+	SI_geo(POP_MONO_Y, POP_MONO_Y) = var_lin * pop.mono_w*pop.mono_w /cm/cm;
+	SI_geo(POP_MONO_Z, POP_MONO_Z) = var_lin * pop.mono_h*pop.mono_h /cm/cm;
 
 	SI_geo(POP_SAMPLE_X, POP_SAMPLE_X) = dMultSample * pop.sample_w_perpq*pop.sample_w_perpq /cm/cm;
 	SI_geo(POP_SAMPLE_Y, POP_SAMPLE_Y) = dMultSample * pop.sample_w_q*pop.sample_w_q /cm/cm;
-	SI_geo(POP_SAMPLE_Z, POP_SAMPLE_Z) = t_real(1./12.) * pop.sample_h*pop.sample_h /cm/cm;
+	SI_geo(POP_SAMPLE_Z, POP_SAMPLE_Z) = var_lin * pop.sample_h*pop.sample_h /cm/cm;
 
-	SI_geo(POP_ANA_X, POP_ANA_X) = t_real(1./12.) * pop.ana_thick*pop.ana_thick /cm/cm;
-	SI_geo(POP_ANA_Y, POP_ANA_Y) = t_real(1./12.) * pop.ana_w*pop.ana_w /cm/cm;
-	SI_geo(POP_ANA_Z, POP_ANA_Z) = t_real(1./12.) * pop.ana_h*pop.ana_h /cm/cm;
+	SI_geo(POP_ANA_X, POP_ANA_X) = var_lin * pop.ana_thick*pop.ana_thick /cm/cm;
+	SI_geo(POP_ANA_Y, POP_ANA_Y) = var_lin * pop.ana_w*pop.ana_w /cm/cm;
+	SI_geo(POP_ANA_Z, POP_ANA_Z) = var_lin * pop.ana_h*pop.ana_h /cm/cm;
 
 	SI_geo(POP_DET_Y, POP_DET_Y) = dMultDet * pop.det_w*pop.det_w /cm/cm;
 	SI_geo(POP_DET_Z, POP_DET_Z) = dMultDet * pop.det_h*pop.det_h /cm/cm;
@@ -330,7 +339,7 @@ ResoResults calc_pop(const PopParams& pop)
 	// T matrix to transform the mosaic cov. matrix, [pop75], Appendix 2
 	auto get_mosaic_trafo = [](t_real dist_src_mono, t_real dist_mono_sample,
 		t_real s_th_m, t_real c_th_m, t_real s_th_s, t_real c_th_s,
-		t_real inv_curvh, t_real inv_curvv)
+		t_real inv_curvh, t_real inv_curvv, bool no_sample_x = false)
 		-> std::array<t_real, 8>
 	{
 		std::array<t_real, 8> arr;
@@ -351,6 +360,12 @@ ResoResults calc_pop(const PopParams& pop)
 			+ t_real(0.5) / dist_mono_sample ) / s_th_m
 			- inv_curvv;
 		arr[POP_SAMPLE_Z] = t_real(-0.5) / (dist_mono_sample * s_th_m);
+
+		if(no_sample_x)
+		{
+			arr[POP_SAMPLE_X] = arr[POP_SAMPLE_Y];
+			arr[POP_SAMPLE_Y] = arr[POP_SAMPLE_Z];
+		}
 
 		return arr;
 	};
@@ -535,8 +550,10 @@ ResoResults calc_pop(const PopParams& pop)
 	res.dResVol = tl::get_ellipsoid_volume(res.reso);
 	res.dR0 = dmono_refl * dana_effic * dxsec * dmonitor * R0_sample_mos;
 
+
 	// --------------------------------------------------------------------
-	// mono parts of the matrices, see: [zhe07], p. 10
+	// source-mono-monitor parts of the matrices, see: [zhe07], p. 10
+	// --------------------------------------------------------------------
 	// mono - monitor distance and monitor dimensions
 	length dist_mono_monitor = pop.dist_mono_monitor;
 	length monitor_w = pop.monitor_w;
@@ -550,73 +567,90 @@ ResoResults calc_pop(const PopParams& pop)
 	if(tl::float_equal<t_real>(monitor_h / cm, 0.))
 		monitor_h = pop.mono_h;
 
-	t_mat G_mono_collis = G_collis;
-	G_mono_collis.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
+	t_mat G_monitor_collis = G_collis;
+	G_monitor_collis.resize(POP_PRESAMPLE_V+1, POP_PRESAMPLE_V+1, true);
 
-	t_mat F_mono_mosaics = F_mosaics;
-	F_mono_mosaics.resize(POP_MONO_V+1, POP_MONO_V+1, true);
+	t_mat F_monitor_mosaics = F_mosaics;
+	F_monitor_mosaics.resize(POP_MONO_V+1, POP_MONO_V+1, true);
 
-	//t_mat SI_mono_geo = SI_geo;
-	//SI_mono_geo.resize(POP_MONO_Z+1, POP_MONO_Z+1, true);
+	//t_mat SI_monitor_geo = SI_geo;
+	//SI_monitor_geo.resize(POP_MONITOR_Z+1, POP_MONITOR_Z+1, true);
 
-	t_mat SI_mono_geo = tl::zero_matrix(POP_MONO_Z+1, POP_MONO_Z+1);
-	SI_mono_geo(POP_SRC_Y, POP_SRC_Y) = dMultSrc * pop.src_w*pop.src_w /cm/cm;
-	SI_mono_geo(POP_SRC_Z, POP_SRC_Z) = dMultSrc * pop.src_h*pop.src_h /cm/cm;
+	t_mat SI_monitor_geo = tl::zero_matrix(POP_MONITOR_Z+1, POP_MONITOR_Z+1);
+	SI_monitor_geo(POP_SRC_Y, POP_SRC_Y) = dMultSrc * pop.src_w*pop.src_w /cm/cm;
+	SI_monitor_geo(POP_SRC_Z, POP_SRC_Z) = dMultSrc * pop.src_h*pop.src_h /cm/cm;
 
-	SI_mono_geo(POP_MONO_X, POP_MONO_X) = t_real(1./12.) * pop.mono_thick*pop.mono_thick /cm/cm;
-	SI_mono_geo(POP_MONO_Y, POP_MONO_Y) = t_real(1./12.) * monitor_w*monitor_w /cm/cm;
-	SI_mono_geo(POP_MONO_Z, POP_MONO_Z) = t_real(1./12.) * monitor_h*monitor_h /cm/cm;
+	SI_monitor_geo(POP_MONO_X, POP_MONO_X) = var_lin * pop.mono_thick*pop.mono_thick /cm/cm;
+	SI_monitor_geo(POP_MONO_Y, POP_MONO_Y) = var_lin * pop.mono_w*pop.mono_w /cm/cm;
+	SI_monitor_geo(POP_MONO_Z, POP_MONO_Z) = var_lin * pop.mono_h*pop.mono_h /cm/cm;
 
-	SI_mono_geo *= sig2fwhm*sig2fwhm;  // convert to sigmas
+	// note: there seems to be a mixup of monitor coordinate indices in [zhe07], p. 10, should be: x->y, y->z
+	SI_monitor_geo(POP_MONITOR_Y, POP_MONITOR_Y) = var_lin * monitor_w*monitor_w /cm/cm;
+	SI_monitor_geo(POP_MONITOR_Z, POP_MONITOR_Z) = var_lin * monitor_h*monitor_h /cm/cm;
 
-	t_mat S_mono_geo;
-	if(!tl::inverse_diag(SI_mono_geo, S_mono_geo))
+	SI_monitor_geo *= sig2fwhm*sig2fwhm;  // convert to sigmas
+
+	t_mat S_monitor_geo;
+	if(!tl::inverse_diag(SI_monitor_geo, S_monitor_geo))
 	{
 		res.bOk = false;
-		res.strErr = "S_mono matrix cannot be inverted.";
+		res.strErr = "S_monitor matrix cannot be inverted.";
 		return res;
 	}
 
-	//t_mat T_mono_mosaic_trafo = T_mosaic_trafo;
-	//T_mono_mosaic_trafo.resize(POP_MONO_V+1, POP_MONO_Z+1, true);
-	t_mat T_mono_mosaic_trafo = ublas::zero_matrix<t_real>(POP_MONO_V+1, POP_MONO_Z+1);
+	//t_mat T_monitor_mosaic_trafo = T_mosaic_trafo;
+	//T_monitor_mosaic_trafo.resize(POP_MONO_V+1, POP_MONITOR_Z+1, true);
+	// note: there seems to be a mixup of monitor coordinate indices in [zhe07], p. 10, should be: x->y, y->z
+	t_real s_th_monitor = 0., c_th_monitor = 1.;  // sin and cos of the monitor inclination
+	t_mat T_monitor_mosaic_trafo = ublas::zero_matrix<t_real>(POP_MONO_V+1, POP_MONITOR_Z+1);
 	auto mon_mosaic_trafo = get_mosaic_trafo(
-		pop.dist_src_mono/cm, pop.dist_mono_sample/cm,
-		s_th_m, c_th_m, s_th_s, c_th_s,
-		inv_mono_curvh*cm, inv_mono_curvv*cm);
-	T_mono_mosaic_trafo(POP_MONO_H, POP_SRC_Y) = mon_mosaic_trafo[POP_SRC_Y]; // sign forgotten in paper
-	T_mono_mosaic_trafo(POP_MONO_H, POP_MONO_X) = mon_mosaic_trafo[POP_MONO_X];
-	T_mono_mosaic_trafo(POP_MONO_H, POP_MONO_Y) = mon_mosaic_trafo[POP_MONO_Y];
-	T_mono_mosaic_trafo(POP_MONO_V, POP_SRC_Z) = mon_mosaic_trafo[POP_SRC_Z];
-	T_mono_mosaic_trafo(POP_MONO_V, POP_MONO_Z) = mon_mosaic_trafo[POP_MONO_Z];
+		pop.dist_src_mono/cm, dist_mono_monitor/cm,
+		s_th_m, c_th_m, s_th_monitor, c_th_monitor,
+		inv_mono_curvh*cm, inv_mono_curvv*cm, true);
+	T_monitor_mosaic_trafo(POP_MONO_H, POP_SRC_Y) = mon_mosaic_trafo[POP_SRC_Y]; // sign forgotten in paper
+	T_monitor_mosaic_trafo(POP_MONO_H, POP_MONO_X) = mon_mosaic_trafo[POP_MONO_X];
+	T_monitor_mosaic_trafo(POP_MONO_H, POP_MONO_Y) = mon_mosaic_trafo[POP_MONO_Y];
+	T_monitor_mosaic_trafo(POP_MONO_H, POP_MONITOR_Y) = mon_mosaic_trafo[POP_MONITOR_Y];
 
-	//t_mat D_mono_geo_div_trafo = D_geo_div_trafo;
-	//D_mono_geo_div_trafo.resize(POP_PRESAMPLE_V+1, POP_MONO_Z+1, true);
-	t_mat D_mono_geo_div_trafo = ublas::zero_matrix<t_real>(POP_PRESAMPLE_V+1, POP_MONO_Z+1);
+	T_monitor_mosaic_trafo(POP_MONO_V, POP_SRC_Z) = sign_z*mon_mosaic_trafo[POP_SRC_Z];
+	T_monitor_mosaic_trafo(POP_MONO_V, POP_MONO_Z) = sign_z*mon_mosaic_trafo[POP_MONO_Z];
+	T_monitor_mosaic_trafo(POP_MONO_V, POP_MONITOR_Z) = sign_z*mon_mosaic_trafo[POP_MONITOR_Z];
+
+	//t_mat D_monitor_geo_div_trafo = D_geo_div_trafo;
+	//D_monitor_geo_div_trafo.resize(POP_PRESAMPLE_V+1, POP_MONITOR_Z+1, true);
+	// note: there seems to be a mixup of monitor coordinate indices in [zhe07], p. 10, should be: x->y, y->z
+	t_mat D_monitor_geo_div_trafo = ublas::zero_matrix<t_real>(POP_PRESAMPLE_V+1, POP_MONITOR_Z+1);
 	auto mon_geo_trafo = get_geo_trafo(
 		pop.dist_src_mono/cm, dist_mono_monitor/cm,
-		s_th_m, c_th_m, s_th_s, c_th_s);
-	D_mono_geo_div_trafo(POP_PREMONO_H, POP_SRC_Y) = mon_geo_trafo[0];
-	D_mono_geo_div_trafo(POP_PREMONO_H, POP_MONO_X) = mon_geo_trafo[1];
-	D_mono_geo_div_trafo(POP_PREMONO_H, POP_MONO_Y) = mon_geo_trafo[2];
-	D_mono_geo_div_trafo(POP_PRESAMPLE_H, POP_MONO_X) = mon_geo_trafo[3];
-	D_mono_geo_div_trafo(POP_PRESAMPLE_H, POP_MONO_Y) = mon_geo_trafo[4];
-	D_mono_geo_div_trafo(POP_PREMONO_V, POP_SRC_Z) = mon_geo_trafo[7];
-	D_mono_geo_div_trafo(POP_PREMONO_V, POP_MONO_Z) = mon_geo_trafo[8];
-	D_mono_geo_div_trafo(POP_PRESAMPLE_V, POP_MONO_Z) = mon_geo_trafo[9];
+		s_th_m, c_th_m, s_th_monitor, c_th_monitor);
+	D_monitor_geo_div_trafo(POP_PREMONO_H, POP_SRC_Y) = mon_geo_trafo[0];
+	D_monitor_geo_div_trafo(POP_PREMONO_H, POP_MONO_X) = mon_geo_trafo[1];
+	D_monitor_geo_div_trafo(POP_PREMONO_H, POP_MONO_Y) = mon_geo_trafo[2];
 
-	t_mat K_mono_geo = S_mono_geo + tl::transform(F_mono_mosaics, T_mono_mosaic_trafo, true);
-	t_mat Ki_mono_geo;
-	if(!tl::inverse(K_mono_geo, Ki_mono_geo))
+	D_monitor_geo_div_trafo(POP_PRESAMPLE_H, POP_MONO_X) = mon_geo_trafo[3];
+	D_monitor_geo_div_trafo(POP_PRESAMPLE_H, POP_MONO_Y) = mon_geo_trafo[4];
+	D_monitor_geo_div_trafo(POP_PRESAMPLE_H, POP_MONITOR_Y) = mon_geo_trafo[6];
+
+	D_monitor_geo_div_trafo(POP_PREMONO_V, POP_SRC_Z) = sign_z*mon_geo_trafo[7];
+	D_monitor_geo_div_trafo(POP_PREMONO_V, POP_MONO_Z) = sign_z*mon_geo_trafo[8];
+
+	D_monitor_geo_div_trafo(POP_PRESAMPLE_V, POP_MONO_Z) = sign_z*mon_geo_trafo[9];
+	D_monitor_geo_div_trafo(POP_PRESAMPLE_V, POP_MONITOR_Z) = sign_z*mon_geo_trafo[10];
+
+	t_mat K_monitor_geo = S_monitor_geo + tl::transform(F_monitor_mosaics, T_monitor_mosaic_trafo, true);
+	t_mat Ki_monitor_geo;
+	if(!tl::inverse(K_monitor_geo, Ki_monitor_geo))
 	{
 		res.bOk = false;
-		res.strErr = "Matrix K_mono cannot be inverted.";
+		res.strErr = "Matrix K_monitor cannot be inverted.";
 		return res;
 	}
 	// --------------------------------------------------------------------
 
 
+	// --------------------------------------------------------------------
 	// R0 calculation methods
+	// --------------------------------------------------------------------
 	t_real dDetF = tl::determinant(F_mosaics);
 	const t_real pi = tl::get_pi<t_real>();
 
@@ -630,18 +664,18 @@ ResoResults calc_pop(const PopParams& pop)
 
 		if(pop.flags & CALC_MON)
 		{
-			t_mat Hi_mono_div = tl::transform_inv(Ki_mono_geo, D_mono_geo_div_trafo, true);
-			t_mat HG_mono_div;
-			if(!tl::inverse(Hi_mono_div, HG_mono_div))
+			t_mat Hi_monitor_div = tl::transform_inv(Ki_monitor_geo, D_monitor_geo_div_trafo, true);
+			t_mat HG_monitor_div;
+			if(!tl::inverse(Hi_monitor_div, HG_monitor_div))
 			{
 				res.bOk = false;
-				res.strErr = "Matrix H_mono^(-1) cannot be inverted.";
+				res.strErr = "Matrix H_monitor^(-1) cannot be inverted.";
 				return res;
 			}
-			HG_mono_div += G_mono_collis;
+			HG_monitor_div += G_monitor_collis;
 
 			// mono part, [zhe07], p. 10, equ. 10
-			res.dR0 /= std::sqrt(tl::determinant(F_mono_mosaics) / tl::determinant(HG_mono_div));
+			res.dR0 /= std::sqrt(tl::determinant(F_monitor_mosaics) / tl::determinant(HG_monitor_div));
 			res.dR0 *= t_real(2.)/pi * s_th_m / dmono_refl;
 		}
 	}
@@ -671,22 +705,22 @@ ResoResults calc_pop(const PopParams& pop)
 		if(pop.flags & CALC_MON)
 		{
 			// mono part
-			t_mat DSiDt_mono = tl::transform_inv(SI_mono_geo, D_mono_geo_div_trafo, true);
-			t_mat DSiDti_mono;
-			if(!tl::inverse(DSiDt_mono, DSiDti_mono))
+			t_mat DSiDt_monitor = tl::transform_inv(SI_monitor_geo, D_monitor_geo_div_trafo, true);
+			t_mat DSiDti_monitor;
+			if(!tl::inverse(DSiDt_monitor, DSiDti_monitor))
 			{
 				res.bOk = false;
-				res.strErr = "R0_mono factor cannot be calculated.";
+				res.strErr = "R0_monitor factor cannot be calculated.";
 				return res;
 			}
-			DSiDti_mono += G_mono_collis;
+			DSiDti_monitor += G_monitor_collis;
 
-			t_real dDetS_mono = tl::determinant(S_mono_geo);
-			t_real dDetF_mono = tl::determinant(F_mono_mosaics);
-			t_real dDetK_mono = tl::determinant(K_mono_geo);
-			t_real dDetDSiDti_mono = tl::determinant(DSiDti_mono);
+			t_real dDetS_monitor = tl::determinant(S_monitor_geo);
+			t_real dDetF_monitor = tl::determinant(F_monitor_mosaics);
+			t_real dDetK_monitor = tl::determinant(K_monitor_geo);
+			t_real dDetDSiDti_monitor = tl::determinant(DSiDti_monitor);
 
-			res.dR0 /= std::sqrt(dDetS_mono*dDetF_mono / (dDetK_mono*dDetDSiDti_mono));
+			res.dR0 /= std::sqrt(dDetS_monitor*dDetF_monitor / (dDetK_monitor*dDetDSiDti_monitor));
 			res.dR0 *= t_real(2.)/pi * s_th_m / dmono_refl;
 		}
 	}
@@ -701,6 +735,7 @@ ResoResults calc_pop(const PopParams& pop)
 	// except for the (unimportant) prefactors this is the same as dividing by the resolution volume
 	//res.dR0 /= res.dResVol * pi * t_real(3.);
 	// --------------------------------------------------------------------
+
 
 	// Bragg widths
 	const std::vector<t_real> vecFwhms = calc_bragg_fwhms(res.reso);
