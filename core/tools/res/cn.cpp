@@ -398,6 +398,9 @@ ResoResults calc_cn(const CNParams& cn)
 		cn.coll_v_pre_mono, cn.coll_v_post_ana,
 		dmono_refl, dana_effic);*/
 
+	if(cn.flags & CALC_RESVOL)
+		res.dR0 /= res.dR0 /= res.dResVol * pi * t_real(3.);
+
 	res.dR0 = std::abs(res.dR0);
 
 	// Bragg widths

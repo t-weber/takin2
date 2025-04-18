@@ -680,6 +680,19 @@
             </property>
            </widget>
           </item>
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="checkUseResVol">
+            <property name="toolTip">
+             <string>Normalise R0 to the resolution volume.</string>
+            </property>
+            <property name="text">
+             <string>Normalise R0</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -3713,6 +3726,7 @@
   <tabstop>checkUseKi</tabstop>
   <tabstop>checkUseMonitor</tabstop>
   <tabstop>checkUseKfKi</tabstop>
+  <tabstop>checkUseResVol</tabstop>
   <tabstop>spinMonoW</tabstop>
   <tabstop>spinMonoH</tabstop>
   <tabstop>spinMonoThick</tabstop>

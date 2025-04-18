@@ -247,11 +247,11 @@ bool TASReso::LoadRes(const char* pcXmlFile)
 		m_reso.flags |= CALC_GENERAL_R0;
 	else
 		m_reso.flags &= ~CALC_GENERAL_R0;
-	//if(xml.Query<int>((strXmlRoot + "reso/use_resvol").c_str(), 0))
-	//	m_reso.flags |= CALC_RESVOL;
-	//else
-	//	m_reso.flags &= ~CALC_RESVOL;
-	//m_reso.flags &= ~CALC_RESVOL;	// not used anymore
+	if(xml.Query<int>((strXmlRoot + "reso/use_resvol").c_str(), 0))
+		m_reso.flags |= CALC_RESVOL;
+	else
+		m_reso.flags &= ~CALC_RESVOL;
+	//m_reso.flags &= ~CALC_RESVOL;  // set CALC_RESVOL to manually disabled
 
 	m_R0_scale = xml.Query<t_real>((strXmlRoot + "reso/r0_scale").c_str(), 1.);
 
