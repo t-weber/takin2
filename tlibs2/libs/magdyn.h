@@ -769,6 +769,13 @@ public:
 				if(use_field)
 				{
 					t_real factor = /*0.5*/ 1.;
+					auto [spin_re, spin_im] =
+						tl2::split_cplx<t_vec, t_vec_real>(
+							/*m_sites_calc[i].spin_dir*/ v_i);
+					if(tl2::inner<t_vec_real>(
+						spin_re, m_field.dir) >= 0.)
+						factor = -factor;
+
 					t_vec B = tl2::convert<t_vec>(-m_field.dir) * m_field.mag;
 
 					t_vec gv = m_sites[i].g * v_i;
@@ -1571,6 +1578,8 @@ protected:
 	 */
 	std::tuple<t_vec, t_vec> spin_to_uv(const t_vec& spin_dir)
 	{
+		constexpr const bool inv_rot = true;
+
 		auto [spin_re, spin_im] =
 			tl2::split_cplx<t_vec, t_vec_real>(spin_dir);
 
@@ -1581,6 +1590,8 @@ protected:
 		//spin_re /= tl2::norm<t_vec_real>(spin_re);
 		t_mat_real _rot = tl2::rotation<t_mat_real, t_vec_real>(
 			spin_re, m_zdir, &m_rotaxis, m_eps);
+		if(inv_rot)
+			_rot = tl2::trans(_rot);
 
 		t_mat rot = tl2::convert<t_mat, t_mat_real>(_rot);
 		return R_to_uv(rot);
