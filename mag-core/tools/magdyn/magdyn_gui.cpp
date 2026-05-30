@@ -167,6 +167,37 @@ void MagDynDlg::CreateSitesPanel()
 		"Generate", m_sitespanel);
 	btnSG->setToolTip("Create atom site positions from space group symmetry operators.");
 
+	// crystal lattice and angles
+	m_xtallattice[0] = new QDoubleSpinBox(m_sitespanel);
+	m_xtallattice[1] = new QDoubleSpinBox(m_sitespanel);
+	m_xtallattice[2] = new QDoubleSpinBox(m_sitespanel);
+	m_xtalangles[0] = new QDoubleSpinBox(m_sitespanel);
+	m_xtalangles[1] = new QDoubleSpinBox(m_sitespanel);
+	m_xtalangles[2] = new QDoubleSpinBox(m_sitespanel);
+
+	for(int i = 0; i < 3; ++i)
+	{
+		static const char* latticestr[] = { "a = ", "b = ", "c = " };
+		static const char* anglesstr[] = { "α = ", "β = ", "γ = " };
+
+		m_xtallattice[i]->setDecimals(3);
+		m_xtallattice[i]->setMinimum(0.001);
+		m_xtallattice[i]->setMaximum(99.999);
+		m_xtallattice[i]->setSingleStep(0.1);
+		m_xtallattice[i]->setValue(5);
+		m_xtallattice[i]->setPrefix(latticestr[i]);
+		m_xtallattice[i]->setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Preferred});
+
+		m_xtalangles[i]->setDecimals(2);
+		m_xtalangles[i]->setMinimum(0.01);
+		m_xtalangles[i]->setMaximum(180.);
+		m_xtalangles[i]->setSingleStep(0.1);
+		m_xtalangles[i]->setValue(90);
+		m_xtalangles[i]->setPrefix(anglesstr[i]);
+		m_xtalangles[i]->setSuffix("°");
+		m_xtalangles[i]->setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Preferred});
+	}
+
 	btnAdd->setFocusPolicy(Qt::StrongFocus);
 	btnDel->setFocusPolicy(Qt::StrongFocus);
 	btnUp->setFocusPolicy(Qt::StrongFocus);
@@ -199,7 +230,8 @@ void MagDynDlg::CreateSitesPanel()
 	grid->setSpacing(4);
 	grid->setContentsMargins(6, 6, 6, 6);
 
-	auto sep = new QFrame(m_samplepanel); sep->setFrameStyle(QFrame::HLine);
+	auto sep = new QFrame(m_sitespanel); sep->setFrameStyle(QFrame::HLine);
+	auto sep2 = new QFrame(m_sitespanel); sep2->setFrameStyle(QFrame::HLine);
 
 	int y = 0;
 	grid->addWidget(m_sitestab, y,0,1,4);
@@ -220,7 +252,24 @@ void MagDynDlg::CreateSitesPanel()
 
 	grid->addWidget(new QLabel("Generate Atom Sites From Space Group:"), y++,0,1,4);
 	grid->addWidget(m_comboSG, y,0,1,3);
-	grid->addWidget(btnSG, y,3,1,1);
+	grid->addWidget(btnSG, y++,3,1,1);
+
+	grid->addItem(new QSpacerItem(8, 8,
+		QSizePolicy::Minimum, QSizePolicy::Fixed),
+		y++,0, 1,1);
+	grid->addWidget(sep2, y++,0, 1,4);
+	grid->addItem(new QSpacerItem(8, 8,
+		QSizePolicy::Minimum, QSizePolicy::Fixed),
+		y++,0, 1,1);
+
+	grid->addWidget(new QLabel("Crystal Lattice:", m_sitespanel), y, 0, 1, 1);
+	grid->addWidget(m_xtallattice[0], y, 1, 1, 1);
+	grid->addWidget(m_xtallattice[1], y, 2, 1, 1);
+	grid->addWidget(m_xtallattice[2], y++, 3, 1, 1);
+	grid->addWidget(new QLabel("Crystal Angles:", m_sitespanel), y, 0, 1, 1);
+	grid->addWidget(m_xtalangles[0], y, 1, 1, 1);
+	grid->addWidget(m_xtalangles[1], y, 2, 1, 1);
+	grid->addWidget(m_xtalangles[2], y++, 3, 1, 1);
 
 
 	// table CustomContextMenu
@@ -299,6 +348,23 @@ void MagDynDlg::CreateSitesPanel()
 		this->ShowTableContextMenu(
 			m_sitestab, menuTableContext, menuTableContextNoItem, pt);
 	});
+
+	auto calc_all = [this]()
+	{
+		if(this->m_autocalc->isChecked())
+			this->CalcAll();
+	};
+
+	for(int i = 0; i < 3; ++i)
+	{
+		connect(m_xtallattice[i],
+			static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+			calc_all);
+		connect(m_xtalangles[i],
+			static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+			calc_all);
+	}
+
 
 	m_tabs_in->addTab(m_sitespanel, "Atoms");
 }
@@ -446,8 +512,8 @@ void MagDynDlg::CreateExchangeTermsPanel()
 	m_normaxis[1]->setPrefix("Nk = ");
 	m_normaxis[2]->setPrefix("Nl = ");
 
-	auto sep1 = new QFrame(m_samplepanel); sep1->setFrameStyle(QFrame::HLine);
-	auto sep2 = new QFrame(m_samplepanel); sep2->setFrameStyle(QFrame::HLine);
+	auto sep1 = new QFrame(m_termspanel); sep1->setFrameStyle(QFrame::HLine);
+	auto sep2 = new QFrame(m_termspanel); sep2->setFrameStyle(QFrame::HLine);
 
 	// grid
 	auto grid = new QGridLayout(m_termspanel);
@@ -1355,7 +1421,7 @@ void MagDynDlg::CreateExportPanel()
 	grid->addItem(new QSpacerItem(8, 8,
 		QSizePolicy::Minimum, QSizePolicy::Fixed),
 		y++,0, 1,1);
-	auto sep1 = new QFrame(m_samplepanel); sep1->setFrameStyle(QFrame::HLine);
+	auto sep1 = new QFrame(m_exportpanel); sep1->setFrameStyle(QFrame::HLine);
 	grid->addWidget(sep1, y++, 0,1,4);
 	grid->addItem(new QSpacerItem(8, 8,
 		QSizePolicy::Minimum, QSizePolicy::Fixed),
@@ -1372,7 +1438,7 @@ void MagDynDlg::CreateExportPanel()
 	grid->addItem(new QSpacerItem(8, 8,
 		QSizePolicy::Minimum, QSizePolicy::Fixed),
 		y++,0, 1,1);
-	auto sep2 = new QFrame(m_samplepanel); sep1->setFrameStyle(QFrame::HLine);
+	auto sep2 = new QFrame(m_exportpanel); sep1->setFrameStyle(QFrame::HLine);
 	grid->addWidget(sep2, y++, 0,1,4);
 	grid->addItem(new QSpacerItem(8, 8,
 		QSizePolicy::Minimum, QSizePolicy::Fixed),
