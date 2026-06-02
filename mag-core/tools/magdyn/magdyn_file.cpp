@@ -87,6 +87,13 @@ void MagDynDlg::Clear()
 	// set some defaults
 	m_comboSG->setCurrentIndex(0);
 
+	m_xtallattice[0]->setValue(5.);
+	m_xtallattice[1]->setValue(5.);
+	m_xtallattice[2]->setValue(5.);
+	m_xtalangles[0]->setValue(90.);
+	m_xtalangles[1]->setValue(90.);
+	m_xtalangles[2]->setValue(90.);
+
 	m_ordering[0]->setValue(0.);
 	m_ordering[1]->setValue(0.);
 	m_ordering[2]->setValue(0.);
