@@ -584,6 +584,15 @@ void MagDynDlg::SyncSitesAndTerms()
 		m_dyn.AddAtomSite(std::move(site));
 	}
 
+	// get crystal lattice
+	m_dyn.SetCrystalLattice(
+		m_xtallattice[0]->value(),
+		m_xtallattice[1]->value(),
+		m_xtallattice[2]->value(),
+		tl2::d2r<t_real>(m_xtalangles[0]->value()),
+		tl2::d2r<t_real>(m_xtalangles[1]->value()),
+		tl2::d2r<t_real>(m_xtalangles[2]->value()));
+
 	m_dyn.CalcAtomSites();
 	const auto& sites = m_dyn.GetAtomSites();
 

@@ -349,7 +349,7 @@ public:
 	void SetEpsilon(t_real eps) { m_eps = eps; }
 	void SetPrecision(int prec) { m_prec = prec; }
 
-		void SetTemperature(t_real T) { m_temperature = T; }
+	void SetTemperature(t_real T) { m_temperature = T; }
 	void SetBoseCutoffEnergy(t_real E) { m_bose_cutoff = E; }
 	void SetUniteDegenerateEnergies(bool b) { m_unite_degenerate_energies = b; }
 	void SetForceIncommensurate(bool b) { m_force_incommensurate = b; }
@@ -421,6 +421,22 @@ public:
 		if(set_index)
 			term.index = GetExchangeTerms().size();
 		m_exchange_terms.emplace_back(std::forward<ExchangeTerm&&>(term));
+	}
+
+
+	void SetCrystalLattice(t_real a, t_real b, t_real c,
+		t_real alpha, t_real beta, t_real gamma)
+	{
+		try
+		{
+			// crystal fractional coordinate trafo matrix
+			m_xtalB = tl2::B_matrix<t_mat_real>(a, b, c, alpha, beta, gamma);
+		}
+		catch(const std::exception& ex)
+		{
+			m_xtalB = tl2::unit<t_mat_real>(3);
+			std::cerr << "Magdyn error: Could not calculate crystal B matrix." << std::endl;
+		}
 	}
 	// --------------------------------------------------------------------
 
@@ -1068,6 +1084,8 @@ public:
 	 */
 	void GetIntensities(const t_vec_real& Qvec, std::vector<EnergyAndWeight>& energies_and_correlations) const
 	{
+		t_vec_real Qvec_lab = m_xtalB * Qvec;
+
 		for(EnergyAndWeight& E_and_S : energies_and_correlations)
 		{
 			// apply bose factor
@@ -1078,7 +1096,7 @@ public:
 			// see (Shirane 2002), p. 37, eq. (2.64)
 			//t_vec bragg_rot = use_field ? m_rot_field * m_bragg : m_bragg;
 			//proj_neutron = tl2::ortho_projector<t_mat, t_vec>(bragg_rot, false);
-			t_mat proj_neutron = tl2::ortho_projector<t_mat, t_vec>(Qvec, false);
+			t_mat proj_neutron = tl2::ortho_projector<t_mat, t_vec>(Qvec_lab, false);
 			E_and_S.S_perp = proj_neutron * E_and_S.S * proj_neutron;
 
 			// weights
@@ -1606,6 +1624,9 @@ private:
 	// magnetic couplings
 	std::vector<ExchangeTerm> m_exchange_terms{};
 	std::vector<ExchangeTermCalc> m_exchange_terms_calc{};
+
+	// crystal B matrix
+	t_mat_real m_xtalB{ tl2::unit<t_mat_real>(3) };
 
 	// open variables
 	std::vector<Variable> m_variables{};
